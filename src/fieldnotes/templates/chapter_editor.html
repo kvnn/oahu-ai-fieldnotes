@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}{{ brief.title }}{% endblock %}
+
+{% block content %}
+<section class="detail-header chapter-editor-header">
+  <div>
+    <a class="back-link" href="/chapters">Back to board</a>
+    <p class="eyebrow">{{ brief.status }} / draft {{ draft.version_number }}</p>
+    <h1>{{ brief.title }}</h1>
+    {% if brief.subtitle %}
+      <p class="muted subtitle-line">{{ brief.subtitle }}</p>
+    {% endif %}
+  </div>
+  <dl class="stats compact">
+    <div><dt>Format</dt><dd>{{ draft.body_format }}</dd></div>
+    <div><dt>Words</dt><dd id="word-count">0</dd></div>
+  </dl>
+</section>
+
+<section class="editor-shell">
+  <div class="editor-topline">
+    <label for="chapter-body">Chapter Contents</label>
+    <span id="autosave-status" class="autosave-status saved">Saved</span>
+  </div>
+  <textarea
+    id="chapter-body"
+    class="chapter-textarea"
+    data-save-url="/chapters/{{ brief.id }}/draft"
+    spellcheck="true"
+  >{{ draft.body }}</textarea>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const textarea = document.querySelector("#chapter-body");
+  const statusLabel = document.querySelector("#autosave-status");
+  const wordCount = document.querySelector("#word-count");
+  let saveTimer = null;
+  let lastSavedBody = textarea.value;
+
+  function setStatus(kind, text) {
+    statusLabel.className = `autosave-status ${kind}`;
+    statusLabel.textContent = text;
+  }
+
+  function resizeEditor() {
+    textarea.style.height = "auto";
+    textarea.style.height = `${Math.max(textarea.scrollHeight, 560)}px`;
+  }
+
+  function updateWordCount() {
+    const words = textarea.value.trim().match(/\S+/g);
+    wordCount.textContent = words ? words.length : 0;
+  }
+
+  async function saveDraft() {
+    const body = textarea.value;
+    if (body === lastSavedBody) {
+      setStatus("saved", "Saved");
+      return;
+    }
+
+    setStatus("saving", "Saving");
+    try {
+      const response = await fetch(textarea.dataset.saveUrl, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({body}),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.detail || "Autosave failed");
+      }
+      lastSavedBody = body;
+      statusLabel.title = data.trace_id ? `Trace ${data.trace_id}` : "";
+      setStatus("saved", "Saved");
+    } catch (error) {
+      statusLabel.title = error.message;
+      setStatus("failed", "Failed");
+    }
+  }
+
+  textarea.addEventListener("input", () => {
+    resizeEditor();
+    updateWordCount();
+    setStatus("dirty", "Unsaved");
+    window.clearTimeout(saveTimer);
+    saveTimer = window.setTimeout(saveDraft, 650);
+  });
+
+  textarea.addEventListener("blur", () => {
+    window.clearTimeout(saveTimer);
+    saveDraft();
+  });
+
+  resizeEditor();
+  updateWordCount();
+</script>
+{% endblock %}

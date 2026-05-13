@@ -1,0 +1,86 @@
+project_slug = "oahu-ai-field-notes-vol-1"
+curated_assets_dir = "assets/curated"
+vivliostyle_config = "vivliostyle.config.js"
+manuscript_dir = "manuscript"
+
+[openai]
+ocr_model = "gpt-4.1"
+extraction_model = "gpt-5.5"
+
+[extraction]
+provider = "openai"
+prompt_version = "fieldnotes.extraction.v0.1"
+schema_version = "fieldnotes.extraction_result.v0.1"
+max_chunk_chars = 4000
+
+[[watch_roots]]
+path = "inbox/notebooks"
+source_type = "project_note"
+mode = "images"
+recursive = true
+
+[[watch_roots]]
+path = "inbox/screenshots"
+source_type = "screenshot"
+mode = "images"
+recursive = true
+
+[[watch_roots]]
+path = "inbox/transcripts"
+source_type = "meeting_transcript"
+mode = "text"
+recursive = true
+
+[[watch_roots]]
+path = "inbox/docs"
+source_type = "uploaded_document"
+mode = "text"
+recursive = true
+
+[[watch_roots]]
+path = "."
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "oahu-ai-field-notes"
+
+[[watch_roots]]
+path = "/Users/kvnn/Projects/crawlbuild"
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "crawlbuild"
+
+[[watch_roots]]
+path = "/Users/kvnn/Projects/LitScenes"
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "LitScenes"
+
+[[watch_roots]]
+path = "/Users/kvnn/Life360/marck-studio"
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "marck-studio"
+
+[[watch_roots]]
+path = "/Users/kvnn/Projects/oahu-ai-builder"
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "oahu-ai-builder"
+
+[[watch_roots]]
+path = "/Users/kvnn/Projects/oahuai-seed"
+source_type = "git_repository"
+mode = "repo_summary"
+recursive = false
+read_only = true
+label = "oahuai-seed"

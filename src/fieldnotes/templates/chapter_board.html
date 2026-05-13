@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Chapter Board{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ project.slug }}</p>
+    <h1>{{ project.name }}</h1>
+  </div>
+  <dl class="stats">
+    <div><dt>Sources</dt><dd>{{ stats.sources }}</dd></div>
+    <div><dt>Ready Chunks</dt><dd>{{ stats.ready_chunks }}</dd></div>
+    <div><dt>Blocked</dt><dd>{{ stats.blocked_chunks }}</dd></div>
+    <div><dt>Review</dt><dd>{{ stats.needs_review }}</dd></div>
+    <div><dt>Nodes</dt><dd>{{ stats.knowledge_nodes }}</dd></div>
+  </dl>
+</section>
+
+<section class="layout">
+  <div>
+    <div class="section-title">
+      <h2>Eight-Chapter Spine</h2>
+      <span>{{ stats.promoted_candidates }} promoted candidates</span>
+    </div>
+    <div class="chapter-grid">
+      {% for item in chapter_slots %}
+        {% set brief = item.brief %}
+        <article class="chapter-slot {% if not brief %}empty{% endif %}">
+          <div class="slot-number">{{ item.slot }}</div>
+          {% if brief %}
+            <h3><a href="/chapters/{{ brief.id }}">{{ brief.title }}</a></h3>
+            <p>{{ brief.subtitle or brief.field_note or "Brief needs sharper pressure." }}</p>
+            <dl class="mini-stats">
+              <div><dt>Status</dt><dd>{{ brief.status }}</dd></div>
+              <div><dt>Drafts</dt><dd>{{ brief.drafts|length }}</dd></div>
+              <div><dt>Pages</dt><dd>{{ brief.intended_page_count or "?" }}</dd></div>
+            </dl>
+          {% else %}
+            <h3>Open chapter slot</h3>
+            <p>Promote grounded candidates until a real argument earns this place.</p>
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  </div>
+
+  <aside class="candidate-panel">
+    <div class="section-title">
+      <h2>Candidate Queue</h2>
+      <span>{{ candidates|length }} shown</span>
+    </div>
+    <div class="candidate-list">
+      {% for candidate in candidates %}
+        <article class="candidate-row">
+          <div>
+            <p class="type">{{ candidate.node_type }}</p>
+            <h3><a href="/candidates/{{ candidate.id }}">{{ candidate.title }}</a></h3>
+            <p>{{ candidate.body[:220] }}{% if candidate.body|length > 220 %}...{% endif %}</p>
+          </div>
+          <dl class="score-pair">
+            <div><dt>Reuse</dt><dd>{{ "%.2f"|format(candidate.reuse_score) }}</dd></div>
+            <div><dt>Ground</dt><dd>{{ "%.2f"|format(candidate.confidence_score) }}</dd></div>
+          </dl>
+        </article>
+      {% else %}
+        <p class="empty-note">No extracted candidates are waiting for review.</p>
+      {% endfor %}
+    </div>
+  </aside>
+</section>
+{% endblock %}

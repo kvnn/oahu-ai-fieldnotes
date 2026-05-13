@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate{% endblock %}
+
+{% block content %}
+<section class="detail-header">
+  <a class="back-link" href="/chapters">Back to board</a>
+  <p class="eyebrow">{{ candidate.node_type }} / {{ candidate.status }}</p>
+  <h1>{{ candidate.title }}</h1>
+  <dl class="stats compact">
+    <div><dt>Reuse</dt><dd>{{ "%.2f"|format(candidate.reuse_score) }}</dd></div>
+    <div><dt>Confidence</dt><dd>{{ "%.2f"|format(candidate.confidence_score) }}</dd></div>
+  </dl>
+</section>
+
+<section class="detail-grid">
+  <article class="reading-panel">
+    <h2>Candidate Body</h2>
+    <p class="body-text">{{ candidate.body }}</p>
+
+    {% if candidate.evidence_quote %}
+      <h2>Evidence</h2>
+      <blockquote>{{ candidate.evidence_quote }}</blockquote>
+    {% endif %}
+
+    {% if candidate.rationale %}
+      <h2>Rationale</h2>
+      <p>{{ candidate.rationale }}</p>
+    {% endif %}
+  </article>
+
+  <aside class="action-panel">
+    <h2>Review</h2>
+    {% if candidate.promoted_node %}
+      <p class="state-good">Promoted to node {{ candidate.promoted_node.id }}</p>
+    {% else %}
+      <form method="post" action="/candidates/{{ candidate.id }}/promote">
+        <button type="submit">Promote</button>
+      </form>
+    {% endif %}
+
+    <form method="post" action="/candidates/{{ candidate.id }}/reject">
+      <button class="danger" type="submit">Reject</button>
+    </form>
+
+    <h2>Link To Chapter</h2>
+    {% for brief in briefs %}
+      <form method="post" action="/candidates/{{ candidate.id }}/promote?chapter_brief_id={{ brief.id }}&section_key=field_note">
+        <button class="secondary" type="submit">{{ brief.sequence_order or "?" }}. {{ brief.title }}</button>
+      </form>
+    {% else %}
+      <p class="empty-note">No chapter briefs exist yet.</p>
+    {% endfor %}
+
+    <h2>Source</h2>
+    <p><a href="/sources/{{ candidate.source.id }}">{{ candidate.source.title or candidate.source.location }}</a></p>
+    <p class="muted">{{ candidate.source_chunk.title or "Chunk" }} / {{ candidate.source_chunk.status }}</p>
+  </aside>
+</section>
+{% endblock %}

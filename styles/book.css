@@ -1,0 +1,180 @@
+@page {
+  size: 6in 9in;
+  margin: 0.72in 0.58in 0.78in;
+
+  @bottom-center {
+    content: counter(page);
+    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+    font-size: 8pt;
+    color: #565656;
+  }
+}
+
+@page :first {
+  @bottom-center {
+    content: "";
+  }
+}
+
+@page :left {
+  margin-left: 0.72in;
+  margin-right: 0.52in;
+}
+
+@page :right {
+  margin-left: 0.52in;
+  margin-right: 0.72in;
+}
+
+:root {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color: #1d1d1d;
+  font-size: 10.5pt;
+  line-height: 1.48;
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+body {
+  margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  font-weight: 650;
+  line-height: 1.15;
+  hyphens: none;
+  break-after: avoid;
+}
+
+h1 {
+  margin: 0 0 0.32in;
+  font-size: 24pt;
+  page-break-before: always;
+}
+
+h2 {
+  margin: 0.26in 0 0.12in;
+  font-size: 14pt;
+}
+
+h3 {
+  margin: 0.18in 0 0.08in;
+  font-size: 11pt;
+}
+
+p {
+  margin: 0 0 0.12in;
+}
+
+a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 0.04em;
+}
+
+blockquote {
+  margin: 0.18in 0;
+  padding-left: 0.16in;
+  border-left: 0.02in solid #8aa6a3;
+  color: #323232;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  margin: 0.2in auto;
+}
+
+figure {
+  margin: 0.24in 0;
+  break-inside: avoid;
+}
+
+figcaption {
+  margin-top: 0.06in;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  font-size: 8.4pt;
+  color: #5a5a5a;
+}
+
+table {
+  width: 100%;
+  margin: 0.18in 0;
+  border-collapse: collapse;
+  font-size: 9pt;
+}
+
+th,
+td {
+  padding: 0.05in 0.07in;
+  border-bottom: 0.005in solid #b8b8b8;
+  vertical-align: top;
+}
+
+th {
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  text-align: left;
+}
+
+code,
+pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+}
+
+pre {
+  padding: 0.12in;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  background: #f3f1ec;
+  break-inside: avoid;
+}
+
+.cover {
+  page: cover;
+  min-height: 8.1in;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.cover h1 {
+  page-break-before: auto;
+  margin-bottom: 0.12in;
+  font-size: 34pt;
+}
+
+.cover .subtitle {
+  max-width: 4.1in;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  font-size: 13pt;
+  line-height: 1.35;
+}
+
+.frontmatter h1 {
+  page-break-before: auto;
+}
+
+.field-note-meta {
+  margin: 0.08in 0 0.24in;
+  padding: 0.1in 0;
+  border-top: 0.005in solid #8aa6a3;
+  border-bottom: 0.005in solid #8aa6a3;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  font-size: 8.8pt;
+}
+
+.page-break {
+  break-before: page;
+}
+
+@page cover {
+  margin: 0.72in;
+
+  @bottom-center {
+    content: "";
+  }
+}

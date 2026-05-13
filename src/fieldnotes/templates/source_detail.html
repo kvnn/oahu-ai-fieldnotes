@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}Source{% endblock %}
+
+{% block content %}
+<section class="detail-header">
+  <a class="back-link" href="/chapters">Back to board</a>
+  <p class="eyebrow">{{ source.source_type }} / {{ source.status }}</p>
+  <h1>{{ source.title or source.location }}</h1>
+  <p class="muted">{{ source.location or source.uri }}</p>
+</section>
+
+<section class="reading-panel">
+  <h2>Chunks</h2>
+  <div class="chunk-list">
+    {% for chunk in chunks %}
+      <article class="chunk-row">
+        <div>
+          <p class="type">{{ chunk.chunk_type }} / {{ chunk.status }}</p>
+          <h3>{{ chunk.title or "Chunk " ~ chunk.chunk_index }}</h3>
+          <p>{{ chunk.text[:500] }}{% if chunk.text|length > 500 %}...{% endif %}</p>
+        </div>
+        <dl class="score-pair">
+          <div><dt>Index</dt><dd>{{ chunk.chunk_index }}</dd></div>
+          <div><dt>OCR</dt><dd>{{ "%.2f"|format(chunk.ocr_confidence) if chunk.ocr_confidence is not none else "-" }}</dd></div>
+        </dl>
+      </article>
+    {% else %}
+      <p class="empty-note">No chunks have been created for this source.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

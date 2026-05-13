@@ -1,0 +1,17 @@
+node_modules/
+.vivliostyle/
+.env
+.venv/
+.pytest_cache/
+__pycache__/
+*.py[cod]
+*.egg-info/
+fieldnotes.db
+*.sqlite
+*.sqlite3
+dist/*
+!dist/.gitkeep
+inbox/**/*
+!inbox/**/.gitkeep
+.DS_Store
+npm-debug.log*
