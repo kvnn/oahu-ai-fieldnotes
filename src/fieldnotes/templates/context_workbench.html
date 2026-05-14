@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Context Workbench{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">{{ project.slug }}</p>
+    <h1>Context Workbench</h1>
+  </div>
+  <dl class="stats">
+    <div><dt>Chunks</dt><dd>{{ stats.source_chunks }}</dd></div>
+    <div><dt>Discarded</dt><dd>{{ stats.discarded_chunks }}</dd></div>
+    <div><dt>Cards</dt><dd>{{ stats.meaning_cards }}</dd></div>
+    <div><dt>Review</dt><dd>{{ stats.needs_review }}</dd></div>
+  </dl>
+</section>
+
+<section class="workbench-toolbar">
+  <nav class="tabs">
+    <a class="{% if tab == 'meaning' %}active{% endif %}" href="/context?tab=meaning">Meaning Cards</a>
+    <a class="{% if tab == 'sources' %}active{% endif %}" href="/context?tab=sources">Sources</a>
+  </nav>
+  <form class="filter-form" method="get" action="/context">
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <label>
+      Project
+      <select name="label">
+        <option value="">All</option>
+        {% for item in labels %}
+          <option value="{{ item }}" {% if item == label %}selected{% endif %}>{{ item }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>
+      Status
+      <select name="status">
+        <option value="">All</option>
+        {% if tab == 'sources' %}
+          {% for item in ["ready", "discarded", "needs_ocr", "blocked", "failed"] %}
+            <option value="{{ item }}" {% if item == status %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        {% else %}
+          {% for item in ["needs_review", "promoted", "rejected", "superseded"] %}
+            <option value="{{ item }}" {% if item == status %}selected{% endif %}>{{ item }}</option>
+          {% endfor %}
+        {% endif %}
+      </select>
+    </label>
+    <button class="inline-button" type="submit">Filter</button>
+  </form>
+</section>
+
+<section class="workbench-list">
+  {% if tab == 'sources' %}
+    {% for chunk in items %}
+      <article class="workbench-card">
+        <div>
+          <p class="type">{{ chunk.source.source_metadata.get("context_label") or "unlabeled" }} / {{ chunk.chunk_type }} / {{ chunk.status }}</p>
+          <h2><a href="/sources/{{ chunk.source.id }}">{{ chunk.title or chunk.source.title or "Source chunk" }}</a></h2>
+          <p>{{ chunk.text[:520] }}{% if chunk.text|length > 520 %}...{% endif %}</p>
+          <p class="muted">{{ chunk.source.location }}</p>
+        </div>
+        <div class="card-actions">
+          <form method="post" action="/chunks/{{ chunk.id }}/keep?return_to={{ return_to|urlencode }}">
+            <button type="submit">Keep</button>
+          </form>
+          <form method="post" action="/chunks/{{ chunk.id }}/discard?return_to={{ return_to|urlencode }}">
+            <button class="danger" type="submit">Discard</button>
+          </form>
+        </div>
+      </article>
+    {% else %}
+      <p class="empty-note">No source chunks match this view.</p>
+    {% endfor %}
+  {% else %}
+    {% for candidate in items %}
+      <article class="workbench-card">
+        <div>
+          <p class="type">{{ candidate.source.source_metadata.get("context_label") or "unlabeled" }} / {{ candidate.node_type }} / {{ candidate.status }}</p>
+          <h2><a href="/candidates/{{ candidate.id }}">{{ candidate.title }}</a></h2>
+          <p>{{ candidate.body[:520] }}{% if candidate.body|length > 520 %}...{% endif %}</p>
+          {% if candidate.evidence_quote %}
+            <blockquote>{{ candidate.evidence_quote[:260] }}{% if candidate.evidence_quote|length > 260 %}...{% endif %}</blockquote>
+          {% endif %}
+        </div>
+        <div class="card-actions">
+          {% if candidate.status == "promoted" %}
+            <p class="state-good">Kept</p>
+          {% else %}
+            <form method="post" action="/candidates/{{ candidate.id }}/keep?return_to={{ return_to|urlencode }}">
+              <button type="submit">Keep</button>
+            </form>
+          {% endif %}
+          {% if candidate.status == "rejected" %}
+            <p class="empty-note">Discarded</p>
+          {% else %}
+            <form method="post" action="/candidates/{{ candidate.id }}/discard?return_to={{ return_to|urlencode }}">
+              <button class="danger" type="submit">Discard</button>
+            </form>
+          {% endif %}
+          <dl class="score-pair stacked">
+            <div><dt>Reuse</dt><dd>{{ "%.2f"|format(candidate.reuse_score) }}</dd></div>
+            <div><dt>Ground</dt><dd>{{ "%.2f"|format(candidate.confidence_score) }}</dd></div>
+          </dl>
+        </div>
+      </article>
+    {% else %}
+      <p class="empty-note">No meaning cards match this view.</p>
+    {% endfor %}
+  {% endif %}
+</section>
+
+<nav class="pagination">
+  {% if pagination.has_previous %}
+    <a href="/context?tab={{ tab }}&label={{ label|urlencode }}&status={{ status|urlencode }}&page={{ pagination.previous_page }}">Previous</a>
+  {% else %}
+    <span>Previous</span>
+  {% endif %}
+  <strong>Page {{ pagination.page }} of {{ pagination.page_count }}</strong>
+  {% if pagination.has_next %}
+    <a href="/context?tab={{ tab }}&label={{ label|urlencode }}&status={{ status|urlencode }}&page={{ pagination.next_page }}">Next</a>
+  {% else %}
+    <span>Next</span>
+  {% endif %}
+</nav>
+{% endblock %}

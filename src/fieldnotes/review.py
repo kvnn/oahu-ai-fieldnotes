@@ -12,6 +12,7 @@ from fieldnotes.db.models import (
     CandidateStatus,
     ChapterBrief,
     ChapterBriefNode,
+    ChunkStatus,
     ExtractedCandidate,
     KnowledgeNode,
     KnowledgeStatus,
@@ -19,6 +20,7 @@ from fieldnotes.db.models import (
     ReviewDecision,
     ReviewDecisionType,
     ReviewTargetType,
+    SourceChunk,
 )
 
 
@@ -54,6 +56,88 @@ def get_candidate(session: Session, candidate_id: UUID | str) -> ExtractedCandid
     if candidate is None:
         raise ValueError(f"unknown extracted candidate: {candidate_id}")
     return candidate
+
+
+def get_source_chunk(session: Session, chunk_id: UUID | str) -> SourceChunk:
+    chunk = session.get(SourceChunk, _uuid(chunk_id))
+    if chunk is None:
+        raise ValueError(f"unknown source chunk: {chunk_id}")
+    return chunk
+
+
+def _source_chunk_decision(
+    *,
+    chunk: SourceChunk,
+    decision_type: str,
+    decision: str,
+    reviewer: str,
+    rationale: str | None,
+    evidence: dict[str, Any] | None = None,
+) -> ReviewDecision:
+    return ReviewDecision(
+        project_id=chunk.project_id,
+        decision_type=decision_type,
+        target_type=ReviewTargetType.SOURCE_CHUNK.value,
+        target_id=chunk.id,
+        decision=decision,
+        reviewer=reviewer,
+        rationale=rationale,
+        evidence=evidence or {},
+    )
+
+
+def keep_source_chunk(
+    session: Session,
+    chunk_id: UUID | str,
+    *,
+    reviewer: str = "human",
+    rationale: str | None = None,
+) -> SourceChunk:
+    chunk = get_source_chunk(session, chunk_id)
+    if chunk.status == ChunkStatus.DISCARDED.value:
+        chunk.status = ChunkStatus.READY.value
+    session.add(
+        _source_chunk_decision(
+            chunk=chunk,
+            decision_type=ReviewDecisionType.NOTE.value,
+            decision="kept",
+            reviewer=reviewer,
+            rationale=rationale,
+            evidence={
+                "source_id": str(chunk.source_id),
+                "chunk_index": chunk.chunk_index,
+                "status": chunk.status,
+            },
+        )
+    )
+    session.flush()
+    return chunk
+
+
+def discard_source_chunk(
+    session: Session,
+    chunk_id: UUID | str,
+    *,
+    reviewer: str = "human",
+    rationale: str | None = None,
+) -> SourceChunk:
+    chunk = get_source_chunk(session, chunk_id)
+    chunk.status = ChunkStatus.DISCARDED.value
+    session.add(
+        _source_chunk_decision(
+            chunk=chunk,
+            decision_type=ReviewDecisionType.REJECT.value,
+            decision=ChunkStatus.DISCARDED.value,
+            reviewer=reviewer,
+            rationale=rationale,
+            evidence={
+                "source_id": str(chunk.source_id),
+                "chunk_index": chunk.chunk_index,
+            },
+        )
+    )
+    session.flush()
+    return chunk
 
 
 def promote_candidate(

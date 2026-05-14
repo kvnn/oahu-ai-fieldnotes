@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from fieldnotes.chapters import autosave_chapter_draft, get_or_create_chapter_draft
 from fieldnotes.config import load_config
@@ -29,13 +29,19 @@ from fieldnotes.db.models import (
     SourceMaterial,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
-from fieldnotes.review import promote_candidate, reject_candidate
+from fieldnotes.review import (
+    discard_source_chunk,
+    keep_source_chunk,
+    promote_candidate,
+    reject_candidate,
+)
 from fieldnotes.workflow import ensure_project
 
 
 PACKAGE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=PACKAGE_DIR / "templates")
 logger = logging.getLogger("fieldnotes.server")
+CONTEXT_PAGE_SIZE = 12
 
 
 class DraftSaveRequest(BaseModel):
@@ -168,6 +174,82 @@ def create_app(
             },
         )
 
+    @app.get("/context", response_class=HTMLResponse)
+    def context_workbench(
+        request: Request,
+        tab: str = Query(default="meaning"),
+        page: int = Query(default=1, ge=1),
+        label: str = Query(default=""),
+        status: str = Query(default=""),
+        session: Session = Depends(get_session),
+    ):
+        project = ensure_project(session, config)
+        active_tab = tab if tab in {"sources", "meaning"} else "meaning"
+        labels = _context_labels(session, project)
+        normalized_label = label if label in labels else ""
+        chunks: list[SourceChunk] = []
+        candidates: list[ExtractedCandidate] = []
+
+        if active_tab == "sources":
+            source_query = (
+                select(SourceChunk)
+                .options(selectinload(SourceChunk.source))
+                .where(SourceChunk.project_id == project.id)
+                .order_by(SourceChunk.created_at.desc(), SourceChunk.chunk_index.asc())
+            )
+            chunks = list(session.scalars(source_query))
+            chunks = [
+                chunk
+                for chunk in chunks
+                if _matches_context_filters(
+                    _source_label(chunk.source), chunk.status, normalized_label, status
+                )
+            ]
+            page_items, pagination = _paginate(chunks, page)
+        else:
+            candidate_query = (
+                select(ExtractedCandidate)
+                .options(
+                    selectinload(ExtractedCandidate.source),
+                    selectinload(ExtractedCandidate.source_chunk),
+                    selectinload(ExtractedCandidate.promoted_node),
+                )
+                .where(ExtractedCandidate.project_id == project.id)
+                .order_by(
+                    ExtractedCandidate.created_at.desc(),
+                    ExtractedCandidate.reuse_score.desc(),
+                )
+            )
+            candidates = list(session.scalars(candidate_query))
+            candidates = [
+                candidate
+                for candidate in candidates
+                if _matches_context_filters(
+                    _source_label(candidate.source),
+                    candidate.status,
+                    normalized_label,
+                    status,
+                )
+            ]
+            page_items, pagination = _paginate(candidates, page)
+
+        return_to = _return_to(request)
+        return templates.TemplateResponse(
+            request,
+            "context_workbench.html",
+            {
+                "project": project,
+                "tab": active_tab,
+                "label": normalized_label,
+                "status": status,
+                "labels": labels,
+                "items": page_items,
+                "pagination": pagination,
+                "return_to": return_to,
+                "stats": _context_stats(session, project),
+            },
+        )
+
     @app.get("/chapters/{chapter_brief_id}", response_class=HTMLResponse)
     def chapter_editor(
         request: Request,
@@ -247,6 +329,15 @@ def create_app(
         )
         return RedirectResponse(f"/candidates/{candidate_id}", status_code=303)
 
+    @app.post("/candidates/{candidate_id}/keep")
+    def keep_candidate(
+        candidate_id: UUID,
+        return_to: str = Query(default="/context?tab=meaning"),
+        session: Session = Depends(get_session),
+    ) -> RedirectResponse:
+        promote_candidate(session, candidate_id, reviewer="web")
+        return RedirectResponse(_safe_redirect(return_to), status_code=303)
+
     @app.post("/candidates/{candidate_id}/reject")
     def reject(
         candidate_id: UUID,
@@ -254,6 +345,33 @@ def create_app(
     ) -> RedirectResponse:
         reject_candidate(session, candidate_id, reviewer="web")
         return RedirectResponse("/chapters", status_code=303)
+
+    @app.post("/candidates/{candidate_id}/discard")
+    def discard_candidate(
+        candidate_id: UUID,
+        return_to: str = Query(default="/context?tab=meaning"),
+        session: Session = Depends(get_session),
+    ) -> RedirectResponse:
+        reject_candidate(session, candidate_id, reviewer="web")
+        return RedirectResponse(_safe_redirect(return_to), status_code=303)
+
+    @app.post("/chunks/{chunk_id}/keep")
+    def keep_chunk(
+        chunk_id: UUID,
+        return_to: str = Query(default="/context?tab=sources"),
+        session: Session = Depends(get_session),
+    ) -> RedirectResponse:
+        keep_source_chunk(session, chunk_id, reviewer="web")
+        return RedirectResponse(_safe_redirect(return_to), status_code=303)
+
+    @app.post("/chunks/{chunk_id}/discard")
+    def discard_chunk(
+        chunk_id: UUID,
+        return_to: str = Query(default="/context?tab=sources"),
+        session: Session = Depends(get_session),
+    ) -> RedirectResponse:
+        discard_source_chunk(session, chunk_id, reviewer="web")
+        return RedirectResponse(_safe_redirect(return_to), status_code=303)
 
     @app.get("/sources/{source_id}", response_class=HTMLResponse)
     def source_detail(
@@ -305,6 +423,107 @@ def _stats(session: Session, project: Project) -> dict[str, int]:
         "knowledge_nodes": count(KnowledgeNode),
         "review_decisions": count(ReviewDecision),
     }
+
+
+def _source_label(source: SourceMaterial | None) -> str:
+    if source is None:
+        return ""
+    return str(source.source_metadata.get("context_label") or "unlabeled")
+
+
+def _matches_context_filters(
+    label: str,
+    status: str,
+    wanted_label: str,
+    wanted_status: str,
+) -> bool:
+    if wanted_label and label != wanted_label:
+        return False
+    if wanted_status and status != wanted_status:
+        return False
+    return True
+
+
+def _context_labels(session: Session, project: Project) -> list[str]:
+    sources = session.scalars(
+        select(SourceMaterial).where(SourceMaterial.project_id == project.id)
+    )
+    labels = {
+        _source_label(source)
+        for source in sources
+        if source.source_metadata.get("context_label") is not None
+    }
+    return sorted(labels)
+
+
+def _context_stats(session: Session, project: Project) -> dict[str, int]:
+    return {
+        "source_chunks": int(
+            session.scalar(
+                select(func.count(SourceChunk.id)).where(
+                    SourceChunk.project_id == project.id
+                )
+            )
+            or 0
+        ),
+        "discarded_chunks": int(
+            session.scalar(
+                select(func.count(SourceChunk.id)).where(
+                    SourceChunk.project_id == project.id,
+                    SourceChunk.status == "discarded",
+                )
+            )
+            or 0
+        ),
+        "meaning_cards": int(
+            session.scalar(
+                select(func.count(ExtractedCandidate.id)).where(
+                    ExtractedCandidate.project_id == project.id
+                )
+            )
+            or 0
+        ),
+        "needs_review": int(
+            session.scalar(
+                select(func.count(ExtractedCandidate.id)).where(
+                    ExtractedCandidate.project_id == project.id,
+                    ExtractedCandidate.status == CandidateStatus.NEEDS_REVIEW.value,
+                )
+            )
+            or 0
+        ),
+    }
+
+
+def _paginate(items: list, page: int, per_page: int = CONTEXT_PAGE_SIZE) -> tuple[list, dict]:
+    total = len(items)
+    page_count = max(1, (total + per_page - 1) // per_page)
+    current_page = min(max(page, 1), page_count)
+    start = (current_page - 1) * per_page
+    return (
+        items[start : start + per_page],
+        {
+            "page": current_page,
+            "page_count": page_count,
+            "per_page": per_page,
+            "total": total,
+            "has_previous": current_page > 1,
+            "has_next": current_page < page_count,
+            "previous_page": current_page - 1,
+            "next_page": current_page + 1,
+        },
+    )
+
+
+def _return_to(request: Request) -> str:
+    query = str(request.url.query)
+    return f"{request.url.path}?{query}" if query else request.url.path
+
+
+def _safe_redirect(path: str) -> str:
+    if not path.startswith("/") or path.startswith("//"):
+        return "/context"
+    return path
 
 
 def _chapter_slots(briefs: list[ChapterBrief]) -> list[dict]:

@@ -44,6 +44,11 @@ a:hover {
   z-index: 2;
 }
 
+.app-header nav {
+  display: flex;
+  gap: 14px;
+}
+
 .brand {
   color: var(--ink);
   font-weight: 720;
@@ -155,6 +160,125 @@ dd {
   display: flex;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.workbench-toolbar {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.tabs {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  overflow: hidden;
+}
+
+.tabs a {
+  color: var(--muted);
+  font-weight: 720;
+  padding: 10px 14px;
+}
+
+.tabs a.active {
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+}
+
+.filter-form {
+  align-items: end;
+  display: flex;
+  gap: 10px;
+  margin: 0;
+}
+
+.filter-form label {
+  color: var(--muted);
+  display: grid;
+  font-size: 0.72rem;
+  font-weight: 720;
+  gap: 4px;
+  text-transform: uppercase;
+}
+
+select {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  font: inherit;
+  min-height: 42px;
+  min-width: 150px;
+  padding: 8px 10px;
+}
+
+.inline-button {
+  min-width: 88px;
+  width: auto;
+}
+
+.workbench-list {
+  display: grid;
+  gap: 12px;
+}
+
+.workbench-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1fr) 156px;
+  padding: 18px;
+}
+
+.workbench-card p:last-child,
+.workbench-card blockquote:last-child {
+  margin-bottom: 0;
+}
+
+.card-actions {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.card-actions form {
+  margin: 0;
+}
+
+.stacked {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+.pagination {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  margin-top: 22px;
+}
+
+.pagination a,
+.pagination span,
+.pagination strong {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  padding: 8px 12px;
+}
+
+.pagination a {
+  color: var(--accent-strong);
+  font-weight: 720;
 }
 
 .chapter-grid {
@@ -382,7 +506,8 @@ button.danger {
 
 @media (max-width: 1000px) {
   .layout,
-  .detail-grid {
+  .detail-grid,
+  .workbench-card {
     grid-template-columns: 1fr;
   }
 
@@ -395,7 +520,9 @@ button.danger {
   .app-header,
   .page-heading,
   .detail-header,
-  .stats {
+  .stats,
+  .workbench-toolbar,
+  .filter-form {
     align-items: stretch;
     flex-direction: column;
   }

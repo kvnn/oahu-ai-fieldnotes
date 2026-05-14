@@ -242,6 +242,7 @@ class ChunkStatus(StringEnum):
     BLOCKED = "blocked"
     NEEDS_OCR = "needs_ocr"
     FAILED = "failed"
+    DISCARDED = "discarded"
 
 
 class ExtractionStatus(StringEnum):
