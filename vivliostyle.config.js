@@ -5,7 +5,7 @@ export default defineConfig({
   title: 'Oahu AI Field Notes',
   author: 'Kevin Nguyen',
   language: 'en',
-  size: '6in,9in',
+  size: '5.5in,8.5in',
   theme: './styles/book.css',
   workspaceDir: '.vivliostyle',
   entry: [

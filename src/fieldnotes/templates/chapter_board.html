@@ -16,6 +16,10 @@
       <div><dt>Review</dt><dd>{{ stats.needs_review }}</dd></div>
       <div><dt>Nodes</dt><dd>{{ stats.knowledge_nodes }}</dd></div>
     </dl>
+    <div class="page-count-tools">
+      <span id="page-count-summary" class="page-count-summary">Page counts not rendered</span>
+      <button class="secondary compact" type="button" data-page-count-render>Render page counts</button>
+    </div>
     <button class="secondary compact book-markdown-open" type="button" data-book-drawer-open>Book Markdown</button>
   </div>
 </section>
@@ -83,6 +87,7 @@
                 {% if chapter.subtitle %}
                   <span class="toc-subtitle">{{ chapter.subtitle }}</span>
                 {% endif %}
+                <span class="toc-page-count" data-page-count-badge hidden></span>
               </span>
             </button>
             <div class="toc-move-controls">
@@ -273,6 +278,8 @@
     const bookDrawerText = document.querySelector("#book-drawer-text");
     const bookDrawerMeta = document.querySelector("#book-drawer-meta");
     const bookCopyStatus = document.querySelector("#book-copy-status");
+    const pageCountRender = document.querySelector("[data-page-count-render]");
+    const pageCountSummary = document.querySelector("#page-count-summary");
     const viewButtons = document.querySelectorAll("[data-book-view]");
     const viewPanels = document.querySelectorAll("[data-book-panel]");
     const statusButtons = document.querySelectorAll("[data-chapter-status-set]");
@@ -314,6 +321,7 @@
     let currentView = "simple";
     let busy = false;
     let bookDrawerBusy = false;
+    let pageCountBusy = false;
     let bookDrawerFormat = "vivliostyle";
     let lastSimpleBody = "";
     let simpleDirty = false;
@@ -363,6 +371,7 @@
       instructionInput.disabled = busy || !hasSelection || currentMode !== "rewrite";
       selectedText.disabled = busy || !hasSelection;
       syncBookDrawerControls();
+      syncPageCountControls();
       syncTocControls();
     }
 
@@ -374,6 +383,10 @@
         button.classList.toggle("active", button.dataset.bookDrawerFormat === bookDrawerFormat);
       });
       bookDrawerCopy.disabled = bookDrawerBusy || !bookDrawerText.value.trim();
+    }
+
+    function syncPageCountControls() {
+      pageCountRender.disabled = busy || pageCountBusy;
     }
 
     function setView(view) {
@@ -428,6 +441,11 @@
         subtitle.textContent = chapter.subtitle;
         copy.append(subtitle);
       }
+      const pageCount = document.createElement("span");
+      pageCount.className = "toc-page-count";
+      pageCount.dataset.pageCountBadge = "";
+      pageCount.hidden = true;
+      copy.append(pageCount);
 
       select.append(number, copy);
 
@@ -580,6 +598,77 @@
       if (!bookDrawer.hidden) loadBookMarkdown();
     }
 
+    async function loadPageCounts() {
+      pageCountBusy = true;
+      pageCountSummary.textContent = "Loading page counts";
+      syncButtons();
+      try {
+        const response = await fetch("/api/book-text/page-counts");
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Page count load failed");
+        applyPageCounts(payload);
+      } catch (error) {
+        pageCountSummary.textContent = "Page count load failed";
+        pageCountSummary.title = error.message;
+      } finally {
+        pageCountBusy = false;
+        syncButtons();
+      }
+    }
+
+    async function renderPageCounts() {
+      pageCountBusy = true;
+      pageCountSummary.textContent = "Rendering page counts";
+      syncButtons();
+      try {
+        const response = await fetch("/api/book-text/page-counts", {method: "POST"});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Page count render failed");
+        applyPageCounts(payload);
+      } catch (error) {
+        pageCountSummary.textContent = "Page count render failed";
+        pageCountSummary.title = error.message;
+      } finally {
+        pageCountBusy = false;
+        syncButtons();
+      }
+    }
+
+    function refreshPageCounts() {
+      if (!pageCountBusy) loadPageCounts();
+    }
+
+    function applyPageCounts(payload) {
+      const rowsById = new Map(payload.chapters.map((chapter) => [chapter.id, chapter]));
+      let visibleRows = 0;
+      tocItems().forEach((item) => {
+        const row = rowsById.get(item.dataset.chapterId);
+        const badge = item.querySelector("[data-page-count-badge]");
+        if (!badge) return;
+        if (!row) {
+          badge.hidden = true;
+          badge.textContent = "";
+          badge.className = "toc-page-count";
+          return;
+        }
+        visibleRows += 1;
+        badge.hidden = false;
+        badge.className = `toc-page-count ${row.page_status}`;
+        badge.textContent = pageCountLabel(row);
+      });
+      pageCountSummary.title = "";
+      pageCountSummary.textContent = `${payload.total_pages} rendered pages / ${visibleRows} chapters`;
+    }
+
+    function pageCountLabel(row) {
+      if (row.page_status === "fresh" && row.page_count) {
+        return `${row.page_count} ${row.page_count === 1 ? "page" : "pages"}`;
+      }
+      if (row.page_status === "stale") return "stale pages";
+      if (row.page_status === "failed") return "page count failed";
+      return "pages missing";
+    }
+
     function chapterMetadataDirty() {
       if (!current) return false;
       return (
@@ -661,6 +750,7 @@
         if (!response.ok) throw new Error(payload.detail || "Order save failed");
         applyTocPayload(payload.chapters);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
       } catch (error) {
         restoreChapterOrder(beforeOrder);
         setSimpleStatus("failed", "Order failed");
@@ -683,6 +773,7 @@
         if (!response.ok) throw new Error(payload.detail || "Status save failed");
         setChapterStatus(payload.chapter.status);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Chapter status updated", `Chapter: ${payload.chapter.title}\nStatus: ${payload.chapter.status_label}`);
       } catch (error) {
         setSimpleStatus("failed", "Status failed");
@@ -720,6 +811,7 @@
         applyTocPayload(payload.chapters);
         setChapterTitleFormOpen(false);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Chapter title updated", `Chapter: ${payload.chapter.title}\nSubtitle: ${payload.chapter.subtitle || ""}`);
       } catch (error) {
         chapterTitleStatus.textContent = "Failed";
@@ -753,6 +845,7 @@
         addChapterStatus.textContent = "";
         setAddChapterOpen(false);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         loadChapter(payload.chapter.id);
       } catch (error) {
         addChapterStatus.textContent = "Failed";
@@ -889,6 +982,7 @@
         renderPayload(payload);
         setSimpleStatus("saved", `Saved v${payload.version_number}`);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Chapter draft saved", `Chapter: ${payload.chapter.title}\nVersion: ${payload.version_number}`);
       } catch (error) {
         setSimpleStatus("failed", "Save failed");
@@ -944,6 +1038,7 @@
         if (next) selectChunk(next, {runMode: false});
         setStatus(`Saved v${payload.version_number}`);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Chunk rewritten", `Chapter: ${payload.chapter.title}\nMode: ${payload.mode}\nVersion: ${payload.version_number}\nChunk: ${selectedId}\n\n${payload.rewritten_text.slice(0, 1800)}`);
       } catch (error) {
         setStatus("Rewrite failed");
@@ -974,6 +1069,7 @@
         if (next) selectChunk(next, {runMode: false});
         setStatus(`Saved v${payload.version_number}`);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Manual edit saved", `Chapter: ${payload.chapter.title}\nVersion: ${payload.version_number}\nChunk: ${selectedId}`);
       } catch (error) {
         setStatus("Save failed");
@@ -996,6 +1092,7 @@
         renderPayload(payload);
         setStatus(`Restored v${versionNumber}`);
         refreshBookDrawerIfOpen();
+        refreshPageCounts();
         emitBookMessage("Version restored", `Chapter: ${payload.chapter.title}\nRestored: v${versionNumber}\nCurrent: v${payload.version_number}`);
       } catch (error) {
         setStatus("Restore failed");
@@ -1055,6 +1152,7 @@
     bookDrawer.addEventListener("keydown", (event) => {
       if (event.key === "Escape") setBookDrawerOpen(false);
     });
+    pageCountRender.addEventListener("click", renderPageCounts);
     chapterTitleToggle.addEventListener("click", () => setChapterTitleFormOpen(true));
     chapterTitleCancel.addEventListener("click", () => setChapterTitleFormOpen(false));
     chapterTitleInput.addEventListener("input", syncButtons);
@@ -1096,6 +1194,7 @@
     setView(currentView);
     syncTocControls();
     syncButtons();
+    loadPageCounts();
   })();
 </script>
 {% endblock %}

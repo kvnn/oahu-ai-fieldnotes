@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import logging
+import json
 import re
+import subprocess
+from hashlib import sha256
 from html import escape
 from pathlib import Path
 from time import perf_counter
@@ -49,9 +52,12 @@ from fieldnotes.db.models import (
     ExtractedCandidate,
     KnowledgeNode,
     Project,
+    RenderStatus,
+    RenderedOutput,
     ReviewDecision,
     SourceChunk,
     SourceMaterial,
+    utc_now,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
 from fieldnotes.review import (
@@ -69,6 +75,27 @@ logger = logging.getLogger("fieldnotes.server")
 CONTEXT_PAGE_SIZE = 12
 CHAINLIT_PATH = "/chainlit"
 CHAINLIT_TARGET = PACKAGE_DIR / "chat_app.py"
+PAGE_COUNT_OUTPUT_TYPE = "page_count"
+ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
+MIXAM_PAGE_COUNT_PROFILE = {
+    "id": "mixam-perfect-booklet-5_5x8_5-v2",
+    "label": 'Mixam Perfect Booklets 5.5" x 8.5"',
+    "trim_size": "5.5in,8.5in",
+    "bleed": "0.125in",
+    "css": {
+        "top": "0.62in",
+        "bottom": "0.72in",
+        "inside": "0.78in",
+        "outside": "0.52in",
+    },
+    "press_ready": False,
+    "press_ready_target": True,
+    "press_ready_note": (
+        "Disabled for page-count renders because Vivliostyle press-ready requires "
+        "Docker and does not change pagination."
+    ),
+    "crop_marks": True,
+}
 
 
 class DraftSaveRequest(BaseModel):
@@ -114,6 +141,18 @@ def _configure_tracing_logger() -> None:
     logger.setLevel(logging.INFO)
 
 
+def _clean_log_text(value: str | None) -> str:
+    return ANSI_ESCAPE_RE.sub("", value or "")
+
+
+def _text_tail(value: str | None, limit: int = 2000) -> str:
+    return _clean_log_text(value)[-limit:]
+
+
+def _request_trace_id(request: Request) -> str:
+    return str(getattr(request.state, "trace_id", ""))
+
+
 def _configure_chainlit(app: FastAPI) -> None:
     app.state.chainlit_path = CHAINLIT_PATH
     app.state.chainlit_target = str(CHAINLIT_TARGET)
@@ -154,11 +193,13 @@ def create_app(
         started = perf_counter()
         client = request.client.host if request.client else "unknown"
         user_agent = request.headers.get("user-agent", "")
+        query = request.url.query
         logger.info(
-            "request.start trace_id=%s method=%s path=%s client=%s user_agent=%r",
+            "request.start trace_id=%s method=%s path=%s query=%r client=%s user_agent=%r",
             trace_id,
             request.method,
             request.url.path,
+            query,
             client,
             user_agent,
         )
@@ -183,12 +224,17 @@ def create_app(
 
         elapsed_ms = (perf_counter() - started) * 1000
         response.headers["X-Trace-Id"] = trace_id
-        logger.info(
-            "request.complete trace_id=%s method=%s path=%s status_code=%s "
-            "elapsed_ms=%.2f",
+        route = request.scope.get("route")
+        route_path = getattr(route, "path", "")
+        log = logger.warning if response.status_code >= 400 else logger.info
+        log(
+            "request.complete trace_id=%s method=%s path=%s route=%s query=%r "
+            "status_code=%s elapsed_ms=%.2f",
             trace_id,
             request.method,
             request.url.path,
+            route_path,
+            query,
             response.status_code,
             elapsed_ms,
         )
@@ -246,6 +292,67 @@ def create_app(
             "markdown": markdown,
             "chapters": chapters,
         }
+
+    @app.get("/api/book-text/page-counts")
+    def cached_book_page_counts(
+        request: Request,
+        include_drafts: bool = Query(default=False),
+        session: Session = Depends(get_session),
+    ) -> dict:
+        project = ensure_project(session, config)
+        chapters = _compiled_book_chapters(
+            session,
+            _ordered_chapter_briefs(session, project),
+            include_drafts=include_drafts,
+        )
+        response = _page_count_response(session, chapters, include_drafts=include_drafts)
+        _log_page_count_response(
+            "page_counts.cached",
+            response,
+            trace_id=_request_trace_id(request),
+            project_slug=project.slug,
+        )
+        return response
+
+    @app.post("/api/book-text/page-counts")
+    def render_book_page_counts(
+        request: Request,
+        include_drafts: bool = Query(default=False),
+        session: Session = Depends(get_session),
+    ) -> dict:
+        project = ensure_project(session, config)
+        chapters = _compiled_book_chapters(
+            session,
+            _ordered_chapter_briefs(session, project),
+            include_drafts=include_drafts,
+        )
+        trace_id = _request_trace_id(request)
+        logger.info(
+            "page_counts.render.start trace_id=%s project=%s include_drafts=%s "
+            "chapter_count=%s profile=%s",
+            trace_id,
+            project.slug,
+            include_drafts,
+            len(chapters),
+            MIXAM_PAGE_COUNT_PROFILE["id"],
+        )
+        for chapter in chapters:
+            _render_chapter_page_count(
+                config.root,
+                session,
+                project,
+                chapter,
+                trace_id=trace_id,
+            )
+        session.flush()
+        response = _page_count_response(session, chapters, include_drafts=include_drafts)
+        _log_page_count_response(
+            "page_counts.render.complete",
+            response,
+            trace_id=trace_id,
+            project_slug=project.slug,
+        )
+        return response
 
     @app.get("/api/chapters/{chapter_brief_id}/book-text")
     def chapter_book_text(
@@ -999,6 +1106,417 @@ def _is_leading_subtitle_line(line: str) -> bool:
 
 def _word_count(text: str) -> int:
     return len(text.split())
+
+
+def _page_count_response(
+    session: Session,
+    chapters: list[dict],
+    *,
+    include_drafts: bool,
+) -> dict:
+    rows = [_page_count_row(session, chapter) for chapter in chapters]
+    return {
+        "profile": MIXAM_PAGE_COUNT_PROFILE,
+        "include_drafts": include_drafts,
+        "chapter_count": len(rows),
+        "total_pages": sum(row["page_count"] or 0 for row in rows if row["page_status"] == "fresh"),
+        "chapters": rows,
+    }
+
+
+def _log_page_count_response(
+    event: str,
+    response: dict,
+    *,
+    trace_id: str,
+    project_slug: str,
+) -> None:
+    rows = response["chapters"]
+    status_counts = {
+        status: sum(1 for row in rows if row["page_status"] == status)
+        for status in ["fresh", "stale", "missing", "failed"]
+    }
+    log = logger.warning if status_counts["failed"] else logger.info
+    log(
+        "%s trace_id=%s project=%s include_drafts=%s chapter_count=%s "
+        "total_pages=%s fresh=%s stale=%s missing=%s failed=%s",
+        event,
+        trace_id,
+        project_slug,
+        response["include_drafts"],
+        response["chapter_count"],
+        response["total_pages"],
+        status_counts["fresh"],
+        status_counts["stale"],
+        status_counts["missing"],
+        status_counts["failed"],
+    )
+    for row in rows:
+        if row["page_status"] in {"failed", "stale", "missing"}:
+            log_row = logger.warning if row["page_status"] == "failed" else logger.info
+            log_row(
+                "page_counts.row trace_id=%s project=%s chapter=%s slug=%s "
+                "status=%s page_count=%s input_hash=%s rendered_at=%s "
+                "returncode=%s output_path=%s error=%r logs_excerpt=%r",
+                trace_id,
+                project_slug,
+                row["id"],
+                row["slug"],
+                row["page_status"],
+                row["page_count"],
+                row["input_hash"],
+                row["rendered_at"],
+                row["returncode"],
+                row["output_path"],
+                row["error"],
+                row["logs_excerpt"],
+            )
+
+
+def _page_count_row(session: Session, chapter: dict) -> dict:
+    input_hash = _page_count_input_hash(chapter)
+    record = _latest_page_count_record(session, UUID(str(chapter["id"])))
+    base = {
+        "id": chapter["id"],
+        "title": chapter["title"],
+        "subtitle": chapter["subtitle"],
+        "slug": chapter["slug"],
+        "status": chapter["status"],
+        "status_label": chapter["status_label"],
+        "toc_number": chapter["toc_number"],
+        "input_hash": input_hash,
+        "page_count": None,
+        "page_status": "missing",
+        "stale": False,
+        "rendered_at": None,
+        "output_path": None,
+        "error": None,
+        "returncode": None,
+        "renderer_elapsed_ms": None,
+        "logs_excerpt": None,
+    }
+    if record is None:
+        return base
+
+    metadata = dict(record.render_metadata or {})
+    cached_hash = metadata.get("input_hash")
+    page_count = metadata.get("page_count")
+    stale = cached_hash != input_hash
+    page_status = "failed" if record.status == RenderStatus.FAILED.value else "fresh"
+    if stale and page_status == "fresh":
+        page_status = "stale"
+    return {
+        **base,
+        "page_count": page_count if isinstance(page_count, int) else None,
+        "page_status": page_status,
+        "stale": stale,
+        "rendered_at": record.rendered_at.isoformat() if record.rendered_at else None,
+        "output_path": record.output_path,
+        "error": metadata.get("error"),
+        "returncode": metadata.get("returncode"),
+        "renderer_elapsed_ms": metadata.get("elapsed_ms"),
+        "logs_excerpt": metadata.get("logs_excerpt"),
+    }
+
+
+def _latest_page_count_record(
+    session: Session,
+    chapter_brief_id: UUID,
+) -> RenderedOutput | None:
+    records = list(
+        session.scalars(
+            select(RenderedOutput)
+            .where(
+                RenderedOutput.chapter_brief_id == chapter_brief_id,
+                RenderedOutput.output_type == PAGE_COUNT_OUTPUT_TYPE,
+            )
+            .order_by(RenderedOutput.created_at.desc())
+        )
+    )
+    for record in records:
+        metadata = dict(record.render_metadata or {})
+        if metadata.get("profile_id") == MIXAM_PAGE_COUNT_PROFILE["id"]:
+            return record
+    return None
+
+
+def _render_chapter_page_count(
+    root: Path,
+    session: Session,
+    project: Project,
+    chapter: dict,
+    *,
+    trace_id: str = "",
+) -> RenderedOutput:
+    output_dir = root / "dist" / "page-counts" / str(chapter["slug"])
+    output_dir.mkdir(parents=True, exist_ok=True)
+    input_hash = _page_count_input_hash(chapter)
+    markdown_path = output_dir / f"{input_hash[:12]}.md"
+    css_path = output_dir / "mixam-page-count.css"
+    pdf_path = output_dir / f"{input_hash[:12]}.pdf"
+    markdown_path.write_text(_vivliostyle_chapter_markdown(chapter) + "\n", encoding="utf-8")
+    css_path.write_text(_mixam_page_count_css(root), encoding="utf-8")
+    vivliostyle_bin = root / "node_modules" / ".bin" / "vivliostyle"
+
+    command = [
+        str(vivliostyle_bin),
+        "build",
+        markdown_path.name,
+        "--theme",
+        css_path.name,
+        "--size",
+        str(MIXAM_PAGE_COUNT_PROFILE["trim_size"]),
+        "--bleed",
+        str(MIXAM_PAGE_COUNT_PROFILE["bleed"]),
+        "--crop-marks",
+        "--output",
+        pdf_path.name,
+        "--format",
+        "pdf",
+    ]
+    if MIXAM_PAGE_COUNT_PROFILE["press_ready"]:
+        command.insert(command.index("--bleed"), "--press-ready")
+    command_json = json.dumps(command)
+    relative_markdown_path = str(markdown_path.relative_to(root))
+    relative_css_path = str(css_path.relative_to(root))
+    relative_pdf_path = str(pdf_path.relative_to(root))
+    metadata = {
+        "profile_id": MIXAM_PAGE_COUNT_PROFILE["id"],
+        "profile": MIXAM_PAGE_COUNT_PROFILE,
+        "render_mode": "pagination_only",
+        "press_ready_skipped": not MIXAM_PAGE_COUNT_PROFILE["press_ready"],
+        "input_hash": input_hash,
+        "chapter_id": str(chapter["id"]),
+        "chapter_slug": chapter["slug"],
+        "version_number": chapter["version_number"],
+        "source": chapter["source"],
+        "command": command,
+        "returncode": None,
+        "cwd": str(output_dir),
+        "markdown_path": relative_markdown_path,
+        "css_path": relative_css_path,
+        "output_path": relative_pdf_path,
+    }
+    logger.info(
+        "page_count.chapter.start trace_id=%s project=%s chapter=%s slug=%s "
+        "toc_number=%s source=%s version=%s word_count=%s input_hash=%s "
+        "markdown_path=%s css_path=%s output_path=%s cwd=%s command=%s",
+        trace_id,
+        project.slug,
+        chapter["id"],
+        chapter["slug"],
+        chapter["toc_number"],
+        chapter["source"],
+        chapter["version_number"],
+        chapter["word_count"],
+        input_hash,
+        relative_markdown_path,
+        relative_css_path,
+        relative_pdf_path,
+        output_dir,
+        command_json,
+    )
+    render_started = perf_counter()
+    try:
+        result = subprocess.run(command, cwd=output_dir, check=False, capture_output=True, text=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        logs = _clean_log_text(str(exc))
+        status = RenderStatus.FAILED.value
+        metadata["error"] = _text_tail(logs) or "Vivliostyle build could not be started"
+        metadata["logs_excerpt"] = _text_tail(logs)
+        metadata["elapsed_ms"] = round((perf_counter() - render_started) * 1000, 2)
+        logger.exception(
+            "page_count.chapter.exception trace_id=%s project=%s chapter=%s slug=%s "
+            "elapsed_ms=%s command=%s error=%r",
+            trace_id,
+            project.slug,
+            chapter["id"],
+            chapter["slug"],
+            metadata["elapsed_ms"],
+            command_json,
+            metadata["error"],
+        )
+    else:
+        logs = _clean_log_text("\n".join(part for part in [result.stdout, result.stderr] if part))
+        stdout_tail = _text_tail(result.stdout)
+        stderr_tail = _text_tail(result.stderr)
+        logs_tail = _text_tail(logs)
+        metadata["returncode"] = result.returncode
+        metadata["elapsed_ms"] = round((perf_counter() - render_started) * 1000, 2)
+        metadata["stdout_tail"] = stdout_tail
+        metadata["stderr_tail"] = stderr_tail
+        metadata["logs_excerpt"] = logs_tail
+        status = RenderStatus.SUCCEEDED.value
+        logger.info(
+            "page_count.vivliostyle.complete trace_id=%s project=%s chapter=%s slug=%s "
+            "returncode=%s elapsed_ms=%s stdout_tail=%r stderr_tail=%r",
+            trace_id,
+            project.slug,
+            chapter["id"],
+            chapter["slug"],
+            result.returncode,
+            metadata["elapsed_ms"],
+            stdout_tail,
+            stderr_tail,
+        )
+        if result.returncode == 0:
+            try:
+                metadata["page_count"] = _count_pdf_pages(pdf_path)
+            except Exception as exc:  # pragma: no cover - defensive around external PDFs
+                status = RenderStatus.FAILED.value
+                metadata["error"] = str(exc)
+                logger.exception(
+                    "page_count.count.exception trace_id=%s project=%s chapter=%s "
+                    "slug=%s output_path=%s error=%r",
+                    trace_id,
+                    project.slug,
+                    chapter["id"],
+                    chapter["slug"],
+                    relative_pdf_path,
+                    metadata["error"],
+                )
+            else:
+                logger.info(
+                    "page_count.count.complete trace_id=%s project=%s chapter=%s "
+                    "slug=%s output_path=%s page_count=%s",
+                    trace_id,
+                    project.slug,
+                    chapter["id"],
+                    chapter["slug"],
+                    relative_pdf_path,
+                    metadata["page_count"],
+                )
+        else:
+            status = RenderStatus.FAILED.value
+            metadata["error"] = logs_tail or "Vivliostyle build failed"
+            logger.warning(
+                "page_count.vivliostyle.failed trace_id=%s project=%s chapter=%s slug=%s "
+                "returncode=%s elapsed_ms=%s command=%s stdout_tail=%r stderr_tail=%r",
+                trace_id,
+                project.slug,
+                chapter["id"],
+                chapter["slug"],
+                result.returncode,
+                metadata["elapsed_ms"],
+                command_json,
+                stdout_tail,
+                stderr_tail,
+            )
+
+    record = RenderedOutput(
+        project=project,
+        chapter_brief_id=UUID(str(chapter["id"])),
+        output_type=PAGE_COUNT_OUTPUT_TYPE,
+        renderer="Vivliostyle",
+        config_path=MIXAM_PAGE_COUNT_PROFILE["id"],
+        output_path=relative_pdf_path,
+        build_logs=logs[-20000:],
+        status=status,
+        rendered_at=utc_now(),
+        render_metadata=metadata,
+    )
+    session.add(record)
+    session.flush()
+    record_log = logger.warning if status == RenderStatus.FAILED.value else logger.info
+    record_log(
+        "page_count.record.saved trace_id=%s project=%s chapter=%s slug=%s "
+        "status=%s page_count=%s returncode=%s elapsed_ms=%s output_path=%s error=%r",
+        trace_id,
+        project.slug,
+        chapter["id"],
+        chapter["slug"],
+        status,
+        metadata.get("page_count"),
+        metadata.get("returncode"),
+        metadata.get("elapsed_ms"),
+        relative_pdf_path,
+        metadata.get("error"),
+    )
+    return record
+
+
+def _page_count_input_hash(chapter: dict) -> str:
+    payload = {
+        "profile": MIXAM_PAGE_COUNT_PROFILE,
+        "markdown": _vivliostyle_chapter_markdown(chapter),
+        "version_number": chapter.get("version_number"),
+        "source": chapter.get("source"),
+    }
+    return sha256(json.dumps(payload, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def _mixam_page_count_css(root: Path) -> str:
+    css = MIXAM_PAGE_COUNT_PROFILE["css"]
+    book_css_uri = (root / "styles" / "book.css").resolve().as_uri()
+    return (
+        f'@import url("{book_css_uri}");\n\n'
+        "@page {\n"
+        f"  size: {MIXAM_PAGE_COUNT_PROFILE['trim_size']};\n"
+        f"  margin: {css['top']} {css['outside']} {css['bottom']} {css['inside']};\n"
+        "}\n\n"
+        "@page :left {\n"
+        f"  margin-left: {css['outside']};\n"
+        f"  margin-right: {css['inside']};\n"
+        "}\n\n"
+        "@page :right {\n"
+        f"  margin-left: {css['inside']};\n"
+        f"  margin-right: {css['outside']};\n"
+        "}\n\n"
+        "body > h1:first-child {\n"
+        "  page-break-before: auto;\n"
+        "}\n"
+    )
+
+
+def _count_pdf_pages(path: Path) -> int:
+    errors: list[str] = []
+    try:
+        from pypdf import PdfReader  # type: ignore[import-not-found]
+    except ImportError:
+        errors.append("pypdf unavailable")
+    else:
+        try:
+            count = len(PdfReader(str(path)).pages)
+        except Exception as exc:  # pragma: no cover - depends on external PDF parser
+            errors.append(f"pypdf failed: {exc}")
+        else:
+            if count > 0:
+                return count
+            errors.append("pypdf returned 0 pages")
+
+    try:
+        result = subprocess.run(
+            ["pdfinfo", str(path)],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        errors.append(f"pdfinfo unavailable: {exc}")
+    else:
+        output = _clean_log_text("\n".join(part for part in [result.stdout, result.stderr] if part))
+        match = re.search(r"^Pages:\s*(\d+)\s*$", output, flags=re.MULTILINE)
+        if result.returncode == 0 and match:
+            count = int(match.group(1))
+            if count > 0:
+                return count
+            errors.append("pdfinfo returned 0 pages")
+        else:
+            errors.append(
+                f"pdfinfo failed returncode={result.returncode} output={_text_tail(output, 500)!r}"
+            )
+
+    try:
+        data = path.read_bytes()
+    except OSError as exc:
+        errors.append(f"raw scan failed: {exc}")
+    else:
+        count = len(re.findall(rb"/Type\s*/Page\b", data))
+        if count > 0:
+            return count
+        errors.append("raw scan found 0 /Page objects")
+
+    raise ValueError(f"could not count pages in {path}; " + "; ".join(errors))
 
 
 def _stats(session: Session, project: Project) -> dict[str, int]:

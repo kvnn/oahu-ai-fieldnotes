@@ -61,8 +61,8 @@ def seed_demo(session) -> UUID:
         title="O‘ahu A.I. Field Notes",
         subtitle="Vol. 1",
         slug="vol-1",
-        trim_size="6in x 9in",
-        page_size="6in x 9in",
+        trim_size='5.5" x 8.5"',
+        page_size='5.5" x 8.5"',
         binding_type="perfect_bound",
         printer_target="Mixam perfect bound",
     )
