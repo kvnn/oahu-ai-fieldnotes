@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from fieldnotes.db.models import (
@@ -13,12 +13,12 @@ from fieldnotes.db.models import (
     AgentRunStatus,
     ChapterBrief,
     ChapterDraft,
+    ChapterStatus,
     DraftStatus,
     Project,
     ReviewDecision,
     ReviewDecisionType,
     ReviewTargetType,
-    WorkStatus,
     utc_now,
 )
 from fieldnotes.workflow import first_volume
@@ -59,7 +59,7 @@ def save_chapter_candidate(
             title=title,
             subtitle=subtitle,
             slug=brief_slug,
-            status=WorkStatus.PROPOSED.value,
+            status=ChapterStatus.DRAFT.value,
         )
         session.add(brief)
         action = "create"
@@ -116,6 +116,31 @@ def latest_chapter_draft(session: Session, brief: ChapterBrief) -> ChapterDraft 
     )
 
 
+def chapter_draft_by_version(
+    session: Session,
+    brief: ChapterBrief,
+    version_number: int,
+) -> ChapterDraft | None:
+    return session.scalar(
+        select(ChapterDraft)
+        .where(
+            ChapterDraft.chapter_brief_id == brief.id,
+            ChapterDraft.version_number == version_number,
+        )
+        .limit(1)
+    )
+
+
+def chapter_draft_versions(session: Session, brief: ChapterBrief) -> list[ChapterDraft]:
+    return list(
+        session.scalars(
+            select(ChapterDraft)
+            .where(ChapterDraft.chapter_brief_id == brief.id)
+            .order_by(ChapterDraft.version_number.desc())
+        )
+    )
+
+
 def get_or_create_chapter_draft(
     session: Session,
     brief: ChapterBrief,
@@ -131,6 +156,42 @@ def get_or_create_chapter_draft(
         body="",
         status=DraftStatus.DRAFT.value,
         editor_notes="Created from chapter editor autosave surface.",
+    )
+    session.add(draft)
+    session.flush()
+    return draft
+
+
+def create_chapter_draft_version(
+    session: Session,
+    brief: ChapterBrief,
+    body: str,
+    *,
+    model_provider: str | None = None,
+    model_name: str | None = None,
+    model_metadata: dict | None = None,
+    generation_prompt_ref: str | None = None,
+    editor_notes: str | None = None,
+) -> ChapterDraft:
+    latest_number = (
+        session.scalar(
+            select(func.max(ChapterDraft.version_number)).where(
+                ChapterDraft.chapter_brief_id == brief.id
+            )
+        )
+        or 0
+    )
+    draft = ChapterDraft(
+        chapter_brief=brief,
+        version_number=int(latest_number) + 1,
+        body_format="markdown",
+        body=body,
+        model_provider=model_provider,
+        model_name=model_name,
+        model_metadata=model_metadata or {},
+        generation_prompt_ref=generation_prompt_ref,
+        status=DraftStatus.DRAFT.value,
+        editor_notes=editor_notes,
     )
     session.add(draft)
     session.flush()
@@ -166,14 +227,14 @@ def approve_chapter_brief(
     if brief is None:
         raise ValueError(f"unknown chapter brief: {slug}")
 
-    brief.status = WorkStatus.ACCEPTED.value
+    brief.status = ChapterStatus.READY.value
     session.add(
         ReviewDecision(
             project_id=project.id,
             decision_type=ReviewDecisionType.PROMOTE.value,
             target_type=ReviewTargetType.CHAPTER_BRIEF.value,
             target_id=brief.id,
-            decision=WorkStatus.ACCEPTED.value,
+            decision=ChapterStatus.READY.value,
             reviewer=reviewer,
             rationale=rationale,
             evidence={

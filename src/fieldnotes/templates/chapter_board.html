@@ -8,65 +8,1094 @@
     <p class="eyebrow">{{ project.slug }}</p>
     <h1>{{ project.name }}</h1>
   </div>
-  <dl class="stats">
-    <div><dt>Sources</dt><dd>{{ stats.sources }}</dd></div>
-    <div><dt>Ready Chunks</dt><dd>{{ stats.ready_chunks }}</dd></div>
-    <div><dt>Blocked</dt><dd>{{ stats.blocked_chunks }}</dd></div>
-    <div><dt>Review</dt><dd>{{ stats.needs_review }}</dd></div>
-    <div><dt>Nodes</dt><dd>{{ stats.knowledge_nodes }}</dd></div>
-  </dl>
+  <div class="page-heading-tools">
+    <dl class="stats">
+      <div><dt>Sources</dt><dd>{{ stats.sources }}</dd></div>
+      <div><dt>Ready Chunks</dt><dd>{{ stats.ready_chunks }}</dd></div>
+      <div><dt>Blocked</dt><dd>{{ stats.blocked_chunks }}</dd></div>
+      <div><dt>Review</dt><dd>{{ stats.needs_review }}</dd></div>
+      <div><dt>Nodes</dt><dd>{{ stats.knowledge_nodes }}</dd></div>
+    </dl>
+    <button class="secondary compact book-markdown-open" type="button" data-book-drawer-open>Book Markdown</button>
+  </div>
 </section>
 
-<section class="layout">
-  <div>
-    <div class="section-title">
-      <h2>Eight-Chapter Spine</h2>
-      <span>{{ stats.promoted_candidates }} promoted candidates</span>
+<div class="book-drawer-backdrop" data-book-drawer-backdrop hidden></div>
+<aside class="book-markdown-drawer" data-book-drawer role="dialog" aria-modal="true" aria-hidden="true" hidden>
+  <div class="book-drawer-header">
+    <div>
+      <p class="eyebrow">Full Manuscript</p>
+      <h2>Book Markdown</h2>
+      <p id="book-drawer-meta" class="book-drawer-meta">Visible chapters only</p>
     </div>
-    <div class="chapter-grid">
-      {% for item in chapter_slots %}
-        {% set brief = item.brief %}
-        <article class="chapter-slot {% if not brief %}empty{% endif %}">
-          <div class="slot-number">{{ item.slot }}</div>
-          {% if brief %}
-            <h3><a href="/chapters/{{ brief.id }}">{{ brief.title }}</a></h3>
-            <p>{{ brief.subtitle or brief.field_note or "Brief needs sharper pressure." }}</p>
-            <dl class="mini-stats">
-              <div><dt>Status</dt><dd>{{ brief.status }}</dd></div>
-              <div><dt>Drafts</dt><dd>{{ brief.drafts|length }}</dd></div>
-              <div><dt>Pages</dt><dd>{{ brief.intended_page_count or "?" }}</dd></div>
-            </dl>
-          {% else %}
-            <h3>Open chapter slot</h3>
-            <p>Promote grounded candidates until a real argument earns this place.</p>
-          {% endif %}
-        </article>
-      {% endfor %}
+    <button class="secondary compact" type="button" data-book-drawer-close>Close</button>
+  </div>
+  <div class="book-drawer-controls">
+    <div class="book-format-toggle" aria-label="Markdown format">
+      <button class="book-format-option active" type="button" data-book-drawer-format="vivliostyle">Vivliostyle</button>
+      <button class="book-format-option" type="button" data-book-drawer-format="raw">Raw</button>
+    </div>
+    <label class="book-draft-toggle">
+      <input type="checkbox" data-book-drawer-include-drafts>
+      <span>Include drafts</span>
+    </label>
+    <div class="book-copy-tools">
+      <span id="book-copy-status" class="book-copy-status"></span>
+      <button class="compact" type="button" data-book-drawer-copy disabled>Copy</button>
     </div>
   </div>
+  <textarea
+    id="book-drawer-text"
+    class="book-drawer-text"
+    readonly
+    spellcheck="false"
+    placeholder="Open the drawer to load the compiled book Markdown."
+  ></textarea>
+</aside>
 
-  <aside class="candidate-panel">
-    <div class="section-title">
-      <h2>Candidate Queue</h2>
-      <span>{{ candidates|length }} shown</span>
+<section class="chapter-shell" data-chapter-shell>
+  <aside class="toc-rail" data-toc-rail>
+    <div class="toc-header">
+      <div class="toc-title-block">
+        <p class="eyebrow">Book TOC</p>
+        <h2>Table of Contents</h2>
+      </div>
+      <button class="secondary compact toc-toggle" type="button" data-toc-toggle aria-expanded="true">Collapse</button>
     </div>
-    <div class="candidate-list">
-      {% for candidate in candidates %}
-        <article class="candidate-row">
-          <div>
-            <p class="type">{{ candidate.node_type }}</p>
-            <h3><a href="/candidates/{{ candidate.id }}">{{ candidate.title }}</a></h3>
-            <p>{{ candidate.body[:220] }}{% if candidate.body|length > 220 %}...{% endif %}</p>
-          </div>
-          <dl class="score-pair">
-            <div><dt>Reuse</dt><dd>{{ "%.2f"|format(candidate.reuse_score) }}</dd></div>
-            <div><dt>Ground</dt><dd>{{ "%.2f"|format(candidate.confidence_score) }}</dd></div>
-          </dl>
-        </article>
-      {% else %}
-        <p class="empty-note">No extracted candidates are waiting for review.</p>
-      {% endfor %}
+    <div class="toc-body">
+      <ol class="toc-list" id="chapter-toc">
+        {% for chapter in chapters %}
+          <li
+            class="toc-item"
+            data-toc-item
+            data-chapter-id="{{ chapter.id }}"
+            data-chapter-status="{{ chapter.status }}"
+          >
+            <button
+              class="toc-select"
+              type="button"
+              data-chapter-select
+              data-chapter-id="{{ chapter.id }}"
+            >
+              <span class="toc-number">{{ chapter.toc_number }}</span>
+              <span class="toc-copy">
+                <span class="toc-title">{{ chapter.title }}</span>
+                {% if chapter.subtitle %}
+                  <span class="toc-subtitle">{{ chapter.subtitle }}</span>
+                {% endif %}
+              </span>
+            </button>
+            <div class="toc-move-controls">
+              <button
+                class="secondary compact toc-move"
+                type="button"
+                data-toc-move="up"
+                data-chapter-id="{{ chapter.id }}"
+                aria-label="Move {{ chapter.title }} up"
+                {% if not chapter.can_move_up %}disabled{% endif %}
+              >↑</button>
+              <button
+                class="secondary compact toc-move"
+                type="button"
+                data-toc-move="down"
+                data-chapter-id="{{ chapter.id }}"
+                aria-label="Move {{ chapter.title }} down"
+                {% if not chapter.can_move_down %}disabled{% endif %}
+              >↓</button>
+            </div>
+          </li>
+        {% else %}
+          <li class="empty-note toc-empty">No chapters are in the table of contents yet.</li>
+        {% endfor %}
+      </ol>
+    </div>
+    <div class="toc-add">
+      <button class="secondary toc-add-trigger" type="button" data-add-chapter-toggle aria-expanded="false" aria-label="Add chapter">+</button>
+      <form class="toc-add-popover" data-add-chapter-form hidden>
+        <input id="add-chapter-title" type="text" name="title" placeholder="Title" autocomplete="off">
+        <input id="add-chapter-subtitle" type="text" name="subtitle" placeholder="Subtitle" autocomplete="off">
+        <div class="toc-add-actions">
+          <span id="add-chapter-status" class="toc-add-status"></span>
+          <button class="compact" type="submit" data-add-chapter-save>Save</button>
+        </div>
+      </form>
     </div>
   </aside>
+
+  <div class="chapter-main">
+  <article class="book-panel chapter-detail-card" id="book-text-panel">
+    <div class="book-panel-header">
+      <div class="chapter-title-zone">
+        <p class="eyebrow">Book Text</p>
+        <div class="chapter-title-display" data-chapter-title-display>
+          <h2 id="book-chapter-title">Select a chapter</h2>
+          <button class="secondary compact" type="button" data-chapter-title-toggle aria-expanded="false" disabled>Edit</button>
+        </div>
+        <form class="chapter-title-form" data-chapter-title-form hidden>
+          <input id="chapter-title-input" type="text" name="title" placeholder="Title" autocomplete="off">
+          <input id="chapter-subtitle-input" type="text" name="subtitle" placeholder="Subtitle" autocomplete="off">
+          <div class="chapter-title-form-actions">
+            <span id="chapter-title-status" class="chapter-title-status"></span>
+            <button class="secondary compact" type="button" data-chapter-title-cancel>Cancel</button>
+            <button class="compact" type="submit" data-chapter-title-save>Save</button>
+          </div>
+        </form>
+        <p class="book-panel-meta" id="book-chapter-meta">Select a chapter to hydrate this panel.</p>
+      </div>
+      <div class="chapter-detail-actions">
+        <div class="chapter-status-toggle" aria-label="Chapter status">
+          <button class="chapter-status-option active" type="button" data-chapter-status-set="draft" disabled>Draft</button>
+          <button class="chapter-status-option" type="button" data-chapter-status-set="ready" disabled>Visible</button>
+        </div>
+        <a class="text-sm font-semibold text-teal-800 hover:text-teal-950" href="/chat/status">Chat status</a>
+      </div>
+    </div>
+
+    <div class="book-view-switch" aria-label="Book text editor mode">
+      <button class="book-view active" type="button" data-book-view="simple">Simple</button>
+      <button class="book-view" type="button" data-book-view="experimental">Experimental</button>
+    </div>
+
+    <section class="book-simple-editor book-view-panel active" data-book-panel="simple">
+      <div class="simple-editor-topline">
+        <div>
+          <label for="simple-book-text">Chapter Markdown</label>
+          <p id="simple-version-meta">No chapter selected</p>
+        </div>
+        <div class="simple-editor-stats">
+          <span id="simple-word-count">0 words</span>
+          <span id="simple-save-status" class="autosave-status">No chapter</span>
+        </div>
+      </div>
+      <textarea
+        id="simple-book-text"
+        class="book-full-textarea"
+        placeholder="Select a chapter to load the active draft."
+        spellcheck="true"
+        disabled
+      ></textarea>
+      <div class="simple-editor-actions">
+        <p id="simple-editor-meta">No active chapter.</p>
+        <div>
+          <button class="secondary compact" type="button" data-book-reset-full disabled>Reset</button>
+          <button class="compact" type="button" data-book-save-full disabled>Save new version</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="book-experimental book-view-panel" data-book-panel="experimental" hidden>
+      <div class="book-toolbar">
+        <div class="book-mode-group" aria-label="Book text mode">
+          <button class="book-mode" type="button" data-book-mode="simplify">Simplify</button>
+          <button class="book-mode" type="button" data-book-mode="expound">Expound</button>
+          <button class="book-mode active" type="button" data-book-mode="rewrite">Rewrite</button>
+        </div>
+        <div class="book-version-tools">
+          <span id="book-version-label">Version -</span>
+          <select id="book-version-select" aria-label="Draft version"></select>
+          <button class="secondary compact" type="button" data-book-restore disabled>Restore</button>
+          <button class="secondary compact" type="button" data-book-undo disabled>Undo</button>
+        </div>
+      </div>
+
+      <div class="rewrite-instruction">
+        <input
+          id="book-rewrite-instruction"
+          type="text"
+          placeholder="Rewrite instruction"
+          autocomplete="off"
+        >
+        <button class="compact" type="button" data-book-run-rewrite disabled>Run</button>
+      </div>
+
+      <div class="book-scroll" data-book-scroll-container>
+        <p class="empty-note" id="book-empty-note">No chapter selected.</p>
+        <div id="book-chunks"></div>
+      </div>
+
+      <div class="book-editor">
+        <div class="book-editor-topline">
+          <label for="selected-book-text">Selected Chunk</label>
+          <span id="book-edit-status">Nothing selected</span>
+        </div>
+        <textarea
+          id="selected-book-text"
+          placeholder="Click a paragraph or chunk in the book text."
+          spellcheck="true"
+          disabled
+        ></textarea>
+        <div class="book-editor-actions">
+          <p id="selected-book-meta">No chunk selected</p>
+          <div>
+            <button class="secondary compact" type="button" data-book-clear disabled>Clear</button>
+            <button class="compact" type="button" data-book-save disabled>Save edit</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </article>
+
+  </div>
 </section>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+{% if request.app.state.chainlit_available %}
+  <script src="{{ request.app.state.chainlit_path }}/copilot/index.js"></script>
+  <script>
+    window.mountChainlitWidget({
+      chainlitServer: `${window.location.origin}{{ request.app.state.chainlit_path }}`,
+      displayMode: "floating",
+      theme: "light",
+      opened: false,
+    });
+  </script>
+{% endif %}
+<script>
+  (() => {
+    const chapterShell = document.querySelector("[data-chapter-shell]");
+    const tocList = document.querySelector("#chapter-toc");
+    const tocToggle = document.querySelector("[data-toc-toggle]");
+    const addChapterToggle = document.querySelector("[data-add-chapter-toggle]");
+    const addChapterForm = document.querySelector("[data-add-chapter-form]");
+    const addChapterTitle = document.querySelector("#add-chapter-title");
+    const addChapterSubtitle = document.querySelector("#add-chapter-subtitle");
+    const addChapterStatus = document.querySelector("#add-chapter-status");
+    const addChapterSave = document.querySelector("[data-add-chapter-save]");
+    const bookDrawerOpen = document.querySelector("[data-book-drawer-open]");
+    const bookDrawer = document.querySelector("[data-book-drawer]");
+    const bookDrawerBackdrop = document.querySelector("[data-book-drawer-backdrop]");
+    const bookDrawerClose = document.querySelector("[data-book-drawer-close]");
+    const bookDrawerFormatButtons = document.querySelectorAll("[data-book-drawer-format]");
+    const bookDrawerIncludeDrafts = document.querySelector("[data-book-drawer-include-drafts]");
+    const bookDrawerCopy = document.querySelector("[data-book-drawer-copy]");
+    const bookDrawerText = document.querySelector("#book-drawer-text");
+    const bookDrawerMeta = document.querySelector("#book-drawer-meta");
+    const bookCopyStatus = document.querySelector("#book-copy-status");
+    const viewButtons = document.querySelectorAll("[data-book-view]");
+    const viewPanels = document.querySelectorAll("[data-book-panel]");
+    const statusButtons = document.querySelectorAll("[data-chapter-status-set]");
+    const chunksContainer = document.querySelector("#book-chunks");
+    const emptyNote = document.querySelector("#book-empty-note");
+    const title = document.querySelector("#book-chapter-title");
+    const meta = document.querySelector("#book-chapter-meta");
+    const chapterTitleDisplay = document.querySelector("[data-chapter-title-display]");
+    const chapterTitleToggle = document.querySelector("[data-chapter-title-toggle]");
+    const chapterTitleForm = document.querySelector("[data-chapter-title-form]");
+    const chapterTitleInput = document.querySelector("#chapter-title-input");
+    const chapterSubtitleInput = document.querySelector("#chapter-subtitle-input");
+    const chapterTitleStatus = document.querySelector("#chapter-title-status");
+    const chapterTitleSave = document.querySelector("[data-chapter-title-save]");
+    const chapterTitleCancel = document.querySelector("[data-chapter-title-cancel]");
+    const simpleText = document.querySelector("#simple-book-text");
+    const simpleVersionMeta = document.querySelector("#simple-version-meta");
+    const simpleWordCount = document.querySelector("#simple-word-count");
+    const simpleSaveStatus = document.querySelector("#simple-save-status");
+    const simpleEditorMeta = document.querySelector("#simple-editor-meta");
+    const fullSaveButton = document.querySelector("[data-book-save-full]");
+    const resetFullButton = document.querySelector("[data-book-reset-full]");
+    const versionLabel = document.querySelector("#book-version-label");
+    const versionSelect = document.querySelector("#book-version-select");
+    const restoreButton = document.querySelector("[data-book-restore]");
+    const undoButton = document.querySelector("[data-book-undo]");
+    const modeButtons = document.querySelectorAll("[data-book-mode]");
+    const instructionInput = document.querySelector("#book-rewrite-instruction");
+    const runRewriteButton = document.querySelector("[data-book-run-rewrite]");
+    const selectedText = document.querySelector("#selected-book-text");
+    const selectedMeta = document.querySelector("#selected-book-meta");
+    const editStatus = document.querySelector("#book-edit-status");
+    const saveButton = document.querySelector("[data-book-save]");
+    const clearButton = document.querySelector("[data-book-clear]");
+
+    let current = null;
+    let selected = null;
+    let currentMode = "rewrite";
+    let currentView = "simple";
+    let busy = false;
+    let bookDrawerBusy = false;
+    let bookDrawerFormat = "vivliostyle";
+    let lastSimpleBody = "";
+    let simpleDirty = false;
+
+    function setStatus(text) {
+      editStatus.textContent = text;
+    }
+
+    function setSimpleStatus(kind, text) {
+      simpleSaveStatus.className = kind ? `autosave-status ${kind}` : "autosave-status";
+      simpleSaveStatus.textContent = text;
+    }
+
+    function setBusy(value) {
+      busy = value;
+      syncButtons();
+    }
+
+    function syncButtons() {
+      const hasChapter = Boolean(current);
+      const hasSelection = Boolean(selected);
+      viewButtons.forEach((button) => {
+        button.disabled = busy;
+      });
+      statusButtons.forEach((button) => {
+        button.disabled = busy || !hasChapter;
+      });
+      addChapterToggle.disabled = busy;
+      addChapterSave.disabled = busy || !addChapterTitle.value.trim();
+      chapterTitleToggle.disabled = busy || !hasChapter;
+      chapterTitleInput.disabled = busy || !hasChapter;
+      chapterSubtitleInput.disabled = busy || !hasChapter;
+      chapterTitleCancel.disabled = busy;
+      chapterTitleSave.disabled = busy || !hasChapter || !chapterTitleInput.value.trim() || !chapterMetadataDirty();
+      modeButtons.forEach((button) => {
+        button.disabled = busy || !hasChapter;
+      });
+      simpleText.disabled = busy || !hasChapter;
+      fullSaveButton.disabled = busy || !hasChapter || !simpleDirty;
+      resetFullButton.disabled = busy || !hasChapter || !simpleDirty;
+      saveButton.disabled = busy || !hasSelection;
+      clearButton.disabled = busy || !hasSelection;
+      runRewriteButton.disabled = busy || !hasSelection || currentMode !== "rewrite";
+      restoreButton.disabled = busy || !hasChapter || !versionSelect.value;
+      undoButton.disabled = busy || !hasChapter || !previousVersion();
+      versionSelect.disabled = busy || !hasChapter || !versionSelect.options.length;
+      instructionInput.disabled = busy || !hasSelection || currentMode !== "rewrite";
+      selectedText.disabled = busy || !hasSelection;
+      syncBookDrawerControls();
+      syncTocControls();
+    }
+
+    function syncBookDrawerControls() {
+      bookDrawerOpen.disabled = bookDrawerBusy;
+      bookDrawerIncludeDrafts.disabled = bookDrawerBusy;
+      bookDrawerFormatButtons.forEach((button) => {
+        button.disabled = bookDrawerBusy;
+        button.classList.toggle("active", button.dataset.bookDrawerFormat === bookDrawerFormat);
+      });
+      bookDrawerCopy.disabled = bookDrawerBusy || !bookDrawerText.value.trim();
+    }
+
+    function setView(view) {
+      currentView = view;
+      viewButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.bookView === view);
+      });
+      viewPanels.forEach((panel) => {
+        const active = panel.dataset.bookPanel === view;
+        panel.hidden = !active;
+        panel.classList.toggle("active", active);
+      });
+      syncButtons();
+    }
+
+    function tocItems() {
+      return Array.from(tocList.querySelectorAll("[data-toc-item]"));
+    }
+
+    function chapterOrderIds() {
+      return tocItems().map((item) => item.dataset.chapterId);
+    }
+
+    function chapterRow(chapter) {
+      const item = document.createElement("li");
+      item.className = "toc-item";
+      item.dataset.tocItem = "";
+      item.dataset.chapterId = chapter.id;
+      item.dataset.chapterStatus = chapter.status;
+
+      const select = document.createElement("button");
+      select.className = "toc-select";
+      select.type = "button";
+      select.dataset.chapterSelect = "";
+      select.dataset.chapterId = chapter.id;
+
+      const number = document.createElement("span");
+      number.className = "toc-number";
+      number.textContent = String(chapter.toc_number);
+
+      const copy = document.createElement("span");
+      copy.className = "toc-copy";
+
+      const rowTitle = document.createElement("span");
+      rowTitle.className = "toc-title";
+      rowTitle.textContent = chapter.title;
+      copy.append(rowTitle);
+
+      if (chapter.subtitle) {
+        const subtitle = document.createElement("span");
+        subtitle.className = "toc-subtitle";
+        subtitle.textContent = chapter.subtitle;
+        copy.append(subtitle);
+      }
+
+      select.append(number, copy);
+
+      const controls = document.createElement("div");
+      controls.className = "toc-move-controls";
+      ["up", "down"].forEach((direction) => {
+        const button = document.createElement("button");
+        button.className = "secondary compact toc-move";
+        button.type = "button";
+        button.dataset.tocMove = direction;
+        button.dataset.chapterId = chapter.id;
+        button.setAttribute("aria-label", `Move ${chapter.title} ${direction}`);
+        button.textContent = direction === "up" ? "↑" : "↓";
+        controls.append(button);
+      });
+
+      item.append(select, controls);
+      wireTocItem(item);
+      return item;
+    }
+
+    function wireTocItem(item) {
+      item.querySelector("[data-chapter-select]").addEventListener("click", (event) => {
+        loadChapter(event.currentTarget.dataset.chapterId);
+      });
+      item.querySelectorAll("[data-toc-move]").forEach((button) => {
+        button.addEventListener("click", () => moveChapter(button.dataset.chapterId, button.dataset.tocMove));
+      });
+    }
+
+    function restoreChapterOrder(ids) {
+      const byId = new Map(tocItems().map((item) => [item.dataset.chapterId, item]));
+      ids.forEach((id) => {
+        const item = byId.get(id);
+        if (item) tocList.append(item);
+      });
+      syncTocControls();
+    }
+
+    function syncTocControls() {
+      const items = tocItems();
+      items.forEach((item, index) => {
+        item.querySelector(".toc-number").textContent = String(index + 1);
+        item.classList.toggle("active", current && item.dataset.chapterId === current.chapter.id);
+        item.querySelectorAll("[data-toc-move]").forEach((button) => {
+          const direction = button.dataset.tocMove;
+          button.disabled = busy || (direction === "up" && index === 0) || (direction === "down" && index === items.length - 1);
+        });
+      });
+    }
+
+    function applyTocPayload(chapters) {
+      tocList.querySelectorAll(".toc-empty").forEach((item) => item.remove());
+      const byId = new Map(tocItems().map((item) => [item.dataset.chapterId, item]));
+      chapters.forEach((chapter) => {
+        const item = byId.get(chapter.id) || chapterRow(chapter);
+        item.dataset.chapterStatus = chapter.status;
+        item.querySelector(".toc-number").textContent = chapter.toc_number;
+        item.querySelector(".toc-title").textContent = chapter.title;
+        item.querySelectorAll("[data-toc-move]").forEach((button) => {
+          button.setAttribute("aria-label", `Move ${chapter.title} ${button.dataset.tocMove}`);
+        });
+        const subtitle = item.querySelector(".toc-subtitle");
+        if (chapter.subtitle && subtitle) {
+          subtitle.textContent = chapter.subtitle;
+        } else if (chapter.subtitle) {
+          const nextSubtitle = document.createElement("span");
+          nextSubtitle.className = "toc-subtitle";
+          nextSubtitle.textContent = chapter.subtitle;
+          item.querySelector(".toc-copy").append(nextSubtitle);
+        } else if (subtitle) {
+          subtitle.remove();
+        }
+        tocList.append(item);
+      });
+      syncTocControls();
+    }
+
+    function setAddChapterOpen(open) {
+      addChapterForm.hidden = !open;
+      addChapterToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      if (open) addChapterTitle.focus();
+    }
+
+    function setBookDrawerOpen(open) {
+      bookDrawer.hidden = !open;
+      bookDrawerBackdrop.hidden = !open;
+      bookDrawer.setAttribute("aria-hidden", open ? "false" : "true");
+      if (open) {
+        loadBookMarkdown();
+        bookDrawerClose.focus();
+      }
+    }
+
+    async function loadBookMarkdown() {
+      bookDrawerBusy = true;
+      bookDrawerMeta.textContent = "Loading";
+      bookCopyStatus.textContent = "";
+      syncBookDrawerControls();
+      try {
+        const includeDrafts = bookDrawerIncludeDrafts.checked;
+        const params = new URLSearchParams({
+          include_drafts: includeDrafts ? "true" : "false",
+          format: bookDrawerFormat,
+        });
+        const response = await fetch(`/api/book-text?${params.toString()}`);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Book Markdown load failed");
+        bookDrawerText.value = payload.markdown || "";
+        const scope = includeDrafts ? "drafts included" : "visible only";
+        const formatLabel = payload.format === "vivliostyle" ? "Vivliostyle" : "Raw";
+        bookDrawerMeta.textContent = `${payload.chapter_count} chapters / ${payload.word_count} words / ${formatLabel} / ${scope}`;
+        bookDrawerMeta.title = "";
+      } catch (error) {
+        bookDrawerText.value = "";
+        bookDrawerMeta.textContent = "Load failed";
+        bookDrawerMeta.title = error.message;
+      } finally {
+        bookDrawerBusy = false;
+        syncBookDrawerControls();
+      }
+    }
+
+    function setBookDrawerFormat(format) {
+      bookDrawerFormat = format === "raw" ? "raw" : "vivliostyle";
+      syncBookDrawerControls();
+      if (!bookDrawer.hidden) loadBookMarkdown();
+    }
+
+    async function copyBookMarkdown() {
+      const text = bookDrawerText.value;
+      if (!text.trim()) return;
+      bookCopyStatus.textContent = "Copying";
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          bookDrawerText.focus();
+          bookDrawerText.select();
+          document.execCommand("copy");
+        }
+        bookCopyStatus.textContent = "Copied";
+      } catch (error) {
+        bookCopyStatus.textContent = "Copy failed";
+        bookCopyStatus.title = error.message;
+      }
+    }
+
+    function refreshBookDrawerIfOpen() {
+      if (!bookDrawer.hidden) loadBookMarkdown();
+    }
+
+    function chapterMetadataDirty() {
+      if (!current) return false;
+      return (
+        chapterTitleInput.value.trim() !== current.chapter.title ||
+        chapterSubtitleInput.value.trim() !== (current.chapter.subtitle || "")
+      );
+    }
+
+    function setChapterTitleFormOpen(open) {
+      if (open && !current) return;
+      chapterTitleForm.hidden = !open;
+      chapterTitleDisplay.hidden = open;
+      chapterTitleToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      chapterTitleStatus.textContent = "";
+      chapterTitleStatus.title = "";
+      if (open) {
+        chapterTitleInput.value = current.chapter.title;
+        chapterSubtitleInput.value = current.chapter.subtitle || "";
+        chapterTitleInput.focus();
+        chapterTitleInput.select();
+      }
+      syncButtons();
+    }
+
+    function applyChapterMetadata(chapter) {
+      if (!current) return;
+      current.chapter = {
+        ...current.chapter,
+        ...chapter,
+      };
+      title.textContent = current.chapter.title;
+      simpleEditorMeta.textContent = `${current.chapter.title} / ${current.source} / v${current.version_number}`;
+      if (selected) selectedMeta.textContent = `${current.chapter.title} / ${selected.id}`;
+      setChapterStatus(current.chapter.status);
+    }
+
+    function setChapterStatus(status) {
+      const normalized = status === "ready" ? "ready" : "draft";
+      statusButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.chapterStatusSet === normalized);
+      });
+      if (current) {
+        current.chapter.status = normalized;
+        const item = tocList.querySelector(`[data-toc-item][data-chapter-id="${current.chapter.id}"]`);
+        if (item) item.dataset.chapterStatus = normalized;
+      }
+    }
+
+    function setTocCollapsed(collapsed) {
+      chapterShell.classList.toggle("toc-collapsed", collapsed);
+      tocToggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+      tocToggle.textContent = collapsed ? "TOC" : "Collapse";
+    }
+
+    async function moveChapter(chapterId, direction) {
+      if (busy) return;
+      const beforeOrder = chapterOrderIds();
+      const items = tocItems();
+      const index = items.findIndex((item) => item.dataset.chapterId === chapterId);
+      const targetIndex = direction === "up" ? index - 1 : index + 1;
+      if (index < 0 || targetIndex < 0 || targetIndex >= items.length) return;
+
+      const item = items[index];
+      const target = items[targetIndex];
+      if (direction === "up") {
+        tocList.insertBefore(item, target);
+      } else {
+        tocList.insertBefore(target, item);
+      }
+      syncTocControls();
+      setBusy(true);
+      try {
+        const response = await fetch("/api/chapters/order", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({chapter_ids: chapterOrderIds()}),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Order save failed");
+        applyTocPayload(payload.chapters);
+        refreshBookDrawerIfOpen();
+      } catch (error) {
+        restoreChapterOrder(beforeOrder);
+        setSimpleStatus("failed", "Order failed");
+        simpleSaveStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function updateChapterStatus(status) {
+      if (!current || busy) return;
+      setBusy(true);
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}/status`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({status}),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Status save failed");
+        setChapterStatus(payload.chapter.status);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Chapter status updated", `Chapter: ${payload.chapter.title}\nStatus: ${payload.chapter.status_label}`);
+      } catch (error) {
+        setSimpleStatus("failed", "Status failed");
+        simpleSaveStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function saveChapterMetadata(event) {
+      event.preventDefault();
+      if (!current || busy) return;
+      const chapterTitle = chapterTitleInput.value.trim();
+      const subtitle = chapterSubtitleInput.value.trim();
+      if (!chapterTitle) {
+        chapterTitleInput.focus();
+        return;
+      }
+
+      setBusy(true);
+      chapterTitleStatus.textContent = "Saving";
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}`, {
+          method: "PATCH",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({title: chapterTitle, subtitle}),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Title save failed");
+        if (!simpleDirty && payload.book_text) {
+          renderPayload(payload.book_text);
+        } else {
+          applyChapterMetadata(payload.chapter);
+        }
+        applyTocPayload(payload.chapters);
+        setChapterTitleFormOpen(false);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Chapter title updated", `Chapter: ${payload.chapter.title}\nSubtitle: ${payload.chapter.subtitle || ""}`);
+      } catch (error) {
+        chapterTitleStatus.textContent = "Failed";
+        chapterTitleStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function createChapter(event) {
+      event.preventDefault();
+      const chapterTitle = addChapterTitle.value.trim();
+      const subtitle = addChapterSubtitle.value.trim();
+      if (!chapterTitle || busy) {
+        addChapterTitle.focus();
+        return;
+      }
+
+      setBusy(true);
+      addChapterStatus.textContent = "Saving";
+      try {
+        const response = await fetch("/api/chapters", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({title: chapterTitle, subtitle}),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Chapter save failed");
+        applyTocPayload(payload.chapters);
+        addChapterForm.reset();
+        addChapterStatus.textContent = "";
+        setAddChapterOpen(false);
+        refreshBookDrawerIfOpen();
+        loadChapter(payload.chapter.id);
+      } catch (error) {
+        addChapterStatus.textContent = "Failed";
+        addChapterStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function setMode(mode) {
+      currentMode = mode;
+      modeButtons.forEach((button) => {
+        button.classList.toggle("active", button.dataset.bookMode === mode);
+      });
+      instructionInput.placeholder = mode === "rewrite" ? "Rewrite instruction" : "";
+      syncButtons();
+    }
+
+    function previousVersion() {
+      if (!current || !current.versions.length) return null;
+      return current.versions.find((item) => item.version_number < current.version_number) || null;
+    }
+
+    function sourceLabel(payload) {
+      return payload.source === "draft" ? "Draft" : "Brief skeleton";
+    }
+
+    function updateSimpleWordCount() {
+      const words = simpleText.value.trim().match(/\S+/g);
+      const count = words ? words.length : 0;
+      simpleWordCount.textContent = `${count} ${count === 1 ? "word" : "words"}`;
+    }
+
+    function markSimpleDirty() {
+      simpleDirty = Boolean(current) && simpleText.value !== lastSimpleBody;
+      setSimpleStatus(simpleDirty ? "dirty" : "saved", simpleDirty ? "Unsaved" : "Ready");
+      updateSimpleWordCount();
+      syncButtons();
+    }
+
+    function renderPayload(payload) {
+      current = payload;
+      selected = null;
+      title.textContent = payload.chapter.title;
+      meta.textContent = `${sourceLabel(payload)} / version ${payload.version_number}`;
+      setChapterTitleFormOpen(false);
+      lastSimpleBody = payload.body;
+      simpleDirty = false;
+      simpleText.value = payload.body;
+      simpleVersionMeta.textContent = `${sourceLabel(payload)} / version ${payload.version_number}`;
+      simpleEditorMeta.textContent = `${payload.chapter.title} / ${payload.source} / v${payload.version_number}`;
+      simpleSaveStatus.title = "";
+      setSimpleStatus("saved", "Ready");
+      updateSimpleWordCount();
+      versionLabel.textContent = `Version ${payload.version_number}`;
+      selectedText.value = "";
+      selectedMeta.textContent = "No chunk selected";
+      setStatus("Ready");
+      setChapterStatus(payload.chapter.status);
+
+      versionSelect.innerHTML = "";
+      payload.versions.forEach((version) => {
+        const option = document.createElement("option");
+        option.value = version.version_number;
+        option.textContent = `v${version.version_number}`;
+        if (version.version_number === payload.version_number) option.selected = true;
+        versionSelect.append(option);
+      });
+
+      chunksContainer.innerHTML = "";
+      emptyNote.hidden = payload.chunks.length > 0;
+      emptyNote.textContent = payload.chunks.length ? "" : "No text blocks in this chapter.";
+      payload.chunks.forEach((chunk) => {
+        const button = document.createElement("button");
+        button.className = `book-block book-block-${chunk.kind}`;
+        button.type = "button";
+        button.dataset.bookChunkId = chunk.id;
+
+        const blockMeta = document.createElement("span");
+        blockMeta.className = "book-block-meta";
+        blockMeta.textContent = `${chunk.kind} ${String(chunk.index).padStart(3, "0")}`;
+
+        const blockText = document.createElement("span");
+        blockText.className = "book-block-text";
+        blockText.textContent = chunk.text;
+
+        button.append(blockMeta, blockText);
+        button.addEventListener("click", () => selectChunk(chunk, {runMode: true}));
+        chunksContainer.append(button);
+      });
+      syncButtons();
+    }
+
+    async function loadChapter(chapterId) {
+      setStatus("Loading");
+      setSimpleStatus("saving", "Loading");
+      setView("simple");
+      setBusy(true);
+      try {
+        const response = await fetch(`/api/chapters/${chapterId}/book-text`);
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Chapter load failed");
+        renderPayload(payload);
+        document.querySelectorAll("[data-chapter-select]").forEach((button) => {
+          button.classList.toggle("active", button.dataset.chapterId === chapterId);
+        });
+        syncTocControls();
+        emitBookMessage("Chapter hydrated", `Chapter: ${payload.chapter.title}\nSource: ${payload.source}\nVersion: ${payload.version_number}`);
+      } catch (error) {
+        setStatus("Load failed");
+        editStatus.title = error.message;
+        setSimpleStatus("failed", "Load failed");
+        simpleSaveStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function saveFullText() {
+      if (!current || busy || !simpleDirty) return;
+      setBusy(true);
+      setSimpleStatus("saving", "Saving");
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}/book-text`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            body: simpleText.value,
+            base_version: current.version_number,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Save failed");
+        renderPayload(payload);
+        setSimpleStatus("saved", `Saved v${payload.version_number}`);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Chapter draft saved", `Chapter: ${payload.chapter.title}\nVersion: ${payload.version_number}`);
+      } catch (error) {
+        setSimpleStatus("failed", "Save failed");
+        simpleSaveStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function selectChunk(chunk, {runMode}) {
+      if (!current || busy) return;
+      selected = chunk;
+      document.querySelectorAll("[data-book-chunk-id]").forEach((item) => {
+        item.classList.toggle("selected", item.dataset.bookChunkId === chunk.id);
+      });
+      selectedText.value = chunk.text;
+      selectedMeta.textContent = `${current.chapter.title} / ${chunk.id}`;
+      setStatus(currentMode === "rewrite" ? "Selected" : `Running ${currentMode}`);
+      emitBookMessage("Chunk selected", `Chapter: ${current.chapter.title}\nMode: ${currentMode}\nChunk: ${chunk.id}\n\n${chunk.text.slice(0, 1800)}`);
+      syncButtons();
+      if (runMode && (currentMode === "simplify" || currentMode === "expound")) {
+        runRewrite();
+      } else if (currentMode === "rewrite") {
+        instructionInput.focus();
+      }
+    }
+
+    async function runRewrite() {
+      if (!current || !selected || busy) return;
+      const instruction = instructionInput.value.trim();
+      if (currentMode === "rewrite" && !instruction) {
+        setStatus("Add instruction");
+        instructionInput.focus();
+        return;
+      }
+      setBusy(true);
+      setStatus(currentMode === "rewrite" ? "Rewriting" : currentMode === "simplify" ? "Simplifying" : "Expounding");
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}/chunks/${selected.id}/rewrite`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            mode: currentMode,
+            instruction,
+            base_version: current.version_number,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Rewrite failed");
+        const selectedId = selected.id;
+        renderPayload(payload);
+        const next = payload.chunks.find((chunk) => chunk.id === selectedId);
+        if (next) selectChunk(next, {runMode: false});
+        setStatus(`Saved v${payload.version_number}`);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Chunk rewritten", `Chapter: ${payload.chapter.title}\nMode: ${payload.mode}\nVersion: ${payload.version_number}\nChunk: ${selectedId}\n\n${payload.rewritten_text.slice(0, 1800)}`);
+      } catch (error) {
+        setStatus("Rewrite failed");
+        editStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function saveEdit() {
+      if (!current || !selected || busy) return;
+      setBusy(true);
+      setStatus("Saving");
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}/chunks/${selected.id}/edit`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            edited_text: selectedText.value,
+            base_version: current.version_number,
+          }),
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Save failed");
+        const selectedId = selected.id;
+        renderPayload(payload);
+        const next = payload.chunks.find((chunk) => chunk.id === selectedId);
+        if (next) selectChunk(next, {runMode: false});
+        setStatus(`Saved v${payload.version_number}`);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Manual edit saved", `Chapter: ${payload.chapter.title}\nVersion: ${payload.version_number}\nChunk: ${selectedId}`);
+      } catch (error) {
+        setStatus("Save failed");
+        editStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    async function restoreVersion(versionNumber) {
+      if (!current || busy || !versionNumber) return;
+      setBusy(true);
+      setStatus("Restoring");
+      try {
+        const response = await fetch(`/api/chapters/${current.chapter.id}/versions/${versionNumber}/restore`, {
+          method: "POST",
+        });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Restore failed");
+        renderPayload(payload);
+        setStatus(`Restored v${versionNumber}`);
+        refreshBookDrawerIfOpen();
+        emitBookMessage("Version restored", `Chapter: ${payload.chapter.title}\nRestored: v${versionNumber}\nCurrent: v${payload.version_number}`);
+      } catch (error) {
+        setStatus("Restore failed");
+        editStatus.title = error.message;
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    function clearSelection() {
+      if (!selected) return;
+      selectedText.value = selected.text;
+      setStatus("Cleared");
+      syncButtons();
+    }
+
+    function resetFullText() {
+      if (!current) return;
+      simpleText.value = lastSimpleBody;
+      markSimpleDirty();
+    }
+
+    function emitBookMessage(title, body) {
+      if (!window.sendChainlitMessage) return;
+      const id = window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+      window.sendChainlitMessage({
+        threadId: window.getChainlitCopilotThreadId ? window.getChainlitCopilotThreadId() || "" : "",
+        id,
+        name: "Book Text",
+        type: "user_message",
+        output: `[Book Text] ${title}\n${body}`,
+        createdAt: new Date().toISOString(),
+        metadata: {location: window.location.href},
+      }, []);
+    }
+
+    tocItems().forEach(wireTocItem);
+    tocToggle.addEventListener("click", () => {
+      setTocCollapsed(!chapterShell.classList.contains("toc-collapsed"));
+    });
+    addChapterToggle.addEventListener("click", () => {
+      setAddChapterOpen(addChapterForm.hidden);
+    });
+    addChapterTitle.addEventListener("input", syncButtons);
+    addChapterForm.addEventListener("submit", createChapter);
+    addChapterForm.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setAddChapterOpen(false);
+    });
+    bookDrawerOpen.addEventListener("click", () => setBookDrawerOpen(true));
+    bookDrawerClose.addEventListener("click", () => setBookDrawerOpen(false));
+    bookDrawerBackdrop.addEventListener("click", () => setBookDrawerOpen(false));
+    bookDrawerFormatButtons.forEach((button) => {
+      button.addEventListener("click", () => setBookDrawerFormat(button.dataset.bookDrawerFormat));
+    });
+    bookDrawerIncludeDrafts.addEventListener("change", loadBookMarkdown);
+    bookDrawerCopy.addEventListener("click", copyBookMarkdown);
+    bookDrawer.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setBookDrawerOpen(false);
+    });
+    chapterTitleToggle.addEventListener("click", () => setChapterTitleFormOpen(true));
+    chapterTitleCancel.addEventListener("click", () => setChapterTitleFormOpen(false));
+    chapterTitleInput.addEventListener("input", syncButtons);
+    chapterSubtitleInput.addEventListener("input", syncButtons);
+    chapterTitleForm.addEventListener("submit", saveChapterMetadata);
+    chapterTitleForm.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") setChapterTitleFormOpen(false);
+    });
+    viewButtons.forEach((button) => {
+      button.addEventListener("click", () => setView(button.dataset.bookView));
+    });
+    statusButtons.forEach((button) => {
+      button.addEventListener("click", () => updateChapterStatus(button.dataset.chapterStatusSet));
+    });
+    modeButtons.forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.bookMode));
+    });
+    simpleText.addEventListener("input", markSimpleDirty);
+    fullSaveButton.addEventListener("click", saveFullText);
+    resetFullButton.addEventListener("click", resetFullText);
+    selectedText.addEventListener("input", () => {
+      if (!selected) return;
+      setStatus(selectedText.value === selected.text ? "Selected" : "Unsaved");
+    });
+    saveButton.addEventListener("click", saveEdit);
+    clearButton.addEventListener("click", clearSelection);
+    runRewriteButton.addEventListener("click", runRewrite);
+    restoreButton.addEventListener("click", () => restoreVersion(versionSelect.value));
+    undoButton.addEventListener("click", () => {
+      const previous = previousVersion();
+      if (previous) restoreVersion(previous.version_number);
+    });
+    instructionInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        runRewrite();
+      }
+    });
+    setView(currentView);
+    syncTocControls();
+    syncButtons();
+  })();
+</script>
 {% endblock %}

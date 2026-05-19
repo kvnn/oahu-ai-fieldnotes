@@ -30,6 +30,7 @@ class WatchRoot:
 class OpenAIConfig:
     ocr_model: str = "gpt-4.1"
     extraction_model: str = "gpt-5.5"
+    draft_model: str | None = None
 
 
 @dataclass(frozen=True)
@@ -110,6 +111,8 @@ def load_config(config_path: str | Path = DEFAULT_CONFIG_PATH) -> FieldnotesConf
             or openai_raw.get("ocr_model", "gpt-4.1"),
             extraction_model=os.getenv("FIELDNOTES_EXTRACTION_MODEL")
             or openai_raw.get("extraction_model", "gpt-5.5"),
+            draft_model=os.getenv("FIELDNOTES_DRAFT_MODEL")
+            or openai_raw.get("draft_model"),
         ),
         extraction=ExtractionConfig(
             provider=os.getenv("FIELDNOTES_EXTRACTION_PROVIDER")

@@ -60,6 +60,36 @@
           <h2><a href="/sources/{{ chunk.source.id }}">{{ chunk.title or chunk.source.title or "Source chunk" }}</a></h2>
           <p>{{ chunk.text[:520] }}{% if chunk.text|length > 520 %}...{% endif %}</p>
           <p class="muted">{{ chunk.source.location }}</p>
+          {% if chunk.extracted_candidates %}
+            <div class="source-meaning-list">
+              <h3>Meaning cards</h3>
+              {% for candidate in chunk.extracted_candidates|sort(attribute="created_at", reverse=true) %}
+                <div class="source-meaning-card">
+                  <div>
+                    <p class="type">{{ candidate.node_type }} / {{ candidate.status }}</p>
+                    <h4><a href="/candidates/{{ candidate.id }}">{{ candidate.title }}</a></h4>
+                    <p>{{ candidate.body[:260] }}{% if candidate.body|length > 260 %}...{% endif %}</p>
+                  </div>
+                  <div class="mini-actions">
+                    {% if candidate.status == "promoted" %}
+                      <p class="state-good">Kept</p>
+                    {% else %}
+                      <form method="post" action="/candidates/{{ candidate.id }}/keep?return_to={{ return_to|urlencode }}">
+                        <button type="submit">Keep</button>
+                      </form>
+                    {% endif %}
+                    {% if candidate.status == "rejected" %}
+                      <p class="empty-note">Discarded</p>
+                    {% else %}
+                      <form method="post" action="/candidates/{{ candidate.id }}/discard?return_to={{ return_to|urlencode }}">
+                        <button class="danger" type="submit">Discard</button>
+                      </form>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
         </div>
         <div class="card-actions">
           <form method="post" action="/chunks/{{ chunk.id }}/keep?return_to={{ return_to|urlencode }}">

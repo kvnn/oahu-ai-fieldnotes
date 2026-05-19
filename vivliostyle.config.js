@@ -29,6 +29,18 @@ export default defineConfig({
       path: 'manuscript/02-field-note-template.md',
       title: 'Field Note Template',
     },
+    {
+      path: 'manuscript/03-ai-workbenches.md',
+      title: 'A.I. Workbenches',
+    },
+    {
+      path: 'manuscript/04-hydrate-review-tighten-loop.md',
+      title: 'Hydrate / Review / Tighten Loop',
+    },
+    {
+      path: 'manuscript/05-agents-are-the-best-admin-interface.md',
+      title: 'Agents Are the Best Admin Interface',
+    },
   ],
   toc: {
     title: 'Contents',

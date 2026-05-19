@@ -171,6 +171,108 @@ pre {
   break-before: page;
 }
 
+.chapter-subtitle {
+  margin: -0.2in 0 0.22in;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+  font-size: 12pt;
+  line-height: 1.35;
+  color: #4f5f5d;
+}
+
+.workbench-figure,
+.workbench-ledger {
+  margin: 0.08in 0 0.28in;
+  padding: 0.12in;
+  border-top: 0.012in solid #8aa6a3;
+  border-bottom: 0.012in solid #8aa6a3;
+}
+
+.loop-diagram {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.16in;
+  min-height: 5.5in;
+  padding: 0.2in;
+}
+
+.loop-node,
+.loop-center {
+  border: 0.008in solid #8aa6a3;
+  background: #f7f5ef;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+}
+
+.loop-node {
+  min-height: 2.1in;
+  padding: 0.14in;
+}
+
+.loop-node strong,
+.loop-center strong {
+  display: block;
+  margin-bottom: 0.08in;
+  font-size: 13pt;
+}
+
+.loop-node span,
+.loop-center span {
+  display: block;
+  font-size: 9pt;
+  line-height: 1.35;
+}
+
+.loop-center {
+  position: absolute;
+  inset: 2.17in 1.18in auto;
+  min-height: 1.05in;
+  padding: 0.14in;
+  text-align: center;
+  background: #ffffff;
+}
+
+.workbench-ledger table {
+  margin-bottom: 0.02in;
+}
+
+.workbench-ledger th,
+.workbench-ledger td {
+  font-size: 8.2pt;
+}
+
+.agent-admin-diagram {
+  display: flex;
+  min-height: 5.45in;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.1in;
+  padding: 0.14in 0;
+}
+
+.admin-band {
+  padding: 0.13in 0.16in;
+  border-left: 0.018in solid #8aa6a3;
+  background: #f7f5ef;
+  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+}
+
+.admin-band strong {
+  display: block;
+  margin-bottom: 0.04in;
+  font-size: 12pt;
+}
+
+.admin-band span {
+  display: block;
+  font-size: 8.8pt;
+  line-height: 1.35;
+}
+
+.admin-agent {
+  border-left-color: #4f5f5d;
+  background: #ffffff;
+}
+
 @page cover {
   margin: 0.72in;
 

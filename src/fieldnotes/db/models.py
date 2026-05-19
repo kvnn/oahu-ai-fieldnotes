@@ -157,6 +157,11 @@ class WorkStatus(StringEnum):
     PUBLISHED = "published"
 
 
+class ChapterStatus(StringEnum):
+    DRAFT = "draft"
+    READY = "ready"
+
+
 class DraftStatus(StringEnum):
     DRAFT = "draft"
     READY_FOR_REVIEW = "ready_for_review"
@@ -564,7 +569,7 @@ class ChapterBrief(Base, IdMixin, TimestampMixin):
     slug: Mapped[str] = mapped_column(String(160), nullable=False)
     sequence_order: Mapped[int | None] = mapped_column(Integer)
     status: Mapped[str] = mapped_column(
-        String(64), default=WorkStatus.PROPOSED.value, nullable=False, index=True
+        String(64), default=ChapterStatus.DRAFT.value, nullable=False, index=True
     )
     intended_page_count: Mapped[int | None] = mapped_column(Integer)
     target_word_count: Mapped[int | None] = mapped_column(Integer)

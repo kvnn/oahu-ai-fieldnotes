@@ -15,6 +15,7 @@ from fieldnotes.db.models import (
     ChapterBrief,
     ChapterBriefCandidate,
     ChapterBriefNode,
+    ChapterStatus,
     EdgeType,
     FieldNoteCandidate,
     FieldNoteCandidateNode,
@@ -207,7 +208,7 @@ def seed_demo(session) -> UUID:
         subtitle="Turning messy AI work into grounded print",
         slug="book-that-remembers-its-sources",
         sequence_order=1,
-        status=WorkStatus.ACCEPTED.value,
+        status=ChapterStatus.READY.value,
         intended_page_count=12,
         target_word_count=3500,
         situation=(

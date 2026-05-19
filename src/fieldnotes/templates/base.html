@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Field Notes{% endblock %}</title>
     <link rel="stylesheet" href="/static/app.css">
+    <script>
+      window.tailwind = window.tailwind || {};
+      window.tailwind.config = {
+        corePlugins: {preflight: false}
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
   </head>
   <body>
     <header class="app-header">
@@ -12,11 +19,29 @@
       <nav>
         <a href="/chapters">Chapters</a>
         <a href="/context">Context</a>
+        <button
+          class="inline-flex items-center rounded-md bg-teal-700 px-3 py-1.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-700"
+          type="button"
+          data-assistant-toggle
+        >
+          Assistant
+        </button>
       </nav>
     </header>
     <main class="page">
       {% block content %}{% endblock %}
     </main>
     {% block scripts %}{% endblock %}
+    <script>
+      (() => {
+        document.querySelectorAll("[data-assistant-toggle]").forEach((button) => {
+          button.addEventListener("click", () => {
+            if (window.toggleChainlitCopilot) {
+              window.toggleChainlitCopilot();
+            }
+          });
+        });
+      })();
+    </script>
   </body>
 </html>

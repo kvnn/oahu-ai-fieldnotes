@@ -63,6 +63,12 @@
     visual pages should change the reader’s tempo.
   - Evaluate each draft against: clarity, usefulness, specificity, grounding, opinion strength, local resonance, visual fit, and print rhythm.
 
+  ## Local Server Practice
+
+  - Do not start or restart local development servers unless explicitly asked. Too many concurrent servers make the workspace harder to reason about.
+  - When a server restart would normally be useful, provide the exact command and expected local URL so the user can restart it manually.
+  - If a temporary server is explicitly started for verification, stop that process before finishing unless the user asks to keep it running.
+
   ## Assumptions
 
   - The reader is a builder-reader.
@@ -71,4 +77,3 @@
   - A.I. is the book style.
   - O‘ahu is a subtle recurring layer, not a mandatory local essay in every chapter.
   - Sources remain mostly invisible unless a detail is narratively useful.
-
