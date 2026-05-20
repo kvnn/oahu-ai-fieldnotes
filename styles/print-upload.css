@@ -1,0 +1,36 @@
+@import url("./book.css");
+
+@page {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page cover {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page opener {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page body {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page front-matter {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page divider {
+  marks: none;
+  bleed: 0.125in;
+}
+
+@page closing {
+  marks: none;
+  bleed: 0.125in;
+}

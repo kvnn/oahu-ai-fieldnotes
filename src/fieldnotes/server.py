@@ -14,7 +14,7 @@ from uuid import UUID
 from uuid import uuid4
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
@@ -60,13 +60,20 @@ from fieldnotes.db.models import (
     utc_now,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
+from fieldnotes.production import mixam_page_count_profile, print_output_path
+from fieldnotes.rendering import (
+    record_book_pdf_render,
+    render_book_pdf,
+    render_database_book_pdf,
+    render_output_type,
+)
 from fieldnotes.review import (
     discard_source_chunk,
     keep_source_chunk,
     promote_candidate,
     reject_candidate,
 )
-from fieldnotes.workflow import ensure_project
+from fieldnotes.workflow import ensure_project, first_volume
 
 
 PACKAGE_DIR = Path(__file__).parent
@@ -76,26 +83,9 @@ CONTEXT_PAGE_SIZE = 12
 CHAINLIT_PATH = "/chainlit"
 CHAINLIT_TARGET = PACKAGE_DIR / "chat_app.py"
 PAGE_COUNT_OUTPUT_TYPE = "page_count"
+FINAL_PDF_PROFILE = "print"
 ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-MIXAM_PAGE_COUNT_PROFILE = {
-    "id": "mixam-perfect-booklet-5_5x8_5-v2",
-    "label": 'Mixam Perfect Booklets 5.5" x 8.5"',
-    "trim_size": "5.5in,8.5in",
-    "bleed": "0.125in",
-    "css": {
-        "top": "0.62in",
-        "bottom": "0.72in",
-        "inside": "0.78in",
-        "outside": "0.52in",
-    },
-    "press_ready": False,
-    "press_ready_target": True,
-    "press_ready_note": (
-        "Disabled for page-count renders because Vivliostyle press-ready requires "
-        "Docker and does not change pagination."
-    ),
-    "crop_marks": True,
-}
+MIXAM_PAGE_COUNT_PROFILE = mixam_page_count_profile()
 
 
 class DraftSaveRequest(BaseModel):
@@ -353,6 +343,80 @@ def create_app(
             project_slug=project.slug,
         )
         return response
+
+    @app.get("/api/book-text/final-pdf")
+    def latest_final_pdf(
+        session: Session = Depends(get_session),
+    ) -> dict:
+        project = ensure_project(session, config)
+        record = _latest_final_pdf_record(session, project)
+        return _final_pdf_payload(config.root, record)
+
+    @app.post("/api/book-text/final-pdf")
+    def render_final_pdf(
+        request: Request,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        project = ensure_project(session, config)
+        volume = first_volume(session, project)
+        trace_id = _request_trace_id(request)
+        logger.info(
+            "final_pdf.render.start trace_id=%s project=%s profile=%s",
+            trace_id,
+            project.slug,
+            FINAL_PDF_PROFILE,
+        )
+        chapters = _compiled_book_chapters(
+            session,
+            _ordered_chapter_briefs(session, project),
+            include_drafts=False,
+        )
+        markdown = _compiled_book_markdown(chapters, output_format="vivliostyle")
+        result = render_database_book_pdf(
+            config.root,
+            markdown=markdown,
+            chapter_refs=_render_chapter_refs(chapters),
+            word_count=_word_count(markdown),
+        )
+        record = record_book_pdf_render(
+            session,
+            project=project,
+            volume=volume,
+            config_path=config.vivliostyle_config,
+            result=result,
+        )
+        log = logger.warning if record.status == RenderStatus.FAILED.value else logger.info
+        log(
+            "final_pdf.render.complete trace_id=%s project=%s profile=%s "
+            "status=%s returncode=%s output_path=%s error=%r",
+            trace_id,
+            project.slug,
+            FINAL_PDF_PROFILE,
+            record.status,
+            result.returncode,
+            record.output_path,
+            result.metadata.get("error"),
+        )
+        return _final_pdf_payload(config.root, record)
+
+    @app.get("/api/book-text/final-pdf/file")
+    def final_pdf_file(
+        session: Session = Depends(get_session),
+    ) -> FileResponse:
+        project = ensure_project(session, config)
+        record = _latest_final_pdf_record(session, project, succeeded_only=True)
+        if record is None:
+            raise HTTPException(status_code=404, detail="final PDF has not rendered successfully")
+        path = _safe_dist_output_path(config.root, record.output_path)
+        if path is None:
+            raise HTTPException(status_code=403, detail="final PDF path is outside dist")
+        if not path.exists():
+            raise HTTPException(status_code=404, detail="final PDF file is missing")
+        return FileResponse(
+            path,
+            media_type="application/pdf",
+            filename=path.name,
+        )
 
     @app.get("/api/chapters/{chapter_brief_id}/book-text")
     def chapter_book_text(
@@ -1053,6 +1117,9 @@ def _compiled_book_chapters(
                 "version_number": draft.version_number if draft else 0,
                 "word_count": _word_count(body),
                 "body": body,
+                "brief_metadata": dict(brief.brief_metadata or {}),
+                "intended_page_count": brief.intended_page_count,
+                "target_word_count": brief.target_word_count,
             }
         )
     return chapters
@@ -1068,17 +1135,69 @@ def _compiled_book_markdown(
     return "\n\n".join(str(chapter["body"]).strip() for chapter in chapters).strip()
 
 
+def _render_chapter_refs(chapters: list[dict]) -> list[dict]:
+    return [
+        {
+            "id": chapter["id"],
+            "slug": chapter["slug"],
+            "title": chapter["title"],
+            "toc_number": chapter["toc_number"],
+            "source": chapter["source"],
+            "version_number": chapter["version_number"],
+            "word_count": chapter["word_count"],
+        }
+        for chapter in chapters
+    ]
+
+
 def _vivliostyle_chapter_markdown(chapter: dict) -> str:
     title = str(chapter["title"]).strip() or "Untitled Chapter"
     subtitle = str(chapter.get("subtitle") or "").strip()
     body = _strip_leading_chapter_matter(str(chapter["body"]))
+    slug = str(chapter.get("slug") or "").strip()
+    kicker = _chapter_kicker(chapter)
 
-    lines = [f"# {title}"]
+    lines = [
+        f'<section class="chapter-opener opener-title" data-chapter-slug="{escape(slug)}">',
+        f'<p class="opener-kicker">{escape(kicker)}</p>',
+        f"<h1>{escape(title)}</h1>",
+    ]
     if subtitle:
-        lines.extend(["", f'<p class="chapter-subtitle">{escape(subtitle)}</p>'])
+        lines.append(f'<p class="opener-subtitle">{escape(subtitle)}</p>')
+    lines.extend(
+        [
+            f'<p class="opener-running-label">{escape(_chapter_running_label(chapter))}</p>',
+            "</section>",
+            "",
+            '<div class="chapter-body-marker" aria-hidden="true"></div>',
+        ]
+    )
     if body:
         lines.extend(["", body])
     return "\n".join(lines).strip()
+
+
+def _chapter_kicker(chapter: dict) -> str:
+    try:
+        sequence_order = int(chapter.get("sequence_order") or 0)
+    except (TypeError, ValueError):
+        sequence_order = 0
+    if sequence_order == 1:
+        return "INTRO"
+
+    try:
+        toc_number = int(chapter.get("toc_number") or 0)
+    except (TypeError, ValueError):
+        toc_number = 0
+    return f"FIELD NOTE {toc_number:02d}" if toc_number else "FIELD NOTE"
+
+
+def _chapter_running_label(chapter: dict) -> str:
+    metadata = dict(chapter.get("brief_metadata") or {})
+    form = str(metadata.get("chapter_form") or metadata.get("form") or "").strip()
+    if form:
+        return form.upper()
+    return "O'AHU A.I. FIELD NOTES"
 
 
 def _strip_leading_chapter_matter(body: str) -> str:
@@ -1238,6 +1357,87 @@ def _latest_page_count_record(
         if metadata.get("profile_id") == MIXAM_PAGE_COUNT_PROFILE["id"]:
             return record
     return None
+
+
+def _latest_final_pdf_record(
+    session: Session,
+    project: Project,
+    *,
+    succeeded_only: bool = False,
+) -> RenderedOutput | None:
+    statement = (
+        select(RenderedOutput)
+        .where(
+            RenderedOutput.project_id == project.id,
+            RenderedOutput.output_type == render_output_type(FINAL_PDF_PROFILE),
+        )
+        .order_by(RenderedOutput.created_at.desc())
+    )
+    records = list(session.scalars(statement))
+    for record in records:
+        metadata = dict(record.render_metadata or {})
+        if metadata.get("profile") != FINAL_PDF_PROFILE:
+            continue
+        if metadata.get("source") != "database":
+            continue
+        if succeeded_only and record.status != RenderStatus.SUCCEEDED.value:
+            continue
+        return record
+    return None
+
+
+def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
+    if record is None:
+        output_path = str(print_output_path())
+        return {
+            "profile": FINAL_PDF_PROFILE,
+            "status": "missing",
+            "output_path": output_path,
+            "download_url": None,
+            "rendered_at": None,
+            "returncode": None,
+            "error": None,
+            "logs_excerpt": None,
+            "pdf_standard_target": "Mixam press-ready PDF",
+            "source": "database",
+            "generated_markdown_path": None,
+            "chapter_count": 0,
+            "commands": [],
+            "file_exists": False,
+        }
+
+    metadata = dict(record.render_metadata or {})
+    path = _safe_dist_output_path(root, record.output_path)
+    file_exists = bool(path and path.exists())
+    succeeded = record.status == RenderStatus.SUCCEEDED.value
+    return {
+        "id": str(record.id),
+        "profile": metadata.get("profile") or FINAL_PDF_PROFILE,
+        "status": record.status,
+        "output_path": record.output_path,
+        "download_url": "/api/book-text/final-pdf/file" if succeeded and file_exists else None,
+        "rendered_at": record.rendered_at.isoformat() if record.rendered_at else None,
+        "returncode": metadata.get("returncode"),
+        "error": metadata.get("error"),
+        "logs_excerpt": _text_tail(record.build_logs or metadata.get("error")),
+        "pdf_standard_target": metadata.get("pdf_standard_target", "Mixam press-ready PDF"),
+        "source": metadata.get("source", "database"),
+        "generated_markdown_path": metadata.get("generated_markdown_path"),
+        "chapter_count": metadata.get("chapter_count"),
+        "commands": metadata.get("commands", []),
+        "file_exists": file_exists,
+    }
+
+
+def _safe_dist_output_path(root: Path, output_path: str | Path) -> Path | None:
+    dist_root = (root / "dist").resolve()
+    candidate = Path(output_path)
+    if not candidate.is_absolute():
+        candidate = root / candidate
+    resolved = candidate.resolve()
+    if not resolved.is_relative_to(dist_root):
+        return None
+    return resolved
 
 
 def _render_chapter_page_count(

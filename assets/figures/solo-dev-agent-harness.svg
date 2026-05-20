@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="title desc" data-grid="12-column">
+  <title id="title">Solo-dev agent harness stack</title>
+  <desc id="desc">A stack diagram showing a person, IDE, harness, model, and sidecar tools with enforced opinions emphasized.</desc>
+  <defs>
+    <marker id="open-triangle" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M1 1 L5 3 L1 5" fill="none" stroke="#111111" stroke-width="0.75"/>
+    </marker>
+    <style>
+      .grid { stroke: #111111; stroke-width: 0.3; opacity: 0.14; }
+      .primary { stroke: #111111; stroke-width: 0.75pt; fill: none; marker-end: url(#open-triangle); }
+      .secondary { stroke: #111111; stroke-width: 0.4pt; fill: none; }
+      .leader { stroke: #111111; stroke-width: 0.3pt; fill: none; }
+      .opinion { fill: #2b1244; }
+      .label { fill: #111111; font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 1.2px; }
+      .caption { fill: #2b1244; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1.2px; }
+    </style>
+  </defs>
+  <g aria-hidden="true">
+    <path class="grid" d="M60 24 V396 M120 24 V396 M180 24 V396 M240 24 V396 M300 24 V396 M360 24 V396 M420 24 V396 M480 24 V396 M540 24 V396 M600 24 V396 M660 24 V396"/>
+  </g>
+  <rect class="secondary" x="210" y="44" width="300" height="54" rx="0"/>
+  <rect class="secondary" x="210" y="126" width="300" height="54" rx="0"/>
+  <rect class="secondary" x="210" y="208" width="300" height="54" rx="0"/>
+  <rect class="secondary" x="210" y="290" width="300" height="54" rx="0"/>
+  <path class="primary" d="M360 98 V122"/>
+  <path class="primary" d="M360 180 V204"/>
+  <path class="primary" d="M360 262 V286"/>
+  <circle class="opinion" cx="490" cy="235" r="7"/>
+  <circle class="opinion" cx="510" cy="235" r="7"/>
+  <circle class="opinion" cx="530" cy="235" r="7"/>
+  <path class="leader" d="M510 235 H620"/>
+  <path class="primary" d="M210 235 H124"/>
+  <path class="primary" d="M510 235 H632"/>
+  <text class="label" x="330" y="76">YOU</text>
+  <text class="label" x="324" y="158">IDE</text>
+  <text class="label" x="292" y="240">HARNESS</text>
+  <text class="label" x="318" y="322">MODEL</text>
+  <text class="label" x="54" y="238">TOOLS</text>
+  <text class="caption" x="620" y="230">OPINIONS</text>
+  <text class="caption" x="620" y="244">ENFORCED</text>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 420" role="img" aria-labelledby="title desc" data-grid="12-column">
+  <title id="title">Web-based agent orchestration</title>
+  <desc id="desc">A temporal hub-and-spoke diagram showing fan-out from a web orchestrator and convergence back to a result.</desc>
+  <defs>
+    <marker id="open-triangle" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M1 1 L5 3 L1 5" fill="none" stroke="#111111" stroke-width="0.75"/>
+    </marker>
+    <style>
+      .grid { stroke: #111111; stroke-width: 0.3; opacity: 0.14; }
+      .primary { stroke: #111111; stroke-width: 0.75pt; fill: none; marker-end: url(#open-triangle); }
+      .secondary { stroke: #111111; stroke-width: 0.4pt; fill: none; }
+      .leader { stroke: #111111; stroke-width: 0.3pt; fill: none; }
+      .state { stroke: #2b1244; stroke-width: 0.75pt; fill: none; }
+      .node { fill: #2b1244; }
+      .label { fill: #111111; font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 1.2px; }
+      .caption { fill: #2b1244; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1.2px; }
+    </style>
+  </defs>
+  <g aria-hidden="true">
+    <path class="grid" d="M60 24 V396 M120 24 V396 M180 24 V396 M240 24 V396 M300 24 V396 M360 24 V396 M420 24 V396 M480 24 V396 M540 24 V396 M600 24 V396 M660 24 V396"/>
+  </g>
+  <path class="secondary" d="M90 360 H650"/>
+  <text class="caption" x="90" y="382">T0</text>
+  <text class="caption" x="326" y="382">FAN OUT</text>
+  <text class="caption" x="582" y="382">CONVERGE</text>
+  <circle class="node" cx="130" cy="210" r="8"/>
+  <circle class="node" cx="360" cy="120" r="7"/>
+  <circle class="node" cx="360" cy="210" r="7"/>
+  <circle class="node" cx="360" cy="300" r="7"/>
+  <circle class="node" cx="590" cy="210" r="8"/>
+  <path class="primary" d="M138 210 C218 210 260 120 352 120"/>
+  <path class="primary" d="M138 210 H352"/>
+  <path class="primary" d="M138 210 C218 210 260 300 352 300"/>
+  <path class="primary" d="M368 120 C454 120 500 210 582 210"/>
+  <path class="primary" d="M368 210 H582"/>
+  <path class="primary" d="M368 300 C454 300 500 210 582 210"/>
+  <path class="state" d="M130 210 C250 64 470 64 590 210"/>
+  <path class="leader" d="M130 210 V166 H78"/>
+  <path class="leader" d="M590 210 V166 H636"/>
+  <text class="label" x="48" y="162">HUB</text>
+  <text class="label" x="636" y="162">RESULT</text>
+</svg>

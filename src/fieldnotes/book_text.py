@@ -68,6 +68,17 @@ def build_brief_skeleton(brief: ChapterBrief) -> str:
     if description and str(description).strip():
         lines.extend(["", "## Brief", "", str(description).strip()])
 
+    for key, label in [
+        ("source_cluster", "Source Cluster"),
+        ("page_rhythm", "Page Rhythm"),
+        ("visual_slots", "Visual Slots"),
+        ("key_claims", "Key Claims"),
+    ]:
+        items = _metadata_items(metadata.get(key))
+        if items:
+            lines.extend(["", f"## {label}", ""])
+            lines.extend(f"- {item}" for item in items)
+
     if len(lines) == 1 or (len(lines) == 3 and brief.subtitle):
         fallback = brief.field_note or brief.situation or "Draft from this chapter brief."
         lines.extend(["", "## Field Note", "", fallback.strip()])
@@ -164,7 +175,12 @@ def rewrite_book_chunk(
                                 "Return only a replacement for the selected block. Preserve "
                                 "the block's Markdown role unless the user instruction clearly "
                                 "requires otherwise. Keep the book voice concrete, observant, "
-                                "specific, and useful."
+                                "specific, and useful. Write for the printed page, not for a "
+                                "screen or tutorial. Preserve field-note witness, avoid generic "
+                                "AI futurism, and keep source grounding mostly invisible unless "
+                                "a source detail is narratively useful. If a block names visual "
+                                "material, treat the visual as a thinking tool with strict mono "
+                                "labels and restrained aubergine emphasis, not decoration."
                             ),
                         }
                     ],
@@ -266,6 +282,17 @@ def _fence_marker(line: str) -> str | None:
 
 def _normalize_newlines(value: str) -> str:
     return value.replace("\r\n", "\n").replace("\r", "\n")
+
+
+def _metadata_items(value: object) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(item).strip() for item in value if str(item).strip()]
+    text = str(value).strip()
+    if not text:
+        return []
+    return [line.strip(" -") for line in text.splitlines() if line.strip(" -")]
 
 
 def _first_parsed(response: Any) -> Any:

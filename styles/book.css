@@ -1,282 +1,513 @@
-@page {
-  size: 5.5in 8.5in;
-  margin: 0.72in 0.58in 0.78in;
-
-  @bottom-center {
-    content: counter(page);
-    font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-    font-size: 8pt;
-    color: #565656;
-  }
+@font-face {
+  font-family: "Tiempos Headline";
+  src: url("../assets/fonts/TiemposHeadline-Semibold.woff2") format("woff2");
+  font-display: swap;
 }
 
-@page :first {
-  @bottom-center {
-    content: "";
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../assets/fonts/SourceSerif4-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Source Serif 4";
+  src: url("../assets/fonts/SourceSerif4-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IBM Plex Mono";
+  src: url("../assets/fonts/IBMPlexMono-Regular.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  --paper: #f6efe3;
+  --aubergine: #2b1244;
+  --rich-black: #1a1525;
+  --body-black: #111111;
+  --rule: #111111;
+  --display-serif: "Tiempos Headline", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --body-serif: "Source Serif 4", "Adobe Caslon Pro", "Iowan Old Style", Georgia, serif;
+  --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--body-serif);
+  font-size: 10pt;
+  line-height: 1.35;
+  color: var(--body-black);
+  color: device-cmyk(0% 0% 0% 100%);
+  font-feature-settings: "onum", "kern", "liga";
+  hyphens: auto;
+  orphans: 3;
+  widows: 3;
+}
+
+@page {
+  size: 5.5in 8.5in;
+  marks: crop;
+  bleed: 0.125in;
+  margin: 0.5in 0.875in 0.75in 0.625in;
+
+  @bottom-left {
+    content: string(chapter-title);
+    font-family: var(--mono);
+    font-size: 6.8pt;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--aubergine);
+  }
+
+  @bottom-right {
+    content: counter(page);
+    font-family: var(--mono);
+    font-size: 7.2pt;
+    letter-spacing: 0.08em;
+    color: var(--aubergine);
   }
 }
 
 @page :left {
-  margin-left: 0.72in;
-  margin-right: 0.52in;
+  margin: 0.5in 0.625in 0.75in 0.875in;
+
+  @bottom-left {
+    content: counter(page);
+  }
+
+  @bottom-right {
+    content: string(chapter-title);
+  }
 }
 
 @page :right {
-  margin-left: 0.52in;
-  margin-right: 0.72in;
+  margin: 0.5in 0.875in 0.75in 0.625in;
+
+  @bottom-left {
+    content: string(chapter-title);
+  }
+
+  @bottom-right {
+    content: counter(page);
+  }
 }
 
-:root {
-  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-  color: #1d1d1d;
-  font-size: 10.5pt;
-  line-height: 1.48;
-  hyphens: auto;
-  orphans: 3;
-  widows: 3;
+@page cover {
+  margin: 0;
+  background: #1a1525;
+  background: device-cmyk(40% 30% 30% 100%);
+
+  @bottom-left {
+    content: "";
+  }
+
+  @bottom-right {
+    content: "";
+  }
+}
+
+@page opener {
+  margin: 0;
+  background: #1a1525;
+  background: device-cmyk(40% 30% 30% 100%);
+
+  @bottom-left {
+    content: "";
+  }
+
+  @bottom-right {
+    content: "";
+  }
+}
+
+@page body {
+  margin: 0.5in 0.875in 0.75in 0.625in;
+}
+
+@page front-matter {
+  margin: 0.5in 0.875in 0.75in 0.625in;
+}
+
+@page divider {
+  margin: 0;
+  background: #1a1525;
+  background: device-cmyk(40% 30% 30% 100%);
+}
+
+@page closing {
+  margin: 0.5in 0.875in 0.75in 0.625in;
 }
 
 body {
   margin: 0;
 }
 
+a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 0.3pt solid var(--aubergine);
+}
+
 h1,
 h2,
 h3 {
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  font-weight: 650;
-  line-height: 1.15;
-  hyphens: none;
   break-after: avoid;
+  hyphens: none;
+  letter-spacing: 0;
 }
 
 h1 {
-  margin: 0 0 0.32in;
-  font-size: 24pt;
-  page-break-before: always;
+  margin: 0 0 0.22in;
+  font-family: var(--display-serif);
+  font-size: 25pt;
+  line-height: 1.04;
+  font-weight: 600;
+  string-set: chapter-title content();
 }
 
 h2 {
-  margin: 0.26in 0 0.12in;
-  font-size: 14pt;
+  margin: 0.26in 0 0.1in;
+  font-family: var(--display-serif);
+  font-size: 13pt;
+  line-height: 1.12;
+  font-weight: 600;
 }
 
 h3 {
   margin: 0.18in 0 0.08in;
-  font-size: 11pt;
+  font-family: var(--mono);
+  font-size: 7.6pt;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aubergine);
 }
 
 p {
-  margin: 0 0 0.12in;
-}
-
-a {
-  color: inherit;
-  text-decoration: underline;
-  text-decoration-thickness: 0.04em;
+  margin: 0 0 0.125in;
 }
 
 blockquote {
-  margin: 0.18in 0;
+  margin: 0.2in 0;
   padding-left: 0.16in;
-  border-left: 0.02in solid #8aa6a3;
-  color: #323232;
-}
-
-img {
-  display: block;
-  max-width: 100%;
-  margin: 0.2in auto;
+  border-left: 0.75pt solid var(--aubergine);
+  font-size: 10.5pt;
 }
 
 figure {
-  margin: 0.24in 0;
+  margin: 0.22in 0;
   break-inside: avoid;
 }
 
+figcaption,
+.figure-label,
+.field-note-meta,
+.chapter-running-label,
+.marginalia,
+.opener-kicker,
+.opener-running-label {
+  font-family: var(--mono);
+  font-size: 7pt;
+  line-height: 1.35;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-feature-settings: "kern", "liga", "smcp";
+}
+
 figcaption {
-  margin-top: 0.06in;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  font-size: 8.4pt;
-  color: #5a5a5a;
+  margin-top: 0.07in;
+  color: var(--aubergine);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+  margin: 0.16in auto;
 }
 
 table {
   width: 100%;
   margin: 0.18in 0;
   border-collapse: collapse;
-  font-size: 9pt;
+  font-size: 8.8pt;
 }
 
 th,
 td {
-  padding: 0.05in 0.07in;
-  border-bottom: 0.005in solid #b8b8b8;
+  padding: 0.052in 0.06in;
+  border-bottom: 0.3pt solid var(--rule);
   vertical-align: top;
 }
 
 th {
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  text-align: left;
+  font-family: var(--mono);
+  font-size: 6.8pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 code,
 pre {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: var(--mono);
 }
 
 pre {
   padding: 0.12in;
-  overflow-wrap: anywhere;
   white-space: pre-wrap;
-  background: #f3f1ec;
+  overflow-wrap: anywhere;
+  background: transparent;
+  border-top: 0.4pt solid var(--aubergine);
+  border-bottom: 0.4pt solid var(--aubergine);
   break-inside: avoid;
 }
 
 .cover {
   page: cover;
-  min-height: 8.1in;
+  box-sizing: border-box;
+  width: 5.5in;
+  min-height: 8.5in;
+  padding: 0.62in 0.62in 0.72in;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  background: #1a1525;
+  background: device-cmyk(40% 30% 30% 100%);
+  color: var(--paper);
 }
 
 .cover h1 {
-  page-break-before: auto;
-  margin-bottom: 0.12in;
-  font-size: 34pt;
+  margin: 0 0 0.18in;
+  max-width: 4.35in;
+  color: var(--aubergine);
+  color: device-cmyk(80% 95% 40% 55%);
+  font-size: 40pt;
+  line-height: 0.98;
 }
 
 .cover .subtitle {
+  max-width: 3.7in;
+  font-family: var(--mono);
+  font-size: 7.4pt;
+  line-height: 1.55;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.frontmatter {
+  page: front-matter;
+}
+
+.chapter-opener {
+  page: opener;
+  break-before: page;
+  break-after: page;
+  box-sizing: border-box;
+  width: 5.5in;
+  min-height: 8.5in;
+  padding: 0.5in 0.875in 0.75in 0.625in;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background: #1a1525;
+  background: device-cmyk(40% 30% 30% 100%);
+  color: var(--paper);
+}
+
+.chapter-opener h1 {
   max-width: 4.1in;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  font-size: 13pt;
+  margin: 0;
+  color: var(--aubergine);
+  color: device-cmyk(80% 95% 40% 55%);
+  font-size: 36pt;
+  line-height: 0.98;
+}
+
+.opener-kicker,
+.opener-running-label {
+  color: var(--paper);
+}
+
+.opener-kicker {
+  margin-bottom: 0.28in;
+}
+
+.opener-subtitle {
+  max-width: 3.6in;
+  margin: 0.16in 0 0;
+  font-size: 11pt;
+  line-height: 1.35;
+  color: var(--paper);
+}
+
+.opener-running-label {
+  margin-top: 0.42in;
+  color: var(--aubergine);
+  color: device-cmyk(80% 95% 40% 55%);
+}
+
+.opener-notes {
+  justify-content: center;
+}
+
+.opener-note-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.28in 0.22in;
+}
+
+.opener-note-group {
+  min-height: 1.35in;
+  border-top: 0.4pt solid var(--aubergine);
+  padding-top: 0.08in;
+}
+
+.opener-note-group h2 {
+  margin: 0 0 0.08in;
+  font-family: var(--mono);
+  font-size: 7pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aubergine);
+}
+
+.opener-note-group ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.opener-note-group li {
+  margin-bottom: 0.055in;
+  font-size: 8.6pt;
+  line-height: 1.32;
+}
+
+.chapter-body-marker {
+  page: body;
+  height: 0;
+}
+
+.chapter-subtitle {
+  margin: -0.14in 0 0.22in;
+  font-size: 11pt;
   line-height: 1.35;
 }
 
-.frontmatter h1 {
-  page-break-before: auto;
-}
-
 .field-note-meta {
-  margin: 0.08in 0 0.24in;
-  padding: 0.1in 0;
-  border-top: 0.005in solid #8aa6a3;
-  border-bottom: 0.005in solid #8aa6a3;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  font-size: 8.8pt;
+  margin: 0.1in 0 0.25in;
+  padding: 0.08in 0;
+  border-top: 0.4pt solid var(--aubergine);
+  border-bottom: 0.4pt solid var(--aubergine);
+  color: var(--aubergine);
 }
 
 .page-break {
   break-before: page;
 }
 
-.chapter-subtitle {
-  margin: -0.2in 0 0.22in;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-  font-size: 12pt;
-  line-height: 1.35;
-  color: #4f5f5d;
+.marginalia {
+  float: outside;
+  width: 0.62in;
+  margin-inline-start: 0.12in;
+  color: var(--aubergine);
 }
 
+.production-figure,
 .workbench-figure,
 .workbench-ledger {
-  margin: 0.08in 0 0.28in;
-  padding: 0.12in;
-  border-top: 0.012in solid #8aa6a3;
-  border-bottom: 0.012in solid #8aa6a3;
+  margin: 0.08in 0 0.3in;
+  padding: 0.1in 0;
+  border-top: 0.75pt solid var(--rule);
+  border-bottom: 0.75pt solid var(--rule);
+}
+
+.production-figure svg,
+.workbench-figure svg,
+.workbench-ledger svg {
+  width: 100%;
+  height: auto;
+}
+
+.loop-diagram,
+.agent-admin-diagram {
+  position: relative;
+  display: grid;
+  min-height: 4.8in;
+  gap: 0.12in;
+  padding: 0.12in 0;
+  background-image:
+    linear-gradient(to right, rgba(17, 17, 17, 0.14) 0.3pt, transparent 0.3pt);
+  background-size: calc(100% / 12) 100%;
 }
 
 .loop-diagram {
-  position: relative;
-  display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 0.16in;
-  min-height: 5.5in;
-  padding: 0.2in;
+}
+
+.agent-admin-diagram {
+  grid-template-columns: 1fr;
 }
 
 .loop-node,
-.loop-center {
-  border: 0.008in solid #8aa6a3;
-  background: #f7f5ef;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
-}
-
-.loop-node {
-  min-height: 2.1in;
-  padding: 0.14in;
+.loop-center,
+.admin-band {
+  border: 0.75pt solid var(--rule);
+  background: transparent;
+  padding: 0.11in;
+  font-family: var(--mono);
 }
 
 .loop-node strong,
-.loop-center strong {
+.loop-center strong,
+.admin-band strong {
   display: block;
-  margin-bottom: 0.08in;
-  font-size: 13pt;
+  margin-bottom: 0.06in;
+  font-size: 7.6pt;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--aubergine);
 }
 
 .loop-node span,
-.loop-center span {
+.loop-center span,
+.admin-band span {
   display: block;
-  font-size: 9pt;
+  font-family: var(--body-serif);
+  font-size: 8.8pt;
   line-height: 1.35;
 }
 
 .loop-center {
   position: absolute;
-  inset: 2.17in 1.18in auto;
-  min-height: 1.05in;
-  padding: 0.14in;
+  inset: 2.05in 1.05in auto;
   text-align: center;
-  background: #ffffff;
+  border-color: var(--aubergine);
 }
 
-.workbench-ledger table {
-  margin-bottom: 0.02in;
+.diagram-stroke-primary {
+  stroke: #111111;
+  stroke-width: 0.75pt;
+  fill: none;
 }
 
-.workbench-ledger th,
-.workbench-ledger td {
-  font-size: 8.2pt;
+.diagram-stroke-secondary {
+  stroke: #111111;
+  stroke-width: 0.4pt;
+  fill: none;
 }
 
-.agent-admin-diagram {
-  display: flex;
-  min-height: 5.45in;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 0.1in;
-  padding: 0.14in 0;
+.diagram-leader {
+  stroke: #111111;
+  stroke-width: 0.3pt;
+  fill: none;
 }
 
-.admin-band {
-  padding: 0.13in 0.16in;
-  border-left: 0.018in solid #8aa6a3;
-  background: #f7f5ef;
-  font-family: "Avenir Next", "Helvetica Neue", Arial, sans-serif;
+.diagram-state {
+  stroke: #2b1244;
+  stroke-width: 0.75pt;
+  fill: none;
 }
 
-.admin-band strong {
-  display: block;
-  margin-bottom: 0.04in;
-  font-size: 12pt;
-}
-
-.admin-band span {
-  display: block;
-  font-size: 8.8pt;
-  line-height: 1.35;
-}
-
-.admin-agent {
-  border-left-color: #4f5f5d;
-  background: #ffffff;
-}
-
-@page cover {
-  margin: 0.72in;
-
-  @bottom-center {
-    content: "";
-  }
+.diagram-node-emphasis {
+  fill: #2b1244;
 }

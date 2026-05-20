@@ -738,6 +738,7 @@ button.toc-move {
   display: flex;
   gap: 12px;
   justify-content: space-between;
+  flex-wrap: wrap;
 }
 
 .book-format-toggle {
@@ -783,12 +784,31 @@ button.toc-move {
   gap: 8px;
 }
 
-.book-copy-status {
+.book-render-tools {
+  align-items: center;
+  display: flex;
+  flex: 1 1 100%;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.book-copy-status,
+.book-final-pdf-status {
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 680;
+}
+
+.book-copy-status {
   min-width: 72px;
   text-align: right;
+}
+
+.book-final-pdf-status {
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .book-drawer-text {

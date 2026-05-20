@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from fieldnotes.config import FieldnotesConfig
 from fieldnotes.db.models import BookVolume, Project
+from fieldnotes.production import BLEED, PRODUCTION_MARGINS, TRIM_SIZE
 
 
 def _title_from_slug(slug: str) -> str:
@@ -27,10 +28,18 @@ def ensure_project(session: Session, config: FieldnotesConfig) -> Project:
             "Agent-driven, source-grounded publishing project for turning messy "
             "work into chapter-ready field notes."
         ),
-        project_metadata={
-            "vivliostyle_config": str(config.vivliostyle_config),
-            "curated_assets_dir": str(config.curated_assets_dir),
-        },
+            project_metadata={
+                "vivliostyle_config": str(config.vivliostyle_config),
+                "curated_assets_dir": str(config.curated_assets_dir),
+                "trim_size": TRIM_SIZE,
+                "bleed": BLEED,
+                "margins": {
+                    "top": PRODUCTION_MARGINS.top,
+                    "bottom": PRODUCTION_MARGINS.bottom,
+                    "inside": PRODUCTION_MARGINS.inside,
+                    "outside": PRODUCTION_MARGINS.outside,
+                },
+            },
     )
     session.add(project)
     session.flush()
@@ -44,7 +53,7 @@ def ensure_project(session: Session, config: FieldnotesConfig) -> Project:
             trim_size='5.5" x 8.5"',
             page_size='5.5" x 8.5"',
             binding_type="perfect_bound",
-            printer_target="Mixam perfect bound",
+            printer_target="Mixam perfect bound press-ready PDF",
         )
     )
     session.flush()

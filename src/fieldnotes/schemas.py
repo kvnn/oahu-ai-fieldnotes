@@ -141,4 +141,18 @@ class FieldnoteExtractionResult(BaseModel):
     ambiguity_notes: str = ""
 
 
+class ProductionBriefMetadata(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    chapter_form: Literal["scene_to_principle", "concept_first", "notebook_mosaic"]
+    source_cluster: list[str] = Field(default_factory=list)
+    page_rhythm: list[str] = Field(default_factory=list)
+    visual_slots: list[str] = Field(default_factory=list)
+    key_claims: list[str] = Field(default_factory=list)
+    section_page_budget: int | None = Field(default=None, ge=1)
+    opener_spread_notes: str = ""
+    marginalia_notes: list[str] = Field(default_factory=list)
+
+
 EXTRACTION_SCHEMA_VERSION = "fieldnotes.extraction_result.v0.1"
+PRODUCTION_BRIEF_SCHEMA_VERSION = "fieldnotes.production_brief.v0.1"

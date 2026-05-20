@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 import argparse
-import subprocess
-from pathlib import Path
 
 from fieldnotes.chapters import (
     approve_chapter_brief,
@@ -14,15 +12,18 @@ from fieldnotes.chapters import (
 from fieldnotes.config import DEFAULT_CONFIG_PATH, load_config
 from fieldnotes.db.models import (
     Base,
-    RenderOutputType,
-    RenderStatus,
-    RenderedOutput,
-    utc_now,
 )
 from fieldnotes.db.seed import seed_demo
 from fieldnotes.db.session import make_engine, make_session_factory, session_scope
 from fieldnotes.extraction import run_extraction
 from fieldnotes.ingest import ingest_sources
+from fieldnotes.rendering import (
+    record_book_pdf_render,
+    render_book_pdf,
+    render_database_book_pdf,
+    render_commands as _render_commands,
+    render_output_type as _render_output_type,
+)
 from fieldnotes.review import link_candidate_to_chapter, promote_candidate, reject_candidate
 from fieldnotes.workflow import ensure_project, first_volume
 
@@ -184,36 +185,43 @@ def save_chapter(args: argparse.Namespace) -> None:
 
 def render(args: argparse.Namespace) -> None:
     config, _, session_factory = _session_factory(args.config)
-    command = ["npm", "run", "build"]
-    result = subprocess.run(command, cwd=config.root, check=False, capture_output=True, text=True)
-    logs = "\n".join(part for part in [result.stdout, result.stderr] if part)
-
-    output_path = Path("dist/oahu-ai-field-notes.pdf")
     with session_scope(session_factory) as session:
         project = ensure_project(session, config)
         volume = first_volume(session, project)
-        session.add(
-            RenderedOutput(
-                project=project,
-                volume=volume,
-                output_type=RenderOutputType.PDF.value,
-                renderer="Vivliostyle",
-                config_path=str(config.vivliostyle_config),
-                output_path=str(output_path),
-                build_logs=logs[-20000:],
-                status=(
-                    RenderStatus.SUCCEEDED.value
-                    if result.returncode == 0
-                    else RenderStatus.FAILED.value
-                ),
-                rendered_at=utc_now(),
-                render_metadata={"command": command, "returncode": result.returncode},
+        if args.profile == "print":
+            from fieldnotes.server import (
+                _compiled_book_chapters,
+                _compiled_book_markdown,
+                _ordered_chapter_briefs,
+                _render_chapter_refs,
+                _word_count,
             )
+
+            chapters = _compiled_book_chapters(
+                session,
+                _ordered_chapter_briefs(session, project),
+                include_drafts=False,
+            )
+            markdown = _compiled_book_markdown(chapters, output_format="vivliostyle")
+            result = render_database_book_pdf(
+                config.root,
+                markdown=markdown,
+                chapter_refs=_render_chapter_refs(chapters),
+                word_count=_word_count(markdown),
+            )
+        else:
+            result = render_book_pdf(config.root, args.profile)
+        record_book_pdf_render(
+            session,
+            project=project,
+            volume=volume,
+            config_path=config.vivliostyle_config,
+            result=result,
         )
 
     if result.returncode != 0:
         raise SystemExit(result.returncode)
-    print(f"rendered {output_path}")
+    print(f"rendered {result.output_path} ({result.profile})")
 
 
 def serve(args: argparse.Namespace) -> None:
@@ -311,6 +319,12 @@ def build_parser() -> argparse.ArgumentParser:
 
     render_parser = subparsers.add_parser(
         "render", help="Run Vivliostyle build and record the output."
+    )
+    render_parser.add_argument(
+        "--profile",
+        choices=["draft", "proof", "print"],
+        default="draft",
+        help="Render profile. print creates the Mixam upload PDF.",
     )
     render_parser.set_defaults(func=render)
 

@@ -2,7 +2,7 @@
 import { defineConfig } from '@vivliostyle/cli';
 
 export default defineConfig({
-  title: 'Oahu AI Field Notes',
+  title: 'O‘ahu A.I. Field Notes',
   author: 'Kevin Nguyen',
   language: 'en',
   size: '5.5in,8.5in',
@@ -47,12 +47,25 @@ export default defineConfig({
     sectionDepth: 2,
   },
   copyAsset: {
-    includes: ['assets/**/*'],
+    includes: ['assets/fonts/**/*', 'assets/figures/**/*', 'assets/images/**/*', 'assets/curated/**/*'],
   },
   output: [
     {
       path: 'dist/oahu-ai-field-notes.pdf',
       format: 'pdf',
+      pdfPostprocess: {
+        cmyk: {
+          overrideMap: [
+            ['#f6efe3', { c: 0, m: 0, y: 0, k: 0 }],
+            ['#2b1244', { c: 8000, m: 9500, y: 4000, k: 5500 }],
+            ['#1a1525', { c: 4000, m: 3000, y: 3000, k: 10000 }],
+            ['#111111', { c: 0, m: 0, y: 0, k: 10000 }],
+            ['#272727', { c: 0, m: 0, y: 0, k: 10000 }],
+          ],
+          warnUnmapped: true,
+          mapOutput: 'dist/cmyk-map.json',
+        },
+      },
     },
     {
       path: 'dist/webpub',

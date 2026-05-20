@@ -47,6 +47,11 @@
       <span id="book-copy-status" class="book-copy-status"></span>
       <button class="compact" type="button" data-book-drawer-copy disabled>Copy</button>
     </div>
+    <div class="book-render-tools">
+      <span id="book-final-pdf-status" class="book-final-pdf-status">Final PDF not checked</span>
+      <a id="book-final-pdf-link" class="secondary compact book-final-pdf-link" href="/api/book-text/final-pdf/file" target="_blank" rel="noreferrer" hidden>Open</a>
+      <button class="compact" type="button" data-book-render-final-pdf>Render final PDF</button>
+    </div>
   </div>
   <textarea
     id="book-drawer-text"
@@ -278,6 +283,9 @@
     const bookDrawerText = document.querySelector("#book-drawer-text");
     const bookDrawerMeta = document.querySelector("#book-drawer-meta");
     const bookCopyStatus = document.querySelector("#book-copy-status");
+    const bookFinalPdfStatus = document.querySelector("#book-final-pdf-status");
+    const bookFinalPdfLink = document.querySelector("#book-final-pdf-link");
+    const bookRenderFinalPdf = document.querySelector("[data-book-render-final-pdf]");
     const pageCountRender = document.querySelector("[data-page-count-render]");
     const pageCountSummary = document.querySelector("#page-count-summary");
     const viewButtons = document.querySelectorAll("[data-book-view]");
@@ -321,6 +329,7 @@
     let currentView = "simple";
     let busy = false;
     let bookDrawerBusy = false;
+    let finalPdfBusy = false;
     let pageCountBusy = false;
     let bookDrawerFormat = "vivliostyle";
     let lastSimpleBody = "";
@@ -383,6 +392,7 @@
         button.classList.toggle("active", button.dataset.bookDrawerFormat === bookDrawerFormat);
       });
       bookDrawerCopy.disabled = bookDrawerBusy || !bookDrawerText.value.trim();
+      bookRenderFinalPdf.disabled = bookDrawerBusy || finalPdfBusy;
     }
 
     function syncPageCountControls() {
@@ -536,6 +546,7 @@
       bookDrawer.setAttribute("aria-hidden", open ? "false" : "true");
       if (open) {
         loadBookMarkdown();
+        loadFinalPdfStatus();
         bookDrawerClose.focus();
       }
     }
@@ -591,6 +602,66 @@
       } catch (error) {
         bookCopyStatus.textContent = "Copy failed";
         bookCopyStatus.title = error.message;
+      }
+    }
+
+    function applyFinalPdfPayload(payload) {
+      bookFinalPdfStatus.title = "";
+      bookFinalPdfLink.hidden = !payload.download_url;
+      if (payload.download_url) {
+        bookFinalPdfLink.href = payload.download_url;
+      }
+      if (payload.status === "succeeded") {
+        const source = payload.source === "database" ? "database source" : "unknown source";
+        bookFinalPdfStatus.textContent = `Final PDF ready: ${payload.output_path} / ${source}`;
+        return;
+      }
+      if (payload.status === "failed") {
+        bookFinalPdfStatus.textContent = "Final PDF render failed";
+        bookFinalPdfStatus.title = payload.error || payload.logs_excerpt || "";
+        return;
+      }
+      bookFinalPdfStatus.textContent = "No final PDF rendered";
+    }
+
+    async function loadFinalPdfStatus() {
+      if (finalPdfBusy) return;
+      finalPdfBusy = true;
+      bookFinalPdfStatus.textContent = "Checking final PDF";
+      bookFinalPdfStatus.title = "";
+      bookFinalPdfLink.hidden = true;
+      syncBookDrawerControls();
+      try {
+        const response = await fetch("/api/book-text/final-pdf");
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Final PDF status failed");
+        applyFinalPdfPayload(payload);
+      } catch (error) {
+        bookFinalPdfStatus.textContent = "Final PDF status failed";
+        bookFinalPdfStatus.title = error.message;
+      } finally {
+        finalPdfBusy = false;
+        syncBookDrawerControls();
+      }
+    }
+
+    async function renderFinalPdf() {
+      finalPdfBusy = true;
+      bookFinalPdfStatus.textContent = "Rendering final PDF";
+      bookFinalPdfStatus.title = "";
+      bookFinalPdfLink.hidden = true;
+      syncBookDrawerControls();
+      try {
+        const response = await fetch("/api/book-text/final-pdf", {method: "POST"});
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.detail || "Final PDF render failed");
+        applyFinalPdfPayload(payload);
+      } catch (error) {
+        bookFinalPdfStatus.textContent = "Final PDF render failed";
+        bookFinalPdfStatus.title = error.message;
+      } finally {
+        finalPdfBusy = false;
+        syncBookDrawerControls();
       }
     }
 
@@ -1149,6 +1220,7 @@
     });
     bookDrawerIncludeDrafts.addEventListener("change", loadBookMarkdown);
     bookDrawerCopy.addEventListener("click", copyBookMarkdown);
+    bookRenderFinalPdf.addEventListener("click", renderFinalPdf);
     bookDrawer.addEventListener("keydown", (event) => {
       if (event.key === "Escape") setBookDrawerOpen(false);
     });
