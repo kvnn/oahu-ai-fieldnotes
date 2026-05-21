@@ -7,6 +7,10 @@
   "scripts": {
     "preview": "vivliostyle preview",
     "build": "vivliostyle build",
+    "build:draft": "vivliostyle build",
+    "build:proof": "vivliostyle build --config vivliostyle.proof.config.js --crop-marks --bleed 0.125in",
+    "build:print": "vivliostyle build --config vivliostyle.database-print.config.js",
+    "build:print:manuscript": "vivliostyle build --config vivliostyle.print.config.js",
     "clean": "rimraf dist .vivliostyle"
   },
   "devDependencies": {

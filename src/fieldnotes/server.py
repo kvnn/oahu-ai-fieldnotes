@@ -1189,7 +1189,7 @@ def _chapter_kicker(chapter: dict) -> str:
         toc_number = int(chapter.get("toc_number") or 0)
     except (TypeError, ValueError):
         toc_number = 0
-    return f"FIELD NOTE {toc_number:02d}" if toc_number else "FIELD NOTE"
+    return f"FIELD NOTE {(toc_number - 1):02d}" if toc_number else "FIELD NOTE"
 
 
 def _chapter_running_label(chapter: dict) -> str:

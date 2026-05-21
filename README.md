@@ -36,6 +36,29 @@ Outputs are configured in `vivliostyle.config.js`:
 - `dist/oahu-ai-field-notes.pdf`
 - `dist/webpub`
 
+Production profiles are available through the Python CLI. The proof profile uses `vivliostyle.proof.config.js` so it keeps the same CMYK postprocess map as the main build.
+
+```sh
+fieldnotes render --profile draft
+fieldnotes render --profile proof
+fieldnotes render --profile print
+```
+
+The print profile uses the database-generated manuscript at `dist/generated-book/book.md` and `vivliostyle.database-print.config.js` to produce `dist/oahu-ai-field-notes-print.pdf` as the Mixam upload file: single pages, bleed, CMYK mapping, and no crop marks. The older filesystem manuscript path is available only as `npm run build:print:manuscript`. Confirm the upload with Mixam's file checker and order one hard proof before a full run.
+
+## Production Design
+
+The custom theme in `styles/book.css` is built for 5.5" x 8.5" print with `0.125in` bleed, crop marks, a `0.875in` outside marginalia rail, `0.625in` inside gutter, `0.5in` top margin, and `0.75in` bottom margin.
+
+The palette is intentionally narrow: warm stock preview, one aubergine accent, rich black dark spreads, and K-100 body type. Local font files should be placed in `assets/fonts` before proof/print output:
+
+- `TiemposHeadline-Semibold.woff2`
+- `SourceSerif4-Regular.woff2`
+- `SourceSerif4-Semibold.woff2`
+- `IBMPlexMono-Regular.woff2`
+
+Initial diagram assets live in `assets/figures` and follow the book grammar: 12-column grid, near-black lines, aubergine state/emphasis, mono caps labels, no decorative fills, and one open-triangle arrowhead.
+
 ## Manuscript Structure
 
 - `manuscript/cover.md` is the book cover.

@@ -383,8 +383,7 @@ pre {
 }
 
 .chapter-body-marker {
-  page: body;
-  height: 0;
+  display: none;
 }
 
 .chapter-subtitle {

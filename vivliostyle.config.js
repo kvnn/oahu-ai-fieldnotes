@@ -2,7 +2,7 @@
 import { defineConfig } from '@vivliostyle/cli';
 
 export default defineConfig({
-  title: 'O‘ahu A.I. Field Notes',
+  title: 'O‘ahu A.I.',
   author: 'Kevin Nguyen',
   language: 'en',
   size: '5.5in,8.5in',
@@ -43,7 +43,7 @@ export default defineConfig({
     },
   ],
   toc: {
-    title: 'Contents',
+    title: 'Field Notes  2023 - 2026',
     sectionDepth: 2,
   },
   copyAsset: {
