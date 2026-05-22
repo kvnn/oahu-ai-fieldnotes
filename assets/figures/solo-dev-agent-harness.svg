@@ -3,16 +3,16 @@
   <desc id="desc">A stack diagram showing a person, IDE, harness, model, and sidecar tools with enforced opinions emphasized.</desc>
   <defs>
     <marker id="open-triangle" viewBox="0 0 6 6" refX="5" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
-      <path d="M1 1 L5 3 L1 5" fill="none" stroke="#111111" stroke-width="0.75"/>
+      <path d="M1 1 L5 3 L1 5" fill="none" stroke="#2a2520" stroke-width="0.75"/>
     </marker>
     <style>
-      .grid { stroke: #111111; stroke-width: 0.3; opacity: 0.14; }
-      .primary { stroke: #111111; stroke-width: 0.75pt; fill: none; marker-end: url(#open-triangle); }
-      .secondary { stroke: #111111; stroke-width: 0.4pt; fill: none; }
-      .leader { stroke: #111111; stroke-width: 0.3pt; fill: none; }
-      .opinion { fill: #2b1244; }
-      .label { fill: #111111; font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 1.2px; }
-      .caption { fill: #2b1244; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1.2px; }
+      .grid { stroke: #2a2520; stroke-width: 0.3; opacity: 0.14; }
+      .primary { stroke: #2a2520; stroke-width: 0.75pt; fill: none; marker-end: url(#open-triangle); }
+      .secondary { stroke: #2a2520; stroke-width: 0.4pt; fill: none; }
+      .leader { stroke: #2a2520; stroke-width: 0.3pt; fill: none; }
+      .opinion { fill: #6b4488; }
+      .label { fill: #2a2520; font-family: "IBM Plex Mono", monospace; font-size: 13px; letter-spacing: 1.2px; }
+      .caption { fill: #6b4488; font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: 1.2px; }
     </style>
   </defs>
   <g aria-hidden="true">

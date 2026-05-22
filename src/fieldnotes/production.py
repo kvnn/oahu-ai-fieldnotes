@@ -17,33 +17,66 @@ class ProductionMargins:
 
 PRODUCTION_MARGINS = ProductionMargins()
 TRIM_SIZE = "5.5in,8.5in"
-BLEED = "0.125in"
+BLEED = "0.13in"
+COVER_TRIM_SIZE = "11.18in,8.5in"
+COVER_SPINE_WIDTH = "0.18in"
+INTERIOR_PAGE_TARGET = 68
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
     "paper": {
-        "hex": "#f6efe3",
-        "cmyk": {"c": 0, "m": 0, "y": 0, "k": 0},
-        "role": "Warm stock preview only; physical stock supplies the cream surface.",
+        "hex": "#f1e9d4",
+        "cmyk": {"c": 5, "m": 8, "y": 18, "k": 0},
+        "role": "Warm cream stock preview for interior pages.",
     },
     "aubergine": {
-        "hex": "#2b1244",
-        "cmyk": {"c": 80, "m": 95, "y": 40, "k": 55},
+        "hex": "#6b4488",
+        "cmyk": {"c": 48, "m": 65, "y": 0, "k": 47},
         "role": "Single accent ink for title, rules, labels, and state/emphasis.",
     },
     "rich_black": {
-        "hex": "#1a1525",
-        "cmyk": {"c": 40, "m": 30, "y": 30, "k": 100},
+        "hex": "#19142a",
+        "cmyk": {"c": 40, "m": 52, "y": 0, "k": 84},
         "role": "Dark fields for cover and chapter opener spreads.",
     },
     "body_black": {
-        "hex": "#111111",
-        "cmyk": {"c": 0, "m": 0, "y": 0, "k": 100},
+        "hex": "#2a2520",
+        "cmyk": {"c": 0, "m": 12, "y": 24, "k": 84},
         "role": "Body text.",
     },
-    "body_black_fallback": {
-        "hex": "#272727",
-        "cmyk": {"c": 0, "m": 0, "y": 0, "k": 100},
-        "role": "Renderer fallback text color mapped to body black.",
+    "muted_label": {
+        "hex": "#8b8474",
+        "cmyk": {"c": 0, "m": 5, "y": 17, "k": 45},
+        "role": "Mono caps labels, rules, and cover furniture.",
+    },
+    "rail_text": {
+        "hex": "#463f33",
+        "cmyk": {"c": 0, "m": 10, "y": 27, "k": 73},
+        "role": "Secondary rail text.",
+    },
+    "muted_rule": {
+        "hex": "#7a7160",
+        "cmyk": {"c": 0, "m": 7, "y": 21, "k": 52},
+        "role": "Fine rules and quiet furniture.",
+    },
+    "cream_text": {
+        "hex": "#b8af9a",
+        "cmyk": {"c": 0, "m": 5, "y": 16, "k": 28},
+        "role": "Secondary type on dark plates.",
+    },
+    "display_cream": {
+        "hex": "#e8dfc4",
+        "cmyk": {"c": 0, "m": 4, "y": 16, "k": 9},
+        "role": "Large cream display type on dark chapter opener plates.",
+    },
+    "neutral_mid_gray": {
+        "hex": "#9a9a9a",
+        "cmyk": {"c": 0, "m": 0, "y": 0, "k": 40},
+        "role": "Generated neutral gray from print furniture and rendering edges.",
+    },
+    "neutral_light_gray": {
+        "hex": "#eeeeee",
+        "cmyk": {"c": 0, "m": 0, "y": 0, "k": 7},
+        "role": "Generated light neutral gray from print furniture and rendering edges.",
     },
 }
 
@@ -65,15 +98,17 @@ def mixam_page_count_profile() -> dict[str, Any]:
         "label": 'Mixam Perfect Booklets 5.5" x 8.5"',
         "trim_size": TRIM_SIZE,
         "bleed": BLEED,
+        "cover_trim_size": COVER_TRIM_SIZE,
+        "cover_spine_width": COVER_SPINE_WIDTH,
+        "interior_page_target": INTERIOR_PAGE_TARGET,
         "css": margins,
         "colors": COLOR_SWATCHES,
-        "pdf_standard_target": "Mixam press-ready PDF",
+        "pdf_standard_target": "Mixam PDF/X-4 upload pair",
         "press_ready": False,
         "press_ready_target": True,
         "press_ready_note": (
-            "Page-count renders skip press-ready conversion because it does not "
-            "change pagination; the final print profile uses a dedicated no-crop "
-            "Vivliostyle output."
+            "Vivliostyle's bundled press-ready path targets PDF/X-1a; final "
+            "cover and interior artifacts must be verified as PDF/X-4 before upload."
         ),
         "crop_marks": True,
     }
@@ -84,10 +119,13 @@ def render_profile_metadata(profile: str) -> dict[str, Any]:
         "profile": profile,
         "trim_size": TRIM_SIZE,
         "bleed": BLEED,
+        "cover_trim_size": COVER_TRIM_SIZE,
+        "cover_spine_width": COVER_SPINE_WIDTH,
+        "interior_page_target": INTERIOR_PAGE_TARGET,
         "margins": asdict(PRODUCTION_MARGINS),
         "colors": COLOR_SWATCHES,
         "pdf_standard_target": (
-            "Mixam press-ready PDF: CMYK-mapped, single pages, bleed, no crop marks"
+            "Mixam PDF/X-4 upload pair: separate cover and interior PDFs"
             if profile == "print"
             else "draft/proof"
         ),
@@ -99,4 +137,12 @@ def proof_output_path() -> Path:
 
 
 def print_output_path() -> Path:
-    return Path("dist/oahu-ai-field-notes-print.pdf")
+    return interior_output_path()
+
+
+def cover_output_path() -> Path:
+    return Path("dist/cover.pdf")
+
+
+def interior_output_path() -> Path:
+    return Path("dist/interior.pdf")

@@ -17,8 +17,12 @@ from fieldnotes.db.models import (
 )
 from fieldnotes.production import (
     BLEED,
+    COVER_SPINE_WIDTH,
+    COVER_TRIM_SIZE,
+    INTERIOR_PAGE_TARGET,
     TRIM_SIZE,
-    print_output_path,
+    cover_output_path,
+    interior_output_path,
     proof_output_path,
     render_profile_metadata,
 )
@@ -54,7 +58,7 @@ def render_commands(profile: str) -> list[tuple[list[str], Path]]:
         return [(proof_command, proof_output_path())]
 
     if profile == "print":
-        return [(["npm", "run", "build:print"], print_output_path())]
+        return [(["npm", "run", "build:print"], interior_output_path())]
     raise ValueError(f"unknown render profile: {profile}")
 
 
@@ -72,7 +76,7 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
     output_path = {
         "draft": Path("dist/oahu-ai-field-notes.pdf"),
         "proof": proof_output_path(),
-        "print": print_output_path(),
+        "print": interior_output_path(),
     }[profile]
     metadata = render_profile_metadata(profile)
     metadata.update(
@@ -85,6 +89,11 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
             ),
             "trim_size": TRIM_SIZE,
             "bleed": BLEED,
+            "cover_output_path": str(cover_output_path()),
+            "interior_output_path": str(interior_output_path()),
+            "cover_trim_size": COVER_TRIM_SIZE,
+            "cover_spine_width": COVER_SPINE_WIDTH,
+            "interior_page_target": INTERIOR_PAGE_TARGET,
         }
     )
 
@@ -135,25 +144,38 @@ def render_database_book_pdf(
     markdown_path = output_dir / "book.md"
     markdown_path.write_text(markdown.strip() + "\n", encoding="utf-8")
     relative_markdown_path = markdown_path.relative_to(root)
-    output_path = print_output_path()
+    output_path = interior_output_path()
     command = ["npm", "run", "build:print"]
     metadata = render_profile_metadata("print")
     metadata.update(
         {
             "source": "database",
             "generated_markdown_path": str(relative_markdown_path),
+            "generated_cover_path": "dist/generated-book/cover.html",
             "chapter_count": len(chapter_refs),
             "word_count": word_count,
             "chapters": chapter_refs,
             "commands": [command],
             "returncode": None,
             "output_path": str(output_path),
+            "cover_output_path": str(cover_output_path()),
+            "interior_output_path": str(interior_output_path()),
+            "output_paths": {
+                "cover": str(cover_output_path()),
+                "interior": str(interior_output_path()),
+            },
             "profile_note": (
                 "Print output is built from the database-compiled manuscript shown "
-                "in the Book Markdown drawer."
+                "in the Book Markdown drawer and emitted as separate Mixam cover "
+                "and interior upload PDFs."
             ),
             "trim_size": TRIM_SIZE,
             "bleed": BLEED,
+            "cover_trim_size": COVER_TRIM_SIZE,
+            "cover_spine_width": COVER_SPINE_WIDTH,
+            "interior_page_target": INTERIOR_PAGE_TARGET,
+            "pdfx4_verified": False,
+            "upload_approval_status": "needs_pdfx4_verification",
         }
     )
     if not markdown.strip():

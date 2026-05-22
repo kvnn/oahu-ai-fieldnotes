@@ -43,7 +43,7 @@ export default defineConfig({
     },
   ],
   toc: {
-    title: 'Field Notes  2023 - 2026',
+    title: 'FIELD NOTES | VOLUME 01',
     sectionDepth: 2,
   },
   copyAsset: {
@@ -56,11 +56,17 @@ export default defineConfig({
       pdfPostprocess: {
         cmyk: {
           overrideMap: [
-            ['#f6efe3', { c: 0, m: 0, y: 0, k: 0 }],
-            ['#2b1244', { c: 8000, m: 9500, y: 4000, k: 5500 }],
-            ['#1a1525', { c: 4000, m: 3000, y: 3000, k: 10000 }],
-            ['#111111', { c: 0, m: 0, y: 0, k: 10000 }],
-            ['#272727', { c: 0, m: 0, y: 0, k: 10000 }],
+            ['#f1e9d4', { c: 500, m: 800, y: 1800, k: 0 }],
+            ['#6b4488', { c: 4800, m: 6500, y: 0, k: 4700 }],
+            ['#19142a', { c: 4000, m: 5200, y: 0, k: 8400 }],
+            ['#2a2520', { c: 0, m: 1200, y: 2400, k: 8400 }],
+            ['#8b8474', { c: 0, m: 500, y: 1700, k: 4500 }],
+            ['#463f33', { c: 0, m: 1000, y: 2700, k: 7300 }],
+            ['#7a7160', { c: 0, m: 700, y: 2100, k: 5200 }],
+            ['#b8af9a', { c: 0, m: 500, y: 1600, k: 2800 }],
+            ['#e8dfc4', { c: 0, m: 400, y: 1600, k: 900 }],
+            ['#9a9a9a', { c: 0, m: 0, y: 0, k: 4000 }],
+            ['#eeeeee', { c: 0, m: 0, y: 0, k: 700 }],
           ],
           warnUnmapped: true,
           mapOutput: 'dist/cmyk-map.json',

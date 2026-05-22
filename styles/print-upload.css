@@ -2,35 +2,35 @@
 
 @page {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page cover {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page opener {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page body {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page front-matter {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page divider {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }
 
 @page closing {
   marks: none;
-  bleed: 0.125in;
+  bleed: 0.13in;
 }

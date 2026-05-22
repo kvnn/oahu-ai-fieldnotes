@@ -51,7 +51,7 @@ export default {
   ],
   output: [
     {
-      path: 'dist/oahu-ai-field-notes-print.pdf',
+      path: 'dist/interior.pdf',
       format: 'pdf',
       pdfPostprocess: baseConfig.output[0].pdfPostprocess,
     },

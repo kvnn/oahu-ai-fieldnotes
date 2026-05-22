@@ -60,7 +60,7 @@ from fieldnotes.db.models import (
     utc_now,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
-from fieldnotes.production import mixam_page_count_profile, print_output_path
+from fieldnotes.production import cover_output_path, mixam_page_count_profile, print_output_path
 from fieldnotes.rendering import (
     record_book_pdf_render,
     render_book_pdf,
@@ -1156,16 +1156,24 @@ def _vivliostyle_chapter_markdown(chapter: dict) -> str:
     body = _strip_leading_chapter_matter(str(chapter["body"]))
     slug = str(chapter.get("slug") or "").strip()
     kicker = _chapter_kicker(chapter)
+    roman = _chapter_roman(chapter)
+    label = "Introduction" if kicker == "INTRO" else f"Chapter {roman}"
+    footer = f"— {kicker.lower()}"
 
     lines = [
         f'<section class="chapter-opener opener-title" data-chapter-slug="{escape(slug)}">',
         f'<p class="opener-kicker">{escape(kicker)}</p>',
+        f'<header class="opener-header"><p class="opener-chapter-label">{escape(label)}</p><div class="opener-rule"></div></header>',
+        '<div class="opener-title-block">',
+        f'<p class="opener-roman" aria-hidden="true">{escape(roman)}</p>',
         f"<h1>{escape(title)}</h1>",
     ]
     if subtitle:
         lines.append(f'<p class="opener-subtitle">{escape(subtitle)}</p>')
     lines.extend(
         [
+            "</div>",
+            f'<p class="opener-footer">{escape(footer)}</p>',
             f'<p class="opener-running-label">{escape(_chapter_running_label(chapter))}</p>',
             "</section>",
             "",
@@ -1190,6 +1198,35 @@ def _chapter_kicker(chapter: dict) -> str:
     except (TypeError, ValueError):
         toc_number = 0
     return f"FIELD NOTE {(toc_number - 1):02d}" if toc_number else "FIELD NOTE"
+
+
+def _chapter_roman(chapter: dict) -> str:
+    try:
+        toc_number = int(chapter.get("toc_number") or 0)
+    except (TypeError, ValueError):
+        toc_number = 0
+    number = max(1, toc_number)
+    values = [
+        (1000, "M"),
+        (900, "CM"),
+        (500, "D"),
+        (400, "CD"),
+        (100, "C"),
+        (90, "XC"),
+        (50, "L"),
+        (40, "XL"),
+        (10, "X"),
+        (9, "IX"),
+        (5, "V"),
+        (4, "IV"),
+        (1, "I"),
+    ]
+    parts: list[str] = []
+    for value, numeral in values:
+        while number >= value:
+            parts.append(numeral)
+            number -= value
+    return "".join(parts)
 
 
 def _chapter_running_label(chapter: dict) -> str:
@@ -1389,18 +1426,23 @@ def _latest_final_pdf_record(
 def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
     if record is None:
         output_path = str(print_output_path())
+        cover_path = str(cover_output_path())
         return {
             "profile": FINAL_PDF_PROFILE,
             "status": "missing",
             "output_path": output_path,
+            "cover_output_path": cover_path,
+            "interior_output_path": output_path,
+            "output_paths": {"cover": cover_path, "interior": output_path},
             "download_url": None,
             "rendered_at": None,
             "returncode": None,
             "error": None,
             "logs_excerpt": None,
-            "pdf_standard_target": "Mixam press-ready PDF",
+            "pdf_standard_target": "Mixam PDF/X-4 upload pair",
             "source": "database",
             "generated_markdown_path": None,
+            "generated_cover_path": None,
             "chapter_count": 0,
             "commands": [],
             "file_exists": False,
@@ -1410,22 +1452,33 @@ def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
     path = _safe_dist_output_path(root, record.output_path)
     file_exists = bool(path and path.exists())
     succeeded = record.status == RenderStatus.SUCCEEDED.value
+    cover_output = metadata.get("cover_output_path") or str(cover_output_path())
+    interior_output = metadata.get("interior_output_path") or record.output_path
     return {
         "id": str(record.id),
         "profile": metadata.get("profile") or FINAL_PDF_PROFILE,
         "status": record.status,
         "output_path": record.output_path,
+        "cover_output_path": cover_output,
+        "interior_output_path": interior_output,
+        "output_paths": metadata.get(
+            "output_paths",
+            {"cover": cover_output, "interior": interior_output},
+        ),
         "download_url": "/api/book-text/final-pdf/file" if succeeded and file_exists else None,
         "rendered_at": record.rendered_at.isoformat() if record.rendered_at else None,
         "returncode": metadata.get("returncode"),
         "error": metadata.get("error"),
         "logs_excerpt": _text_tail(record.build_logs or metadata.get("error")),
-        "pdf_standard_target": metadata.get("pdf_standard_target", "Mixam press-ready PDF"),
+        "pdf_standard_target": metadata.get("pdf_standard_target", "Mixam PDF/X-4 upload pair"),
         "source": metadata.get("source", "database"),
         "generated_markdown_path": metadata.get("generated_markdown_path"),
+        "generated_cover_path": metadata.get("generated_cover_path"),
         "chapter_count": metadata.get("chapter_count"),
         "commands": metadata.get("commands", []),
         "file_exists": file_exists,
+        "pdfx4_verified": metadata.get("pdfx4_verified", False),
+        "upload_approval_status": metadata.get("upload_approval_status", "needs_pdfx4_verification"),
     }
 
 

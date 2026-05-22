@@ -44,15 +44,23 @@ fieldnotes render --profile proof
 fieldnotes render --profile print
 ```
 
-The print profile uses the database-generated manuscript at `dist/generated-book/book.md` and `vivliostyle.database-print.config.js` to produce `dist/oahu-ai-field-notes-print.pdf` as the Mixam upload file: single pages, bleed, CMYK mapping, and no crop marks. The older filesystem manuscript path is available only as `npm run build:print:manuscript`. Confirm the upload with Mixam's file checker and order one hard proof before a full run.
+The print profile uses the database-generated manuscript at `dist/generated-book/book.md` and `vivliostyle.database-print.config.js` to produce `dist/interior.pdf` as the Mixam interior upload. The cover is built separately with `vivliostyle.cover.config.js` as `dist/cover.pdf`, a full wrap sized to the local Mixam template: 11.18" x 8.5" trim with a 0.18" spine and 0.13" bleed. The older filesystem manuscript path is available only as `npm run build:print:manuscript`. Confirm both uploads with Mixam's file checker and order one hard proof before a full run.
+
+```sh
+npm run build:print
+npm run verify:print
+```
+
+`verify:print` is intentionally strict: it checks the full-wrap cover size, Cormorant display-font embedding, PDF/X-4 markers, and the priced 68-page interior count.
 
 ## Production Design
 
-The custom theme in `styles/book.css` is built for 5.5" x 8.5" print with `0.125in` bleed, crop marks, a `0.875in` outside marginalia rail, `0.625in` inside gutter, `0.5in` top margin, and `0.75in` bottom margin.
+The custom theme in `styles/book.css` is built for 5.5" x 8.5" print with `0.13in` bleed, crop marks, a `0.875in` outside marginalia rail, `0.625in` inside gutter, `0.5in` top margin, and `0.75in` bottom margin.
 
 The palette is intentionally narrow: warm stock preview, one aubergine accent, rich black dark spreads, and K-100 body type. Local font files should be placed in `assets/fonts` before proof/print output:
 
-- `TiemposHeadline-Semibold.woff2`
+- `CormorantGaramond-Regular.ttf`
+- `CormorantGaramond-SemiBold.ttf`
 - `SourceSerif4-Regular.woff2`
 - `SourceSerif4-Semibold.woff2`
 - `IBMPlexMono-Regular.woff2`

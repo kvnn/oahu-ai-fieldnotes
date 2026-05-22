@@ -1,6 +1,13 @@
 @font-face {
-  font-family: "Tiempos Headline";
-  src: url("../assets/fonts/TiemposHeadline-Semibold.woff2") format("woff2");
+  font-family: "Cormorant Garamond";
+  src: url("../assets/fonts/CormorantGaramond-Regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Cormorant Garamond";
+  src: url("../assets/fonts/CormorantGaramond-SemiBold.ttf") format("truetype");
+  font-weight: 600;
   font-display: swap;
 }
 
@@ -24,19 +31,24 @@
 }
 
 :root {
-  --paper: #f6efe3;
-  --aubergine: #2b1244;
-  --rich-black: #1a1525;
-  --body-black: #111111;
-  --rule: #111111;
-  --display-serif: "Tiempos Headline", "Source Serif 4", "Iowan Old Style", Georgia, serif;
+  --paper: #f1e9d4;
+  --aubergine: #6b4488;
+  --rich-black: #19142a;
+  --body-black: #2a2520;
+  --muted-label: #8b8474;
+  --rail-text: #463f33;
+  --muted-rule: #7a7160;
+  --cream-text: #b8af9a;
+  --display-cream: #e8dfc4;
+  --rule: #7a7160;
+  --display-serif: "Cormorant Garamond", Didot, "Bodoni 72", "Big Caslon", "Hoefler Text", Georgia, serif;
   --body-serif: "Source Serif 4", "Adobe Caslon Pro", "Iowan Old Style", Georgia, serif;
   --mono: "IBM Plex Mono", "SFMono-Regular", Consolas, monospace;
   font-family: var(--body-serif);
   font-size: 10pt;
   line-height: 1.35;
   color: var(--body-black);
-  color: device-cmyk(0% 0% 0% 100%);
+  color: device-cmyk(0% 12% 24% 84%);
   font-feature-settings: "onum", "kern", "liga";
   hyphens: auto;
   orphans: 3;
@@ -46,35 +58,45 @@
 @page {
   size: 5.5in 8.5in;
   marks: crop;
-  bleed: 0.125in;
+  bleed: 0.13in;
   margin: 0.5in 0.875in 0.75in 0.625in;
+  background: #f1e9d4;
 
-  @bottom-left {
+  @top-left {
     content: string(chapter-title);
     font-family: var(--mono);
     font-size: 6.8pt;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--aubergine);
+    color: var(--muted-label);
   }
 
-  @bottom-right {
+  @top-right {
     content: counter(page);
     font-family: var(--mono);
     font-size: 7.2pt;
-    letter-spacing: 0.08em;
-    color: var(--aubergine);
+    letter-spacing: 0.12em;
+    color: var(--muted-label);
+  }
+
+  @bottom-center {
+    content: "O'AHU A.I. FIELD NOTES";
+    font-family: var(--mono);
+    font-size: 6.6pt;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-label);
   }
 }
 
 @page :left {
   margin: 0.5in 0.625in 0.75in 0.875in;
 
-  @bottom-left {
+  @top-left {
     content: counter(page);
   }
 
-  @bottom-right {
+  @top-right {
     content: string(chapter-title);
   }
 }
@@ -82,69 +104,117 @@
 @page :right {
   margin: 0.5in 0.875in 0.75in 0.625in;
 
-  @bottom-left {
+  @top-left {
     content: string(chapter-title);
   }
 
-  @bottom-right {
+  @top-right {
     content: counter(page);
   }
 }
 
 @page cover {
   margin: 0;
-  background: #1a1525;
-  background: device-cmyk(40% 30% 30% 100%);
+  background: #19142a;
+  background: device-cmyk(40% 52% 0% 84%);
 
-  @bottom-left {
+  @top-left {
     content: "";
   }
 
-  @bottom-right {
+  @top-right {
+    content: "";
+  }
+
+  @bottom-center {
     content: "";
   }
 }
 
 @page opener {
   margin: 0;
-  background: #1a1525;
-  background: device-cmyk(40% 30% 30% 100%);
+  background: #19142a;
+  background: device-cmyk(40% 52% 0% 84%);
 
-  @bottom-left {
+  @top-left {
     content: "";
   }
 
-  @bottom-right {
+  @top-right {
+    content: "";
+  }
+
+  @bottom-center {
     content: "";
   }
 }
 
 @page body {
   margin: 0.5in 0.875in 0.75in 0.625in;
+  background: #f1e9d4;
 }
 
 @page front-matter {
   margin: 0.5in 0.875in 0.75in 0.625in;
+  background: #f1e9d4;
 }
 
 @page divider {
   margin: 0;
-  background: #1a1525;
-  background: device-cmyk(40% 30% 30% 100%);
+  background: #19142a;
+  background: device-cmyk(40% 52% 0% 84%);
 }
 
 @page closing {
   margin: 0.5in 0.875in 0.75in 0.625in;
+  background: #f1e9d4;
 }
 
 body {
   margin: 0;
+  background: var(--paper);
 }
 
 a {
   color: inherit;
   text-decoration: none;
   border-bottom: 0.3pt solid var(--aubergine);
+}
+
+body > h1:first-child {
+  margin: 0 0 0.18in;
+  padding-bottom: 0.08in;
+  border-bottom: 0.5pt solid rgba(122, 113, 96, 0.35);
+  color: var(--body-black);
+  font-family: var(--display-serif);
+  font-size: 31pt;
+}
+
+nav[role="doc-toc"] h2 {
+  margin: 0 0 0.14in;
+  color: var(--muted-label);
+  font-family: var(--mono);
+  font-size: 8.2pt;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+nav[role="doc-toc"] ol {
+  margin: 0;
+  padding-left: 0.22in;
+}
+
+nav[role="doc-toc"] li {
+  margin: 0 0 0.07in;
+  color: var(--body-black);
+  font-size: 11.5pt;
+  line-height: 1.22;
+}
+
+nav[role="doc-toc"] li li {
+  margin-top: 0.04in;
+  color: var(--rail-text);
+  font-size: 9.6pt;
 }
 
 h1,
@@ -158,18 +228,19 @@ h3 {
 h1 {
   margin: 0 0 0.22in;
   font-family: var(--display-serif);
-  font-size: 25pt;
-  line-height: 1.04;
-  font-weight: 600;
+  font-size: 28pt;
+  line-height: 0.98;
+  font-weight: 400;
   string-set: chapter-title content();
 }
 
 h2 {
   margin: 0.26in 0 0.1in;
   font-family: var(--display-serif);
-  font-size: 13pt;
+  font-size: 15pt;
   line-height: 1.12;
-  font-weight: 600;
+  font-weight: 400;
+  color: var(--body-black);
 }
 
 h3 {
@@ -184,6 +255,7 @@ h3 {
 
 p {
   margin: 0 0 0.125in;
+  color: var(--body-black);
 }
 
 blockquote {
@@ -270,8 +342,8 @@ pre {
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
-  background: #1a1525;
-  background: device-cmyk(40% 30% 30% 100%);
+  background: #19142a;
+  background: device-cmyk(40% 52% 0% 84%);
   color: var(--paper);
 }
 
@@ -279,7 +351,7 @@ pre {
   margin: 0 0 0.18in;
   max-width: 4.35in;
   color: var(--aubergine);
-  color: device-cmyk(80% 95% 40% 55%);
+  color: device-cmyk(48% 65% 0% 47%);
   font-size: 40pt;
   line-height: 0.98;
 }
@@ -304,45 +376,88 @@ pre {
   box-sizing: border-box;
   width: 5.5in;
   min-height: 8.5in;
-  padding: 0.5in 0.875in 0.75in 0.625in;
+  padding: 0.6in 0.62in 0.75in;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  background: #1a1525;
-  background: device-cmyk(40% 30% 30% 100%);
+  justify-content: space-between;
+  background: #19142a;
+  background-color: device-cmyk(40% 52% 0% 84%);
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0,
+    transparent 0.11in,
+    rgba(255, 255, 255, 0.022) 0.11in,
+    rgba(255, 255, 255, 0.022) 0.118in
+  );
   color: var(--paper);
 }
 
 .chapter-opener h1 {
-  max-width: 4.1in;
-  margin: 0;
-  color: var(--aubergine);
-  color: device-cmyk(80% 95% 40% 55%);
-  font-size: 36pt;
-  line-height: 0.98;
+  max-width: 4.15in;
+  margin: 0.16in 0 0;
+  color: var(--display-cream);
+  font-size: 34pt;
+  line-height: 0.9;
+  font-weight: 400;
 }
 
 .opener-kicker,
 .opener-running-label {
-  color: var(--paper);
+  color: var(--muted-label);
 }
 
 .opener-kicker {
-  margin-bottom: 0.28in;
+  display: none;
 }
 
 .opener-subtitle {
   max-width: 3.6in;
-  margin: 0.16in 0 0;
+  margin: 0.12in 0 0;
   font-size: 11pt;
   line-height: 1.35;
-  color: var(--paper);
+  color: var(--cream-text);
 }
 
 .opener-running-label {
-  margin-top: 0.42in;
+  display: none;
+}
+
+.opener-chapter-label,
+.opener-footer {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 8.8pt;
+  line-height: 1.2;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted-label);
+}
+
+.opener-rule {
+  height: 0.5pt;
+  margin-top: 0.12in;
+  background: rgba(139, 132, 116, 0.3);
+}
+
+.opener-title-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.opener-roman {
+  margin: 0;
   color: var(--aubergine);
-  color: device-cmyk(80% 95% 40% 55%);
+  font-family: var(--display-serif);
+  font-size: 118pt;
+  font-weight: 600;
+  line-height: 0.78;
+  letter-spacing: 0;
+}
+
+.opener-footer {
+  color: var(--muted-label);
 }
 
 .opener-notes {
@@ -395,9 +510,9 @@ pre {
 .field-note-meta {
   margin: 0.1in 0 0.25in;
   padding: 0.08in 0;
-  border-top: 0.4pt solid var(--aubergine);
-  border-bottom: 0.4pt solid var(--aubergine);
-  color: var(--aubergine);
+  border-top: 0.4pt solid rgba(122, 113, 96, 0.45);
+  border-bottom: 0.4pt solid rgba(122, 113, 96, 0.45);
+  color: var(--muted-label);
 }
 
 .page-break {
@@ -408,7 +523,29 @@ pre {
   float: outside;
   width: 0.62in;
   margin-inline-start: 0.12in;
+  color: var(--rail-text);
+}
+
+.rail-note {
+  box-sizing: border-box;
+  float: outside;
+  width: 0.66in;
+  margin-inline-start: 0.12in;
+  padding-left: 0.08in;
+  border-left: 0.5pt solid rgba(122, 113, 96, 0.3);
+  color: var(--rail-text);
+  font-size: 8pt;
+  line-height: 1.35;
+}
+
+.rail-note-label {
+  display: block;
+  margin-bottom: 0.04in;
   color: var(--aubergine);
+  font-family: var(--mono);
+  font-size: 6.5pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .production-figure,
@@ -416,8 +553,8 @@ pre {
 .workbench-ledger {
   margin: 0.08in 0 0.3in;
   padding: 0.1in 0;
-  border-top: 0.75pt solid var(--rule);
-  border-bottom: 0.75pt solid var(--rule);
+  border-top: 0.5pt solid rgba(122, 113, 96, 0.4);
+  border-bottom: 0.5pt solid rgba(122, 113, 96, 0.4);
 }
 
 .production-figure svg,
@@ -435,7 +572,7 @@ pre {
   gap: 0.12in;
   padding: 0.12in 0;
   background-image:
-    linear-gradient(to right, rgba(17, 17, 17, 0.14) 0.3pt, transparent 0.3pt);
+    linear-gradient(to right, rgba(42, 37, 32, 0.12) 0.3pt, transparent 0.3pt);
   background-size: calc(100% / 12) 100%;
 }
 
@@ -484,29 +621,29 @@ pre {
 }
 
 .diagram-stroke-primary {
-  stroke: #111111;
+  stroke: #2a2520;
   stroke-width: 0.75pt;
   fill: none;
 }
 
 .diagram-stroke-secondary {
-  stroke: #111111;
+  stroke: #2a2520;
   stroke-width: 0.4pt;
   fill: none;
 }
 
 .diagram-leader {
-  stroke: #111111;
+  stroke: #2a2520;
   stroke-width: 0.3pt;
   fill: none;
 }
 
 .diagram-state {
-  stroke: #2b1244;
+  stroke: #6b4488;
   stroke-width: 0.75pt;
   fill: none;
 }
 
 .diagram-node-emphasis {
-  fill: #2b1244;
+  fill: #6b4488;
 }
