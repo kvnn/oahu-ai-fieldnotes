@@ -12,6 +12,7 @@ from pathlib import Path
 from time import perf_counter
 from uuid import UUID
 from uuid import uuid4
+from xml.etree import ElementTree
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse, RedirectResponse
@@ -19,6 +20,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session, selectinload
 
 try:
@@ -61,10 +63,16 @@ from fieldnotes.db.models import (
 )
 from fieldnotes.db.session import make_engine, make_session_factory
 from fieldnotes.illustrations import (
+    ILLUSTRATION_PLACEMENTS,
+    ILLUSTRATION_TREATMENTS,
     MANIFEST_PATH,
+    OPENER_POSITIONS,
+    OPENER_SCALES,
+    IllustrationSpec,
     insert_inline_illustration,
     load_illustration_manifest,
     opener_motif_for_slug,
+    save_illustration_manifest,
 )
 from fieldnotes.production import cover_output_path, mixam_page_count_profile, print_output_path
 from fieldnotes.rendering import (
@@ -130,6 +138,40 @@ class ChapterCreateRequest(BaseModel):
 class ChapterMetadataRequest(BaseModel):
     title: str
     subtitle: str = ""
+
+
+class IllustrationCreateRequest(BaseModel):
+    id: str
+    chapter_slug: str
+    asset_path: str
+    treatment: str = "inline_infographic"
+    enabled: bool = True
+    anchor_text: str = ""
+    placement: str = "after_anchor"
+    fallback_placement: str = "after_first_paragraph"
+    opener_position: str = "bottom_right"
+    opener_scale: str = "medium"
+    caption_policy: str = ""
+    alt_text: str = ""
+
+
+class IllustrationUpdateRequest(BaseModel):
+    id: str | None = None
+    chapter_slug: str | None = None
+    asset_path: str | None = None
+    treatment: str | None = None
+    enabled: bool | None = None
+    anchor_text: str | None = None
+    placement: str | None = None
+    fallback_placement: str | None = None
+    opener_position: str | None = None
+    opener_scale: str | None = None
+    caption_policy: str | None = None
+    alt_text: str | None = None
+
+
+class IllustrationSvgUpdateRequest(BaseModel):
+    svg_text: str = ""
 
 
 def _configure_tracing_logger() -> None:
@@ -265,32 +307,92 @@ def create_app(
         }
 
     @app.get("/illustrations", response_class=HTMLResponse)
-    def illustration_workbench(request: Request) -> HTMLResponse:
-        manifest_path = config.root / MANIFEST_PATH
-        specs = load_illustration_manifest(manifest_path)
-        figures = []
-        for spec in specs:
-            asset_path = config.root / spec.asset_path
-            svg_text = asset_path.read_text(encoding="utf-8") if asset_path.exists() else ""
-            figures.append(
-                {
-                    "spec": spec,
-                    "asset_exists": asset_path.exists(),
-                    "asset_path": spec.asset_path,
-                    "src": "/" + spec.asset_path,
-                    "svg_text": svg_text,
-                    "line_count": svg_text.count("\n") + 1 if svg_text else 0,
-                }
-            )
+    def illustration_workbench(
+        request: Request,
+        session: Session = Depends(get_session),
+    ) -> HTMLResponse:
+        payload = _illustration_workbench_payload(config.root, session, config)
         return templates.TemplateResponse(
             request,
             "illustrations.html",
-            {
-                "manifest_path": str(MANIFEST_PATH),
-                "figures": figures,
-                "figure_count": len(figures),
-            },
+            payload,
         )
+
+    @app.get("/api/illustrations")
+    def illustration_manifest(session: Session = Depends(get_session)) -> dict:
+        return _illustration_workbench_payload(config.root, session, config)
+
+    @app.post("/api/illustrations")
+    def create_illustration(
+        payload: IllustrationCreateRequest,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        specs = load_illustration_manifest(manifest_path)
+        spec = _validated_illustration_spec(
+            payload.model_dump(),
+            config=config,
+            session=session,
+            existing_specs=specs,
+        )
+        specs.append(spec)
+        save_illustration_manifest(specs, manifest_path)
+        return {
+            "status": "saved",
+            "figure": _illustration_figure_payload(config.root, spec),
+            "figures": [
+                _illustration_figure_payload(config.root, current_spec) for current_spec in specs
+            ],
+        }
+
+    @app.patch("/api/illustrations/{illustration_id}")
+    def update_illustration(
+        illustration_id: str,
+        payload: IllustrationUpdateRequest,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        specs = load_illustration_manifest(manifest_path)
+        current = next((spec for spec in specs if spec.id == illustration_id), None)
+        if current is None:
+            raise HTTPException(status_code=404, detail="illustration not found")
+
+        merged = _illustration_spec_dict(current)
+        merged.update(payload.model_dump(exclude_unset=True))
+        updated = _validated_illustration_spec(
+            merged,
+            config=config,
+            session=session,
+            existing_specs=specs,
+            current_id=illustration_id,
+        )
+        specs = [updated if spec.id == illustration_id else spec for spec in specs]
+        save_illustration_manifest(specs, manifest_path)
+        return {
+            "status": "saved",
+            "figure": _illustration_figure_payload(config.root, updated),
+            "figures": [
+                _illustration_figure_payload(config.root, current_spec) for current_spec in specs
+            ],
+        }
+
+    @app.patch("/api/illustrations/{illustration_id}/svg")
+    def update_illustration_svg(
+        illustration_id: str,
+        payload: IllustrationSvgUpdateRequest,
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        specs = load_illustration_manifest(manifest_path)
+        current = next((spec for spec in specs if spec.id == illustration_id), None)
+        if current is None:
+            raise HTTPException(status_code=404, detail="illustration not found")
+        asset_path = config.root / _valid_figure_asset_path(current.asset_path, config.root)
+        svg_text = _validated_svg_text(payload.svg_text)
+        asset_path.write_text(svg_text, encoding="utf-8")
+        return {
+            "status": "saved",
+            "figure": _illustration_figure_payload(config.root, current),
+        }
 
     @app.get("/api/book-text")
     def compiled_book_text(
@@ -996,6 +1098,206 @@ def create_app(
         )
 
     return app
+
+
+def _illustration_workbench_payload(root: Path, session: Session, config) -> dict:
+    manifest_path = root / MANIFEST_PATH
+    specs = load_illustration_manifest(manifest_path)
+    chapters, chapter_paragraphs = _safe_illustration_chapter_context(session, config)
+    return {
+        "manifest_path": str(MANIFEST_PATH),
+        "figures": [_illustration_figure_payload(root, spec) for spec in specs],
+        "figure_count": len(specs),
+        "chapters": chapters,
+        "chapter_paragraphs": chapter_paragraphs,
+        "treatments": list(ILLUSTRATION_TREATMENTS),
+        "placements": list(ILLUSTRATION_PLACEMENTS),
+        "fallback_placements": ["after_first_paragraph", "after_first_section_break"],
+        "opener_positions": list(OPENER_POSITIONS),
+        "opener_scales": list(OPENER_SCALES),
+    }
+
+
+def _illustration_figure_payload(root: Path, spec: IllustrationSpec) -> dict:
+    asset_path = root / spec.asset_path
+    svg_text = asset_path.read_text(encoding="utf-8") if asset_path.exists() else ""
+    return {
+        "spec": spec,
+        "fields": _illustration_spec_dict(spec),
+        "asset_exists": asset_path.exists(),
+        "asset_path": spec.asset_path,
+        "src": "/" + spec.asset_path,
+        "svg_text": svg_text,
+        "line_count": svg_text.count("\n") + 1 if svg_text else 0,
+    }
+
+
+def _illustration_spec_dict(spec: IllustrationSpec) -> dict:
+    return {
+        "id": spec.id,
+        "enabled": spec.enabled,
+        "chapter_slug": spec.chapter_slug,
+        "asset_path": spec.asset_path,
+        "treatment": spec.treatment,
+        "anchor_text": spec.anchor_text,
+        "placement": spec.placement,
+        "fallback_placement": spec.fallback_placement,
+        "opener_position": spec.opener_position,
+        "opener_scale": spec.opener_scale,
+        "caption_policy": spec.caption_policy,
+        "alt_text": spec.alt_text,
+    }
+
+
+def _safe_illustration_chapter_context(
+    session: Session,
+    config,
+) -> tuple[list[dict], dict[str, list[dict]]]:
+    try:
+        return _illustration_chapter_context(session, config)
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.warning("illustrations.chapter_context.unavailable error=%r", str(exc))
+        return [], {}
+
+
+def _illustration_chapter_context(
+    session: Session,
+    config,
+) -> tuple[list[dict], dict[str, list[dict]]]:
+    project = ensure_project(session, config)
+    briefs = _ordered_chapter_briefs(session, project)
+    chapters: list[dict] = []
+    chapter_paragraphs: dict[str, list[dict]] = {}
+    for index, brief in enumerate(briefs, start=1):
+        chapters.append({**_chapter_summary(brief), "toc_number": index})
+        chapter_paragraphs[brief.slug] = _chapter_paragraph_options(session, brief)
+    return chapters, chapter_paragraphs
+
+
+def _chapter_paragraph_options(session: Session, brief: ChapterBrief) -> list[dict]:
+    draft = latest_chapter_draft(session, brief)
+    body = draft.body.strip() if draft is not None and draft.body.strip() else build_brief_skeleton(brief)
+    body = _strip_leading_chapter_matter(body)
+    paragraphs: list[dict] = []
+    for block in re.split(r"\n\s*\n", body):
+        text = block.strip()
+        if not text or text == "---" or text.startswith("#"):
+            continue
+        snippet = re.sub(r"\s+", " ", text)
+        if len(snippet) > 180:
+            snippet = snippet[:177].rstrip() + "..."
+        paragraphs.append(
+            {
+                "index": len(paragraphs) + 1,
+                "snippet": snippet,
+                "anchor_text": text,
+            }
+        )
+    return paragraphs
+
+
+def _validated_illustration_spec(
+    data: dict,
+    *,
+    config,
+    session: Session,
+    existing_specs: list[IllustrationSpec],
+    current_id: str | None = None,
+) -> IllustrationSpec:
+    figure_id = _required_string(data, "id")
+    if not re.match(r"^[a-z0-9][a-z0-9-]*$", figure_id):
+        raise HTTPException(status_code=422, detail="id must use lowercase letters, numbers, and hyphens")
+    if any(spec.id == figure_id and spec.id != current_id for spec in existing_specs):
+        raise HTTPException(status_code=422, detail="illustration id must be unique")
+
+    project = ensure_project(session, config)
+    chapter_slugs = {brief.slug for brief in _ordered_chapter_briefs(session, project)}
+    chapter_slug = _required_string(data, "chapter_slug")
+    if chapter_slug not in chapter_slugs:
+        raise HTTPException(status_code=422, detail="chapter_slug must match an existing chapter")
+
+    treatment = _enum_string(data, "treatment", ILLUSTRATION_TREATMENTS)
+    placement = _enum_string(data, "placement", ILLUSTRATION_PLACEMENTS)
+    opener_position = _enum_string(data, "opener_position", OPENER_POSITIONS)
+    opener_scale = _enum_string(data, "opener_scale", OPENER_SCALES)
+    asset_path = _valid_figure_asset_path(_required_string(data, "asset_path"), config.root)
+    caption_policy = str(data.get("caption_policy") or "").strip()
+    if not caption_policy:
+        caption_policy = "none" if treatment == "opener_motif" else "internal"
+
+    return IllustrationSpec(
+        id=figure_id,
+        enabled=bool(data.get("enabled", True)),
+        chapter_slug=chapter_slug,
+        asset_path=asset_path,
+        treatment=treatment,  # type: ignore[arg-type]
+        anchor_text=str(data.get("anchor_text") or ""),
+        placement=placement,  # type: ignore[arg-type]
+        fallback_placement=str(data.get("fallback_placement") or "after_first_paragraph"),
+        opener_position=opener_position,  # type: ignore[arg-type]
+        opener_scale=opener_scale,  # type: ignore[arg-type]
+        caption_policy=caption_policy,
+        alt_text=str(data.get("alt_text") or ""),
+    )
+
+
+def _required_string(data: dict, key: str) -> str:
+    value = str(data.get(key) or "").strip()
+    if not value:
+        raise HTTPException(status_code=422, detail=f"{key} is required")
+    return value
+
+
+def _enum_string(data: dict, key: str, allowed: tuple[str, ...]) -> str:
+    value = _required_string(data, key)
+    if value not in allowed:
+        raise HTTPException(status_code=422, detail=f"{key} must be one of: {', '.join(allowed)}")
+    return value
+
+
+def _valid_figure_asset_path(value: str, root: Path) -> str:
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts:
+        raise HTTPException(status_code=422, detail="asset_path must be relative to assets/figures")
+    if path.suffix.lower() != ".svg":
+        raise HTTPException(status_code=422, detail="asset_path must point to an SVG")
+    figures_root = (root / "assets" / "figures").resolve()
+    resolved = (root / path).resolve()
+    try:
+        resolved.relative_to(figures_root)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail="asset_path must stay under assets/figures") from exc
+    if not resolved.exists():
+        raise HTTPException(status_code=422, detail="asset_path does not exist")
+    return path.as_posix()
+
+
+def _validated_svg_text(value: str) -> str:
+    svg_text = value.strip()
+    if not svg_text:
+        raise HTTPException(status_code=422, detail="svg_text is required")
+    try:
+        root = ElementTree.fromstring(svg_text)
+    except ElementTree.ParseError as exc:
+        raise HTTPException(status_code=422, detail="svg_text must be valid SVG XML") from exc
+    if _xml_local_name(root.tag) != "svg":
+        raise HTTPException(status_code=422, detail="svg_text root element must be svg")
+    for element in root.iter():
+        if _xml_local_name(element.tag) == "script":
+            raise HTTPException(status_code=422, detail="svg_text cannot include script elements")
+        for key, attr_value in element.attrib.items():
+            if key.lower().startswith("on"):
+                raise HTTPException(status_code=422, detail="svg_text cannot include event attributes")
+            if str(attr_value).strip().lower().startswith("javascript:"):
+                raise HTTPException(status_code=422, detail="svg_text cannot include javascript URLs")
+    return svg_text + "\n"
+
+
+def _xml_local_name(tag: str) -> str:
+    if "}" in tag:
+        return tag.rsplit("}", 1)[1]
+    return tag
 
 
 def _chapter_brief_or_404(

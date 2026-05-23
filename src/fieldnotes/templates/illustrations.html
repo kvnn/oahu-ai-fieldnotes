@@ -14,12 +14,55 @@
   </div>
 </section>
 
+<section class="illustration-create-panel">
+  <form class="illustration-control-form" data-new-illustration-form>
+    <div class="illustration-form-grid">
+      <label>
+        Figure ID
+        <input name="id" placeholder="ch07-new-figure" required>
+      </label>
+      <label>
+        Chapter
+        <select name="chapter_slug" required>
+          {% for chapter in chapters %}
+            <option value="{{ chapter.slug }}">{{ chapter.toc_number }} · {{ chapter.title }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        SVG Path
+        <input name="asset_path" placeholder="assets/figures/ch07-new-figure.svg" required>
+      </label>
+      <label>
+        Treatment
+        <select name="treatment">
+          {% for treatment in treatments %}
+            <option value="{{ treatment }}">{{ treatment.replace("_", " ") }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>
+        Alt Text
+        <input name="alt_text">
+      </label>
+      <label class="illustration-check-label">
+        <input name="enabled" type="checkbox" checked>
+        Enabled
+      </label>
+    </div>
+    <div class="illustration-form-actions">
+      <button class="compact" type="submit">Add Figure</button>
+      <span class="muted" data-new-illustration-status></span>
+    </div>
+  </form>
+</section>
+
 <section class="illustration-workbench">
   <aside class="illustration-index" aria-label="Illustrations">
     {% for figure in figures %}
-      <a class="illustration-index-item" href="#{{ figure.spec.id }}">
+      <a class="illustration-index-item{% if not figure.spec.enabled %} disabled{% endif %}" href="#{{ figure.spec.id }}">
         <span class="illustration-index-id">{{ figure.spec.id }}</span>
-        <span>{{ figure.spec.treatment.replace("_", " ") }}</span>
+        <span>{{ figure.spec.treatment.replace("_", " ") }}{% if not figure.spec.enabled %} · disabled{% endif %}</span>
       </a>
     {% endfor %}
   </aside>
@@ -30,6 +73,7 @@
         class="illustration-panel"
         id="{{ figure.spec.id }}"
         data-illustration-panel
+        data-illustration-id="{{ figure.spec.id }}"
         data-treatment="{{ figure.spec.treatment }}"
       >
         <header class="illustration-panel-header">
@@ -41,6 +85,11 @@
           <div class="illustration-meta-pills">
             <span>{{ figure.spec.treatment.replace("_", " ") }}</span>
             <span>{{ figure.line_count }} lines</span>
+            {% if figure.spec.enabled %}
+              <span>enabled</span>
+            {% else %}
+              <span class="warning">disabled</span>
+            {% endif %}
             {% if figure.asset_exists %}
               <span>asset ok</span>
             {% else %}
@@ -48,6 +97,125 @@
             {% endif %}
           </div>
         </header>
+
+        <form class="illustration-control-form" data-illustration-form>
+          <div class="illustration-form-grid">
+            <label>
+              Figure ID
+              <input name="id" value="{{ figure.spec.id }}" readonly>
+            </label>
+            <label>
+              Chapter
+              <select name="chapter_slug" data-chapter-select>
+                {% set chapter_match = namespace(found=false) %}
+                {% for chapter in chapters %}
+                  {% if chapter.slug == figure.spec.chapter_slug %}
+                    {% set chapter_match.found = true %}
+                  {% endif %}
+                  <option value="{{ chapter.slug }}"{% if chapter.slug == figure.spec.chapter_slug %} selected{% endif %}>
+                    {{ chapter.toc_number }} · {{ chapter.title }}
+                  </option>
+                {% endfor %}
+                {% if not chapter_match.found %}
+                  <option value="{{ figure.spec.chapter_slug }}" selected>{{ figure.spec.chapter_slug }}</option>
+                {% endif %}
+              </select>
+            </label>
+            <label>
+              SVG Path
+              <input name="asset_path" value="{{ figure.spec.asset_path }}">
+            </label>
+            <label>
+              Treatment
+              <select name="treatment" data-treatment-select>
+                {% for treatment in treatments %}
+                  <option value="{{ treatment }}"{% if treatment == figure.spec.treatment %} selected{% endif %}>
+                    {{ treatment.replace("_", " ") }}
+                  </option>
+                {% endfor %}
+              </select>
+            </label>
+            <label>
+              Alt Text
+              <input name="alt_text" value="{{ figure.spec.alt_text }}">
+            </label>
+            <label class="illustration-check-label">
+              <input name="enabled" type="checkbox"{% if figure.spec.enabled %} checked{% endif %}>
+              Enabled
+            </label>
+          </div>
+
+          <div class="illustration-placement-grid">
+            <section data-body-controls>
+              <h3>Body Placement</h3>
+              <div class="illustration-form-grid compact-grid">
+                <label>
+                  Placement
+                  <select name="placement">
+                    {% for placement in placements %}
+                      <option value="{{ placement }}"{% if placement == figure.spec.placement %} selected{% endif %}>
+                        {{ placement.replace("_", " ") }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  Fallback
+                  <select name="fallback_placement">
+                    {% for fallback in fallback_placements %}
+                      <option value="{{ fallback }}"{% if fallback == figure.spec.fallback_placement %} selected{% endif %}>
+                        {{ fallback.replace("_", " ") }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  Paragraph
+                  <select data-paragraph-picker></select>
+                </label>
+              </div>
+              <div class="illustration-anchor-actions">
+                <button class="secondary compact" type="button" data-anchor-placement="before_anchor">Use Before</button>
+                <button class="secondary compact" type="button" data-anchor-placement="after_anchor">Use After</button>
+              </div>
+              <label>
+                Anchor Text
+                <textarea name="anchor_text" class="illustration-anchor-source" spellcheck="false">{{ figure.spec.anchor_text }}</textarea>
+              </label>
+            </section>
+
+            <section data-opener-controls>
+              <h3>Opener Placement</h3>
+              <div class="illustration-form-grid compact-grid">
+                <label>
+                  Position
+                  <select name="opener_position">
+                    {% for position in opener_positions %}
+                      <option value="{{ position }}"{% if position == figure.spec.opener_position %} selected{% endif %}>
+                        {{ position.replace("_", " ") }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+                <label>
+                  Scale
+                  <select name="opener_scale">
+                    {% for scale in opener_scales %}
+                      <option value="{{ scale }}"{% if scale == figure.spec.opener_scale %} selected{% endif %}>
+                        {{ scale }}
+                      </option>
+                    {% endfor %}
+                  </select>
+                </label>
+              </div>
+            </section>
+          </div>
+
+          <div class="illustration-form-actions">
+            <button class="compact" type="submit">Save Placement</button>
+            <span class="muted" data-illustration-status></span>
+          </div>
+        </form>
 
         <div class="illustration-preview-grid">
           <section class="illustration-preview-card">
@@ -68,13 +236,17 @@
 
           <section class="illustration-source-card">
             <div class="illustration-preview-toolbar">
-              <span>Scratch Source</span>
-              <button class="secondary compact" type="button" data-apply-svg>Update preview</button>
+              <span>SVG Source</span>
+              <div class="illustration-source-actions">
+                <button class="secondary compact" type="button" data-apply-svg>Update preview</button>
+                <button class="compact" type="button" data-save-svg>Save SVG</button>
+              </div>
             </div>
             <textarea class="illustration-source" spellcheck="false" data-svg-source>{{ figure.svg_text }}</textarea>
             <p class="muted illustration-source-note">
-              This textarea is for visual iteration only. Edit the SVG file in the repo when the preview works.
+              Source saves to {{ figure.asset_path }} after SVG validation.
             </p>
+            <p class="muted illustration-source-note" data-svg-status></p>
           </section>
         </div>
       </article>
@@ -88,14 +260,122 @@
 {% block scripts %}
 <script>
   (() => {
+    const chapterParagraphs = {{ chapter_paragraphs | tojson }};
+
+    function formValue(form, name) {
+      return form.elements[name]?.value?.trim() || "";
+    }
+
+    function figurePayload(form) {
+      return {
+        id: formValue(form, "id"),
+        enabled: Boolean(form.elements.enabled?.checked),
+        chapter_slug: formValue(form, "chapter_slug"),
+        asset_path: formValue(form, "asset_path"),
+        treatment: formValue(form, "treatment"),
+        anchor_text: form.elements.anchor_text?.value || "",
+        placement: formValue(form, "placement") || "after_anchor",
+        fallback_placement: formValue(form, "fallback_placement") || "after_first_paragraph",
+        opener_position: formValue(form, "opener_position") || "bottom_right",
+        opener_scale: formValue(form, "opener_scale") || "medium",
+        alt_text: formValue(form, "alt_text"),
+      };
+    }
+
+    function fillParagraphPicker(panel) {
+      const picker = panel.querySelector("[data-paragraph-picker]");
+      const chapterSelect = panel.querySelector("[data-chapter-select]");
+      if (!picker || !chapterSelect) return;
+      const anchorText = panel.querySelector("[name='anchor_text']")?.value || "";
+      const paragraphs = chapterParagraphs[chapterSelect.value] || [];
+      picker.innerHTML = "";
+      picker.append(new Option("Select paragraph", ""));
+      paragraphs.forEach((paragraph) => {
+        const option = new Option(`¶ ${paragraph.index}: ${paragraph.snippet}`, String(paragraph.index));
+        option.dataset.anchorText = paragraph.anchor_text;
+        option.selected = paragraph.anchor_text === anchorText;
+        picker.append(option);
+      });
+    }
+
+    function syncTreatmentControls(panel) {
+      const treatment = panel.querySelector("[data-treatment-select]")?.value || "inline_infographic";
+      panel.querySelectorAll("[data-body-controls]").forEach((node) => {
+        node.hidden = treatment !== "inline_infographic";
+      });
+      panel.querySelectorAll("[data-opener-controls]").forEach((node) => {
+        node.hidden = treatment !== "opener_motif";
+      });
+    }
+
     document.querySelectorAll("[data-illustration-panel]").forEach((panel) => {
       const preview = panel.querySelector("[data-svg-preview]");
       const source = panel.querySelector("[data-svg-source]");
       const surface = panel.querySelector("[data-preview-surface]");
       const apply = panel.querySelector("[data-apply-svg]");
+      const form = panel.querySelector("[data-illustration-form]");
+      const status = panel.querySelector("[data-illustration-status]");
+      const saveSvg = panel.querySelector("[data-save-svg]");
+      const svgStatus = panel.querySelector("[data-svg-status]");
+
+      fillParagraphPicker(panel);
+      syncTreatmentControls(panel);
+
+      panel.querySelector("[data-chapter-select]")?.addEventListener("change", () => {
+        fillParagraphPicker(panel);
+      });
+      panel.querySelector("[data-treatment-select]")?.addEventListener("change", () => {
+        syncTreatmentControls(panel);
+      });
+
+      panel.querySelectorAll("[data-anchor-placement]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const picker = panel.querySelector("[data-paragraph-picker]");
+          const option = picker?.selectedOptions?.[0];
+          const anchor = option?.dataset?.anchorText || "";
+          if (!anchor) return;
+          panel.querySelector("[name='anchor_text']").value = anchor;
+          panel.querySelector("[name='placement']").value = button.dataset.anchorPlacement;
+        });
+      });
+
+      form?.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        status.textContent = "Saving...";
+        const originalId = panel.dataset.illustrationId;
+        const response = await fetch(`/api/illustrations/${encodeURIComponent(originalId)}`, {
+          method: "PATCH",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(figurePayload(form)),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          status.textContent = payload.detail || "Save failed";
+          return;
+        }
+        panel.dataset.illustrationId = payload.figure.fields.id;
+        status.textContent = "Saved";
+      });
 
       apply?.addEventListener("click", () => {
         preview.innerHTML = source.value;
+      });
+
+      saveSvg?.addEventListener("click", async () => {
+        svgStatus.textContent = "Saving...";
+        const originalId = panel.dataset.illustrationId;
+        const response = await fetch(`/api/illustrations/${encodeURIComponent(originalId)}/svg`, {
+          method: "PATCH",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({svg_text: source.value}),
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          svgStatus.textContent = payload.detail || "Save failed";
+          return;
+        }
+        preview.innerHTML = source.value;
+        svgStatus.textContent = "Saved";
       });
 
       panel.querySelectorAll("[data-preview-mode]").forEach((button) => {
@@ -106,6 +386,24 @@
           surface.dataset.mode = button.dataset.previewMode || "native";
         });
       });
+    });
+
+    document.querySelector("[data-new-illustration-form]")?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const status = document.querySelector("[data-new-illustration-status]");
+      status.textContent = "Saving...";
+      const response = await fetch("/api/illustrations", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(figurePayload(form)),
+      });
+      const payload = await response.json();
+      if (!response.ok) {
+        status.textContent = payload.detail || "Save failed";
+        return;
+      }
+      window.location.reload();
     });
   })();
 </script>

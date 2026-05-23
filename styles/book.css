@@ -480,6 +480,42 @@ pre {
   opacity: 0.95;
 }
 
+.opener-position-bottom_right {
+  bottom: 0.48in;
+  left: auto;
+  right: -0.03in;
+  top: auto;
+  transform: none;
+}
+
+.opener-position-title_adjacent {
+  bottom: auto;
+  left: auto;
+  right: 0.08in;
+  top: 1.7in;
+  transform: none;
+}
+
+.opener-position-center_low {
+  bottom: 0.56in;
+  left: 50%;
+  right: auto;
+  top: auto;
+  transform: translateX(-50%);
+}
+
+.opener-scale-small {
+  width: 1.35in;
+}
+
+.opener-scale-medium {
+  width: 1.75in;
+}
+
+.opener-scale-large {
+  width: 2.2in;
+}
+
 .inline-infographic {
   margin: 0.16in -0.14in 0.22in;
   padding: 0.07in 0;
