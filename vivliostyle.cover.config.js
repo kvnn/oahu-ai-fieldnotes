@@ -1,5 +1,8 @@
 // @ts-check
 import baseConfig from './vivliostyle.config.js';
+import { printOutputPaths } from './scripts/print-filenames.mjs';
+
+const printPaths = printOutputPaths();
 
 export default {
   ...baseConfig,
@@ -14,7 +17,7 @@ export default {
   ],
   output: [
     {
-      path: 'dist/cover.pdf',
+      path: printPaths.cover,
       format: 'pdf',
       pdfPostprocess: baseConfig.output[0].pdfPostprocess,
     },

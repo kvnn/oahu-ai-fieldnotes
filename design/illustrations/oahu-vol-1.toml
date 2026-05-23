@@ -1,0 +1,63 @@
+version = "oahu-vol-1.illustrations.v1"
+book_slug = "oahu-ai-field-notes-vol-1"
+figure_count = 6
+
+[[figures]]
+id = "ch01-introduction-capability-bridge"
+chapter_slug = "introduction-2"
+asset_path = "assets/figures/ch01-introduction-capability-bridge.svg"
+treatment = "opener_motif"
+anchor_text = ""
+fallback_placement = "opener_title_block_after_title"
+caption_policy = "none"
+alt_text = "Local capability nodes are connected by one amplifying bridge."
+
+[[figures]]
+id = "ch02-what-ai-is-meaning-machine"
+chapter_slug = "introduction"
+asset_path = "assets/figures/ch02-what-ai-is-meaning-machine.svg"
+treatment = "opener_motif"
+anchor_text = ""
+fallback_placement = "opener_title_block_after_title"
+caption_policy = "none"
+alt_text = "Language fragments compress into a callable meaning artifact."
+
+[[figures]]
+id = "ch03-use-loops-three-loops"
+chapter_slug = "the-loop-is-the-teacher"
+asset_path = "assets/figures/ch03-use-loops-three-loops.svg"
+treatment = "inline_infographic"
+anchor_text = "Three loop patterns follow. They differ in domain and cadence, but share the same skeleton: produce, evaluate, correct, repeat."
+fallback_placement = "after_first_section_break"
+caption_policy = "internal"
+alt_text = "Three feedback loops share the same produce, evaluate, correct, repeat structure."
+
+[[figures]]
+id = "ch04-ai-is-profound-translation-threshold"
+chapter_slug = "why-a-i-is-profound"
+asset_path = "assets/figures/ch04-ai-is-profound-translation-threshold.svg"
+treatment = "opener_motif"
+anchor_text = ""
+fallback_placement = "opener_title_block_after_title"
+caption_policy = "none"
+alt_text = "Embodied knowledge crosses an institutional language threshold."
+
+[[figures]]
+id = "ch05-workbenches-frame-splice"
+chapter_slug = "workbenches"
+asset_path = "assets/figures/ch05-workbenches-frame-splice.svg"
+treatment = "inline_infographic"
+anchor_text = "never reconstructing context they once had and lost."
+fallback_placement = "after_first_section_break"
+caption_policy = "internal"
+alt_text = "A rendered Frame Splice workbench shows history, preview, prompt metadata, timeline, and decision gates around a central artifact."
+
+[[figures]]
+id = "ch06-agent-orchestration-loop"
+chapter_slug = "agent-orchestration"
+asset_path = "assets/figures/ch06-agent-orchestration-loop.svg"
+treatment = "inline_infographic"
+anchor_text = "The agent is the loop with a model inside it."
+fallback_placement = "after_first_section_break"
+caption_policy = "internal"
+alt_text = "Agent orchestration connects a human, broker, sealed runtime, tools, artifacts, hooks, and typed workflow paths."

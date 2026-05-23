@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Illustration Workbench{% endblock %}
+
+{% block content %}
+<section class="page-heading">
+  <div>
+    <p class="eyebrow">Illustration Manifest</p>
+    <h1>Illustration Workbench</h1>
+    <p class="muted illustration-heading-note">{{ manifest_path }} · {{ figure_count }} figures</p>
+  </div>
+  <div class="illustration-actions">
+    <a class="secondary compact" href="/chapters">Chapters</a>
+  </div>
+</section>
+
+<section class="illustration-workbench">
+  <aside class="illustration-index" aria-label="Illustrations">
+    {% for figure in figures %}
+      <a class="illustration-index-item" href="#{{ figure.spec.id }}">
+        <span class="illustration-index-id">{{ figure.spec.id }}</span>
+        <span>{{ figure.spec.treatment.replace("_", " ") }}</span>
+      </a>
+    {% endfor %}
+  </aside>
+
+  <div class="illustration-stack">
+    {% for figure in figures %}
+      <article
+        class="illustration-panel"
+        id="{{ figure.spec.id }}"
+        data-illustration-panel
+        data-treatment="{{ figure.spec.treatment }}"
+      >
+        <header class="illustration-panel-header">
+          <div>
+            <p class="eyebrow">{{ figure.spec.chapter_slug }}</p>
+            <h2>{{ figure.spec.id }}</h2>
+            <p class="muted">{{ figure.asset_path }}</p>
+          </div>
+          <div class="illustration-meta-pills">
+            <span>{{ figure.spec.treatment.replace("_", " ") }}</span>
+            <span>{{ figure.line_count }} lines</span>
+            {% if figure.asset_exists %}
+              <span>asset ok</span>
+            {% else %}
+              <span class="warning">missing</span>
+            {% endif %}
+          </div>
+        </header>
+
+        <div class="illustration-preview-grid">
+          <section class="illustration-preview-card">
+            <div class="illustration-preview-toolbar">
+              <span>Rendered Preview</span>
+              <div class="illustration-preview-modes" aria-label="Preview background">
+                <button class="active" type="button" data-preview-mode="native">Native</button>
+                <button type="button" data-preview-mode="dark">Dark</button>
+                <button type="button" data-preview-mode="paper">Paper</button>
+              </div>
+            </div>
+            <div class="illustration-preview-surface {{ figure.spec.treatment }}" data-preview-surface>
+              <div class="illustration-svg-preview" data-svg-preview>
+                {{ figure.svg_text | safe }}
+              </div>
+            </div>
+          </section>
+
+          <section class="illustration-source-card">
+            <div class="illustration-preview-toolbar">
+              <span>Scratch Source</span>
+              <button class="secondary compact" type="button" data-apply-svg>Update preview</button>
+            </div>
+            <textarea class="illustration-source" spellcheck="false" data-svg-source>{{ figure.svg_text }}</textarea>
+            <p class="muted illustration-source-note">
+              This textarea is for visual iteration only. Edit the SVG file in the repo when the preview works.
+            </p>
+          </section>
+        </div>
+      </article>
+    {% else %}
+      <p class="empty-note">No illustration manifest entries found.</p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (() => {
+    document.querySelectorAll("[data-illustration-panel]").forEach((panel) => {
+      const preview = panel.querySelector("[data-svg-preview]");
+      const source = panel.querySelector("[data-svg-source]");
+      const surface = panel.querySelector("[data-preview-surface]");
+      const apply = panel.querySelector("[data-apply-svg]");
+
+      apply?.addEventListener("click", () => {
+        preview.innerHTML = source.value;
+      });
+
+      panel.querySelectorAll("[data-preview-mode]").forEach((button) => {
+        button.addEventListener("click", () => {
+          panel.querySelectorAll("[data-preview-mode]").forEach((item) => {
+            item.classList.toggle("active", item === button);
+          });
+          surface.dataset.mode = button.dataset.previewMode || "native";
+        });
+      });
+    });
+  })();
+</script>
+{% endblock %}

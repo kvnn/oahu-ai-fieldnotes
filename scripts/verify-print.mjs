@@ -1,12 +1,29 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
-const INTERIOR_PATH = 'dist/interior.pdf';
-const COVER_PATH = 'dist/cover.pdf';
+const PRINT_BUILD_MANIFEST = 'dist/print-build.json';
+const DEFAULT_INTERIOR_PATH = 'dist/interior.pdf';
+const DEFAULT_COVER_PATH = 'dist/cover.pdf';
 const EXPECTED_INTERIOR_PAGES = 68;
 const EXPECTED_COVER_WIDTH_PT = 823.68;
 const EXPECTED_COVER_HEIGHT_PT = 630.72;
 const SIZE_TOLERANCE_PT = 1.2;
+
+function printOutputPaths() {
+  if (!existsSync(PRINT_BUILD_MANIFEST)) {
+    return {
+      interior: DEFAULT_INTERIOR_PATH,
+      cover: DEFAULT_COVER_PATH,
+    };
+  }
+  const manifest = JSON.parse(readFileSync(PRINT_BUILD_MANIFEST, 'utf8'));
+  return {
+    interior: manifest.outputPaths?.interior || DEFAULT_INTERIOR_PATH,
+    cover: manifest.outputPaths?.cover || DEFAULT_COVER_PATH,
+  };
+}
+
+const { interior: INTERIOR_PATH, cover: COVER_PATH } = printOutputPaths();
 
 function run(command, args) {
   return execFileSync(command, args, {

@@ -1,0 +1,49 @@
+<svg width="100%" viewBox="0 0 680 420" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>What a workbench holds</title>
+<desc>An abstract floor-plan of a workbench: the artifact sits lit at the center, a material rail to the left and tools to the right both point inward at it, a state strip runs across the top, and a single gate sits below as the one deliberate commit point.</desc>
+<style>.m{font-family:'IBM Plex Mono','SF Mono','Menlo',monospace;}</style>
+<defs>
+<marker id="ar3" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<rect x="0" y="0" width="680" height="420" fill="#221733"/>
+
+<text class="m" x="40" y="44" font-size="9" letter-spacing="3" fill="#6B5A82">V · WORKBENCHES</text>
+<text class="m" x="640" y="44" text-anchor="end" font-size="9" letter-spacing="2" fill="#8B8474">FIG. 5.2</text>
+
+<rect x="90" y="90" width="500" height="280" rx="8" fill="none" stroke="#ABA28D" stroke-width="0.75"/>
+
+<text class="m" x="110" y="137" font-size="8" letter-spacing="1.5" fill="#ABA28D">STATE</text>
+<g fill="none" stroke="#ABA28D" stroke-width="0.75" opacity="0.6">
+<rect x="176" y="124" width="28" height="14" rx="2"/><rect x="238" y="124" width="28" height="14" rx="2"/><rect x="300" y="124" width="28" height="14" rx="2"/><rect x="362" y="124" width="28" height="14" rx="2"/><rect x="424" y="124" width="28" height="14" rx="2"/><rect x="486" y="124" width="28" height="14" rx="2"/>
+</g>
+
+<text class="m" x="156" y="176" text-anchor="middle" font-size="8" letter-spacing="1.5" fill="#ABA28D">MATERIAL</text>
+<rect x="110" y="186" width="92" height="118" rx="4" fill="none" stroke="#ABA28D" stroke-width="0.5" opacity="0.22"/>
+<g stroke="#ABA28D" stroke-width="1" opacity="0.5">
+<line x1="122" y1="210" x2="186" y2="210"/><line x1="122" y1="230" x2="172" y2="230"/><line x1="122" y1="250" x2="190" y2="250"/><line x1="122" y1="270" x2="166" y2="270"/>
+</g>
+
+<rect x="222" y="170" width="216" height="140" rx="5" fill="#EFE6CE"/>
+<text class="m" x="330" y="245" text-anchor="middle" font-size="10" letter-spacing="1.5" fill="#221733">ARTIFACT</text>
+
+<text class="m" x="504" y="176" text-anchor="middle" font-size="8" letter-spacing="1.5" fill="#ABA28D">TOOLS</text>
+<rect x="458" y="186" width="92" height="118" rx="4" fill="none" stroke="#ABA28D" stroke-width="0.5" opacity="0.22"/>
+<g fill="none" stroke="#ABA28D" stroke-width="1" opacity="0.5">
+<circle cx="478" cy="212" r="3.5"/><line x1="492" y1="212" x2="538" y2="212"/>
+<circle cx="478" cy="240" r="3.5"/><line x1="492" y1="240" x2="528" y2="240"/>
+<circle cx="478" cy="268" r="3.5"/><line x1="492" y1="268" x2="538" y2="268"/>
+</g>
+
+<g stroke="#ABA28D" stroke-width="0.75" opacity="0.32" fill="none">
+<line x1="204" y1="240" x2="218" y2="240" marker-end="url(#ar3)"/>
+<line x1="456" y1="240" x2="442" y2="240" marker-end="url(#ar3)"/>
+<line x1="330" y1="314" x2="330" y2="324" marker-end="url(#ar3)"/>
+</g>
+
+<rect x="300" y="328" width="60" height="22" rx="4" fill="#9B7FBC"/>
+<line x1="327" y1="334" x2="327" y2="344" stroke="#221733" stroke-width="1.4"/>
+<line x1="333" y1="334" x2="333" y2="344" stroke="#221733" stroke-width="1.4"/>
+<text class="m" x="330" y="365" text-anchor="middle" font-size="8" letter-spacing="1.5" fill="#9B7FBC">GATE</text>
+
+<text class="m" x="340" y="402" text-anchor="middle" font-size="8" letter-spacing="2" fill="#6B5A82">FIG. 5.2 — WHAT A WORKBENCH HOLDS</text>
+</svg>

@@ -440,6 +440,7 @@ pre {
 }
 
 .opener-title-block {
+  position: relative;
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -458,6 +459,32 @@ pre {
 
 .opener-footer {
   color: var(--muted-label);
+}
+
+.book-illustration {
+  break-inside: avoid;
+}
+
+.book-illustration img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.opener-motif {
+  position: absolute;
+  right: -0.03in;
+  bottom: 0.48in;
+  width: 1.75in;
+  margin: 0;
+  opacity: 0.95;
+}
+
+.inline-infographic {
+  margin: 0.16in -0.14in 0.22in;
+  padding: 0.07in 0;
+  border-top: 0.45pt solid rgba(122, 113, 96, 0.35);
+  border-bottom: 0.45pt solid rgba(122, 113, 96, 0.35);
 }
 
 .opener-notes {

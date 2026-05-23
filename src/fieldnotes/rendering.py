@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,6 +24,8 @@ from fieldnotes.production import (
     TRIM_SIZE,
     cover_output_path,
     interior_output_path,
+    print_build_id,
+    print_output_paths,
     proof_output_path,
     render_profile_metadata,
 )
@@ -49,7 +52,14 @@ class BookPdfRenderResult:
         )
 
 
-def render_commands(profile: str) -> list[tuple[list[str], Path]]:
+PRINT_BUILD_ID_ENV = "FIELDNOTES_PRINT_BUILD_ID"
+
+
+def render_commands(
+    profile: str,
+    *,
+    build_id: str | None = None,
+) -> list[tuple[list[str], Path]]:
     if profile == "draft":
         return [(["npm", "run", "build"], Path("dist/oahu-ai-field-notes.pdf"))]
 
@@ -58,7 +68,7 @@ def render_commands(profile: str) -> list[tuple[list[str], Path]]:
         return [(proof_command, proof_output_path())]
 
     if profile == "print":
-        return [(["npm", "run", "build:print"], interior_output_path())]
+        return [(["npm", "run", "build:print"], interior_output_path(build_id))]
     raise ValueError(f"unknown render profile: {profile}")
 
 
@@ -73,10 +83,16 @@ def render_output_type(profile: str) -> str:
 def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
     logs_parts: list[str] = []
     returncode = 0
+    build_id = print_build_id() if profile == "print" else None
+    upload_paths = (
+        print_output_paths(build_id)
+        if build_id is not None
+        else {"cover": cover_output_path(), "interior": interior_output_path()}
+    )
     output_path = {
         "draft": Path("dist/oahu-ai-field-notes.pdf"),
         "proof": proof_output_path(),
-        "print": interior_output_path(),
+        "print": upload_paths["interior"],
     }[profile]
     metadata = render_profile_metadata(profile)
     metadata.update(
@@ -89,8 +105,13 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
             ),
             "trim_size": TRIM_SIZE,
             "bleed": BLEED,
-            "cover_output_path": str(cover_output_path()),
-            "interior_output_path": str(interior_output_path()),
+            "print_build_id": build_id,
+            "cover_output_path": str(upload_paths["cover"]),
+            "interior_output_path": str(upload_paths["interior"]),
+            "output_paths": {
+                "cover": str(upload_paths["cover"]),
+                "interior": str(upload_paths["interior"]),
+            },
             "cover_trim_size": COVER_TRIM_SIZE,
             "cover_spine_width": COVER_SPINE_WIDTH,
             "interior_page_target": INTERIOR_PAGE_TARGET,
@@ -98,7 +119,7 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
     )
 
     try:
-        commands = render_commands(profile)
+        commands = render_commands(profile, build_id=build_id)
     except ValueError as exc:
         returncode = 2
         metadata["error"] = str(exc)
@@ -106,12 +127,16 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
         for command, expected_output in commands:
             metadata["commands"].append(command)
             output_path = expected_output
+            env = os.environ.copy()
+            if build_id is not None:
+                env[PRINT_BUILD_ID_ENV] = build_id
             result = subprocess.run(
                 command,
                 cwd=root,
                 check=False,
                 capture_output=True,
                 text=True,
+                env=env,
             )
             logs_parts.extend(part for part in [result.stdout, result.stderr] if part)
             returncode = result.returncode
@@ -144,7 +169,9 @@ def render_database_book_pdf(
     markdown_path = output_dir / "book.md"
     markdown_path.write_text(markdown.strip() + "\n", encoding="utf-8")
     relative_markdown_path = markdown_path.relative_to(root)
-    output_path = interior_output_path()
+    build_id = print_build_id()
+    upload_paths = print_output_paths(build_id)
+    output_path = upload_paths["interior"]
     command = ["npm", "run", "build:print"]
     metadata = render_profile_metadata("print")
     metadata.update(
@@ -158,11 +185,12 @@ def render_database_book_pdf(
             "commands": [command],
             "returncode": None,
             "output_path": str(output_path),
-            "cover_output_path": str(cover_output_path()),
-            "interior_output_path": str(interior_output_path()),
+            "print_build_id": build_id,
+            "cover_output_path": str(upload_paths["cover"]),
+            "interior_output_path": str(upload_paths["interior"]),
             "output_paths": {
-                "cover": str(cover_output_path()),
-                "interior": str(interior_output_path()),
+                "cover": str(upload_paths["cover"]),
+                "interior": str(upload_paths["interior"]),
             },
             "profile_note": (
                 "Print output is built from the database-compiled manuscript shown "
@@ -196,6 +224,7 @@ def render_database_book_pdf(
         check=False,
         capture_output=True,
         text=True,
+        env={**os.environ, PRINT_BUILD_ID_ENV: build_id},
     )
     logs = "\n".join(part for part in [result.stdout, result.stderr] if part)
     metadata["returncode"] = result.returncode

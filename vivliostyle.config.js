@@ -43,7 +43,7 @@ export default defineConfig({
     },
   ],
   toc: {
-    title: 'FIELD NOTES | VOLUME 01',
+    title: 'Table of Contents',
     sectionDepth: 2,
   },
   copyAsset: {
@@ -67,6 +67,12 @@ export default defineConfig({
             ['#e8dfc4', { c: 0, m: 400, y: 1600, k: 900 }],
             ['#9a9a9a', { c: 0, m: 0, y: 0, k: 4000 }],
             ['#eeeeee', { c: 0, m: 0, y: 0, k: 700 }],
+            ['#aba28d', { c: 0, m: 500, y: 1800, k: 3300 }],
+            ['#efe6ce', { c: 0, m: 400, y: 1400, k: 600 }],
+            ['#221733', { c: 3300, m: 5500, y: 0, k: 8000 }],
+            ['#9b7fbc', { c: 1800, m: 3200, y: 0, k: 2600 }],
+            ['#c8bfa9', { c: 0, m: 500, y: 1600, k: 2200 }],
+            ['#6b5a82', { c: 1800, m: 3100, y: 0, k: 4900 }],
           ],
           warnUnmapped: true,
           mapOutput: 'dist/cmyk-map.json',

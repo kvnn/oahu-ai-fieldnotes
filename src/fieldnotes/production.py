@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -21,6 +22,7 @@ BLEED = "0.13in"
 COVER_TRIM_SIZE = "11.18in,8.5in"
 COVER_SPINE_WIDTH = "0.18in"
 INTERIOR_PAGE_TARGET = 68
+BOOK_OUTPUT_FILE_STEM = "oahu-ai-field-notes"
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
     "paper": {
@@ -77,6 +79,36 @@ COLOR_SWATCHES: dict[str, dict[str, Any]] = {
         "hex": "#eeeeee",
         "cmyk": {"c": 0, "m": 0, "y": 0, "k": 7},
         "role": "Generated light neutral gray from print furniture and rendering edges.",
+    },
+    "illustration_structure": {
+        "hex": "#aba28d",
+        "cmyk": {"c": 0, "m": 5, "y": 18, "k": 33},
+        "role": "Parchment structure lines, frames, and rails in illustration SVGs.",
+    },
+    "illustration_artifact": {
+        "hex": "#efe6ce",
+        "cmyk": {"c": 0, "m": 4, "y": 14, "k": 6},
+        "role": "Single cream artifact in each illustration SVG.",
+    },
+    "illustration_artifact_text": {
+        "hex": "#221733",
+        "cmyk": {"c": 33, "m": 55, "y": 0, "k": 80},
+        "role": "Dark text on the cream illustration artifact.",
+    },
+    "illustration_emphasis": {
+        "hex": "#9b7fbc",
+        "cmyk": {"c": 18, "m": 32, "y": 0, "k": 26},
+        "role": "Aubergine emphasis, gate, or threshold in illustration SVGs.",
+    },
+    "illustration_bright_label": {
+        "hex": "#c8bfa9",
+        "cmyk": {"c": 0, "m": 5, "y": 16, "k": 22},
+        "role": "Bright destination labels in illustration SVGs.",
+    },
+    "illustration_meta": {
+        "hex": "#6b5a82",
+        "cmyk": {"c": 18, "m": 31, "y": 0, "k": 49},
+        "role": "Meta ties and internal captions in illustration SVGs.",
     },
 }
 
@@ -140,9 +172,29 @@ def print_output_path() -> Path:
     return interior_output_path()
 
 
-def cover_output_path() -> Path:
+def short_datetime_stamp(now: datetime | None = None) -> str:
+    value = now or datetime.now()
+    return value.strftime("%Y%m%d-%H%M%S")
+
+
+def print_build_id(now: datetime | None = None) -> str:
+    return short_datetime_stamp(now)
+
+
+def cover_output_path(build_id: str | None = None) -> Path:
+    if build_id:
+        return Path(f"dist/{BOOK_OUTPUT_FILE_STEM}-{build_id}-cover.pdf")
     return Path("dist/cover.pdf")
 
 
-def interior_output_path() -> Path:
+def interior_output_path(build_id: str | None = None) -> Path:
+    if build_id:
+        return Path(f"dist/{BOOK_OUTPUT_FILE_STEM}-{build_id}-interior.pdf")
     return Path("dist/interior.pdf")
+
+
+def print_output_paths(build_id: str) -> dict[str, Path]:
+    return {
+        "cover": cover_output_path(build_id),
+        "interior": interior_output_path(build_id),
+    }

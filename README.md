@@ -67,6 +67,10 @@ The palette is intentionally narrow: warm stock preview, one aubergine accent, r
 
 Initial diagram assets live in `assets/figures` and follow the book grammar: 12-column grid, near-black lines, aubergine state/emphasis, mono caps labels, no decorative fills, and one open-triangle arrowhead.
 
+The first reusable illustration system lives in `design/illustrations/BOOK-ILLUSTRATION-SYSTEM.md`.
+The current volume's gold-standard manifest is `design/illustrations/oahu-vol-1.toml`, which
+drives chapter-opener motifs and inline SVG infographics during print markdown generation.
+
 ## Manuscript Structure
 
 - `manuscript/cover.md` is the book cover.

@@ -60,6 +60,12 @@ from fieldnotes.db.models import (
     utc_now,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
+from fieldnotes.illustrations import (
+    MANIFEST_PATH,
+    insert_inline_illustration,
+    load_illustration_manifest,
+    opener_motif_for_slug,
+)
 from fieldnotes.production import cover_output_path, mixam_page_count_profile, print_output_path
 from fieldnotes.rendering import (
     record_book_pdf_render,
@@ -174,6 +180,11 @@ def create_app(
         StaticFiles(directory=PACKAGE_DIR / "static"),
         name="static",
     )
+    app.mount(
+        "/assets",
+        StaticFiles(directory=config.root / "assets"),
+        name="assets",
+    )
     _configure_chainlit(app)
 
     @app.middleware("http")
@@ -252,6 +263,34 @@ def create_app(
             "path": app.state.chainlit_path,
             "target": Path(app.state.chainlit_target).name,
         }
+
+    @app.get("/illustrations", response_class=HTMLResponse)
+    def illustration_workbench(request: Request) -> HTMLResponse:
+        manifest_path = config.root / MANIFEST_PATH
+        specs = load_illustration_manifest(manifest_path)
+        figures = []
+        for spec in specs:
+            asset_path = config.root / spec.asset_path
+            svg_text = asset_path.read_text(encoding="utf-8") if asset_path.exists() else ""
+            figures.append(
+                {
+                    "spec": spec,
+                    "asset_exists": asset_path.exists(),
+                    "asset_path": spec.asset_path,
+                    "src": "/" + spec.asset_path,
+                    "svg_text": svg_text,
+                    "line_count": svg_text.count("\n") + 1 if svg_text else 0,
+                }
+            )
+        return templates.TemplateResponse(
+            request,
+            "illustrations.html",
+            {
+                "manifest_path": str(MANIFEST_PATH),
+                "figures": figures,
+                "figure_count": len(figures),
+            },
+        )
 
     @app.get("/api/book-text")
     def compiled_book_text(
@@ -1155,6 +1194,7 @@ def _vivliostyle_chapter_markdown(chapter: dict) -> str:
     subtitle = str(chapter.get("subtitle") or "").strip()
     body = _strip_leading_chapter_matter(str(chapter["body"]))
     slug = str(chapter.get("slug") or "").strip()
+    body = insert_inline_illustration(slug, body)
     kicker = _chapter_kicker(chapter)
     roman = _chapter_roman(chapter)
     label = "Introduction" if kicker == "INTRO" else f"Chapter {roman}"
@@ -1170,6 +1210,9 @@ def _vivliostyle_chapter_markdown(chapter: dict) -> str:
     ]
     if subtitle:
         lines.append(f'<p class="opener-subtitle">{escape(subtitle)}</p>')
+    motif = opener_motif_for_slug(slug)
+    if motif:
+        lines.append(motif)
     lines.extend(
         [
             "</div>",
