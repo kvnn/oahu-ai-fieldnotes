@@ -1,0 +1,29 @@
+<svg width="100%" viewBox="0 0 680 220" role="img" xmlns="http://www.w3.org/2000/svg" data-figure-system="fieldnotes-v1">
+<title>Three feedback loop patterns</title>
+<desc>Three loop patterns share the same skeleton: produce, evaluate, correct, and repeat.</desc>
+<style>.m{font-family:'IBM Plex Mono',monospace;}</style>
+<defs>
+<marker id="loop-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<text class="m" x="34" y="34" font-size="9" letter-spacing="2.4" fill="#6b5a82">III · USE LOOPS</text>
+<text class="m" x="646" y="34" text-anchor="end" font-size="9" letter-spacing="1.8" fill="#8b8474">FIG. 3.1</text>
+<g fill="none" stroke="#aba28d" stroke-width="0.75" opacity="0.78">
+<rect x="42" y="64" width="168" height="98" rx="5"/>
+<rect x="256" y="64" width="168" height="98" rx="5"/>
+<rect x="470" y="64" width="168" height="98" rx="5"/>
+<path d="M86 119C86 91 166 91 166 119C166 147 86 147 86 119" marker-end="url(#loop-arrow)"/>
+<path d="M300 119C300 91 380 91 380 119C380 147 300 147 300 119" marker-end="url(#loop-arrow)"/>
+<path d="M514 119C514 91 594 91 594 119C594 147 514 147 514 119" marker-end="url(#loop-arrow)"/>
+</g>
+<rect x="106" y="107" width="40" height="24" rx="3" fill="#efe6ce"/>
+<text class="m" x="126" y="122" text-anchor="middle" font-size="6.5" letter-spacing=".8" fill="#221733">TRACE</text>
+<circle cx="340" cy="119" r="14" fill="none" stroke="#9b7fbc" stroke-width="1"/>
+<circle cx="554" cy="119" r="14" fill="none" stroke="#9b7fbc" stroke-width="1"/>
+<text class="m" x="126" y="82" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="#c8bfa9">TRACE LOOP</text>
+<text class="m" x="340" y="82" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="#c8bfa9">AGENT ETL</text>
+<text class="m" x="554" y="82" text-anchor="middle" font-size="8" letter-spacing="1.4" fill="#c8bfa9">PROMPT OPT</text>
+<text class="m" x="126" y="150" text-anchor="middle" font-size="6.5" letter-spacing=".9" fill="#aba28d">OBSERVE · REENTER</text>
+<text class="m" x="340" y="150" text-anchor="middle" font-size="6.5" letter-spacing=".9" fill="#aba28d">REVIEW · HARDEN</text>
+<text class="m" x="554" y="150" text-anchor="middle" font-size="6.5" letter-spacing=".9" fill="#aba28d">SCORE · SEARCH</text>
+<text class="m" x="340" y="198" text-anchor="middle" font-size="8" letter-spacing="2" fill="#6b5a82">FIG. 3.1 — THE FEEDBACK MECHANISM IS THE DESIGN</text>
+</svg>

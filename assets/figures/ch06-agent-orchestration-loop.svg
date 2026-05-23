@@ -1,0 +1,31 @@
+<svg width="100%" viewBox="0 0 680 230" role="img" xmlns="http://www.w3.org/2000/svg" data-figure-system="fieldnotes-v1">
+<title>Agent orchestration loop</title>
+<desc>A broker connects the human, sealed runtime, tool layer, artifacts, hooks, and typed workflow path around the model loop.</desc>
+<style>.m{font-family:'IBM Plex Mono',monospace;}</style>
+<defs>
+<marker id="orch-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<text class="m" x="34" y="32" font-size="9" letter-spacing="2.4" fill="#6b5a82">VI · AGENT ORCHESTRATION</text>
+<text class="m" x="646" y="32" text-anchor="end" font-size="9" letter-spacing="1.8" fill="#8b8474">FIG. 6.1</text>
+<g fill="none" stroke="#aba28d" stroke-width="0.75" opacity="0.78">
+<rect x="50" y="88" width="92" height="44" rx="4"/>
+<rect x="206" y="72" width="116" height="76" rx="5"/>
+<rect x="382" y="72" width="116" height="76" rx="5"/>
+<rect x="548" y="88" width="82" height="44" rx="4"/>
+<path d="M142 110H198" marker-end="url(#orch-arrow)"/>
+<path d="M322 110H374" marker-end="url(#orch-arrow)"/>
+<path d="M498 110H540" marker-end="url(#orch-arrow)"/>
+<path d="M590 134C562 174 118 174 94 136" marker-end="url(#orch-arrow)"/>
+</g>
+<rect x="406" y="94" width="68" height="32" rx="4" fill="#efe6ce"/>
+<text class="m" x="440" y="114" text-anchor="middle" font-size="7" letter-spacing="1" fill="#221733">ARTIFACTS</text>
+<path d="M264 64C278 48 312 48 326 64" fill="none" stroke="#9b7fbc" stroke-width="1"/>
+<path d="M318 58L327 64L318 70" fill="none" stroke="#9b7fbc" stroke-width="1" stroke-linecap="round"/>
+<text class="m" x="96" y="114" text-anchor="middle" font-size="7.5" letter-spacing="1.2" fill="#c8bfa9">HUMAN</text>
+<text class="m" x="264" y="104" text-anchor="middle" font-size="7.5" letter-spacing="1.2" fill="#c8bfa9">BROKER</text>
+<text class="m" x="264" y="122" text-anchor="middle" font-size="6.5" letter-spacing=".9" fill="#aba28d">WORKFLOW ID</text>
+<text class="m" x="440" y="88" text-anchor="middle" font-size="7.5" letter-spacing="1.2" fill="#c8bfa9">SEALED RUNTIME</text>
+<text class="m" x="589" y="114" text-anchor="middle" font-size="7.5" letter-spacing="1.2" fill="#c8bfa9">TOOLS</text>
+<text class="m" x="340" y="172" text-anchor="middle" font-size="7" letter-spacing="1.4" fill="#aba28d">HOOKS · APPROVALS · TYPED GRAPHS · DURABLE STATE</text>
+<text class="m" x="340" y="210" text-anchor="middle" font-size="8" letter-spacing="2" fill="#6b5a82">FIG. 6.1 — THE AGENT IS THE LOOP WITH A MODEL INSIDE IT</text>
+</svg>

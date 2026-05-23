@@ -1,0 +1,23 @@
+<svg width="100%" viewBox="0 0 260 190" role="img" xmlns="http://www.w3.org/2000/svg" data-figure-system="fieldnotes-v1">
+<title>Local capability bridge</title>
+<desc>Distributed local capabilities gather across an amplifying bridge into a single visible artifact.</desc>
+<style>.m{font-family:'IBM Plex Mono',monospace;}</style>
+<defs>
+<marker id="intro-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></marker>
+</defs>
+<g fill="none" stroke="#aba28d" stroke-width="0.75" opacity="0.72">
+<path d="M38 126C76 84 112 70 154 78" marker-end="url(#intro-arrow)"/>
+<path d="M48 148C90 132 119 126 154 102" marker-end="url(#intro-arrow)"/>
+<path d="M42 98C79 112 110 112 154 92" marker-end="url(#intro-arrow)"/>
+</g>
+<g fill="#aba28d" opacity="0.8">
+<circle cx="35" cy="92" r="3"/><circle cx="48" cy="126" r="3"/><circle cx="31" cy="151" r="3"/>
+<circle cx="87" cy="72" r="2.2"/><circle cx="101" cy="132" r="2.2"/>
+</g>
+<rect x="160" y="70" width="58" height="42" rx="4" fill="#efe6ce"/>
+<text class="m" x="189" y="94" text-anchor="middle" font-size="7" letter-spacing="1" fill="#221733">VISIBLE</text>
+<path d="M135 47H220" stroke="#9b7fbc" stroke-width="1" opacity="0.9"/>
+<path d="M143 42L135 47L143 52" fill="none" stroke="#9b7fbc" stroke-width="1" stroke-linecap="round"/>
+<text class="m" x="38" y="36" font-size="8" letter-spacing="2" fill="#6b5a82">LOCAL WORK</text>
+<text class="m" x="220" y="130" text-anchor="end" font-size="8" letter-spacing="1.5" fill="#c8bfa9">AMPLIFIED</text>
+</svg>

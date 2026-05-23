@@ -1,0 +1,21 @@
+<svg width="100%" viewBox="0 0 260 190" role="img" xmlns="http://www.w3.org/2000/svg" data-figure-system="fieldnotes-v1">
+<title>Meaning machine</title>
+<desc>Language fragments compress through a narrow model layer into a callable meaning artifact.</desc>
+<style>.m{font-family:'IBM Plex Mono',monospace;}</style>
+<g stroke="#aba28d" stroke-width="0.75" fill="none" opacity="0.68">
+<path d="M34 54H96"/><path d="M48 76H112"/><path d="M29 101H91"/><path d="M54 125H118"/>
+<path d="M118 54L149 90"/><path d="M118 125L149 100"/><path d="M112 76L149 94"/><path d="M91 101L149 97"/>
+</g>
+<g fill="#aba28d" opacity="0.75">
+<rect x="34" y="50" width="20" height="7" rx="1"/><rect x="60" y="50" width="36" height="7" rx="1"/>
+<rect x="48" y="72" width="26" height="7" rx="1"/><rect x="80" y="72" width="32" height="7" rx="1"/>
+<rect x="29" y="97" width="30" height="7" rx="1"/><rect x="65" y="97" width="26" height="7" rx="1"/>
+<rect x="54" y="121" width="23" height="7" rx="1"/><rect x="83" y="121" width="35" height="7" rx="1"/>
+</g>
+<rect x="150" y="78" width="58" height="40" rx="4" fill="#efe6ce"/>
+<text class="m" x="179" y="101" text-anchor="middle" font-size="7" letter-spacing="1" fill="#221733">MEANING</text>
+<path d="M139 70C148 62 160 60 171 64" fill="none" stroke="#9b7fbc" stroke-width="1"/>
+<path d="M166 59L173 65L164 67" fill="none" stroke="#9b7fbc" stroke-width="1" stroke-linecap="round"/>
+<text class="m" x="38" y="34" font-size="8" letter-spacing="2" fill="#6b5a82">TEXT IN</text>
+<text class="m" x="208" y="139" text-anchor="end" font-size="8" letter-spacing="1.5" fill="#c8bfa9">CALLABLE OUT</text>
+</svg>

@@ -1,0 +1,21 @@
+<svg width="100%" viewBox="0 0 260 190" role="img" xmlns="http://www.w3.org/2000/svg" data-figure-system="fieldnotes-v1">
+<title>Translation threshold</title>
+<desc>Embodied field knowledge crosses a language threshold and becomes legible to an institution.</desc>
+<style>.m{font-family:'IBM Plex Mono',monospace;}</style>
+<g fill="none" stroke="#aba28d" stroke-width="0.75" opacity="0.72">
+<path d="M36 118C61 102 82 93 104 88"/>
+<path d="M40 138C65 124 88 113 112 108"/>
+<path d="M43 158C79 143 108 130 135 111"/>
+<path d="M170 52H218V144H170"/>
+<path d="M183 73H210M183 94H207M183 115H212"/>
+</g>
+<rect x="116" y="82" width="56" height="38" rx="4" fill="#efe6ce"/>
+<text class="m" x="144" y="105" text-anchor="middle" font-size="7" letter-spacing="1" fill="#221733">KNOWN</text>
+<path d="M151 57V145" stroke="#9b7fbc" stroke-width="1.2" stroke-dasharray="4 5"/>
+<circle cx="151" cy="101" r="6" fill="none" stroke="#9b7fbc" stroke-width="1"/>
+<g fill="#aba28d" opacity="0.75">
+<circle cx="35" cy="118" r="2.5"/><circle cx="40" cy="138" r="2.5"/><circle cx="43" cy="158" r="2.5"/>
+</g>
+<text class="m" x="36" y="36" font-size="8" letter-spacing="2" fill="#6b5a82">FIELD KNOWLEDGE</text>
+<text class="m" x="218" y="163" text-anchor="end" font-size="8" letter-spacing="1.5" fill="#c8bfa9">ROOM LANGUAGE</text>
+</svg>
