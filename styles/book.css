@@ -300,8 +300,8 @@ svg {
 .book-screenshot {
   margin: 0.24in -0.06in 0.28in;
   padding: 0.08in 0;
-  border-top: 0.45pt solid rgba(122, 113, 96, 0.4);
-  border-bottom: 0.45pt solid rgba(122, 113, 96, 0.4);
+  /* border-top: 0.45pt solid rgba(122, 113, 96, 0.4);
+  border-bottom: 0.45pt solid rgba(122, 113, 96, 0.4); */
   break-inside: avoid;
 }
 
