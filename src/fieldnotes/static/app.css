@@ -239,6 +239,52 @@ dd {
   padding: 18px;
 }
 
+.illustration-create-header {
+  align-items: start;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.illustration-create-header h2 {
+  font-size: 1.05rem;
+  margin-bottom: 6px;
+}
+
+.illustration-create-header p {
+  margin-bottom: 0;
+}
+
+.illustration-chapter-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  margin-bottom: 16px;
+}
+
+.illustration-chapter-card {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.illustration-chapter-card h3 {
+  font-size: 0.96rem;
+  margin-bottom: 4px;
+}
+
+.illustration-chapter-card p {
+  margin-bottom: 0;
+}
+
+.illustration-chapter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .illustration-workbench {
   align-items: start;
   display: grid;
@@ -255,6 +301,36 @@ dd {
   padding: 10px;
   position: sticky;
   top: 74px;
+}
+
+.illustration-index-group {
+  border-bottom: 1px solid var(--line);
+  display: grid;
+  gap: 6px;
+  padding-bottom: 10px;
+}
+
+.illustration-index-group:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.illustration-index-group-header {
+  align-items: baseline;
+  color: var(--ink);
+  display: flex;
+  font-size: 0.78rem;
+  font-weight: 760;
+  gap: 8px;
+  justify-content: space-between;
+  padding: 4px 6px;
+}
+
+.illustration-index-group-header small {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 720;
+  white-space: nowrap;
 }
 
 .illustration-index-item {
@@ -278,6 +354,12 @@ dd {
 .illustration-index-id {
   color: var(--accent-strong);
   font-weight: 760;
+}
+
+.compact-empty {
+  font-size: 0.78rem;
+  margin: 0;
+  padding: 4px 6px;
 }
 
 .illustration-stack {

@@ -352,7 +352,9 @@ def create_app(
             config=config,
             session=session,
             existing_specs=specs,
+            require_asset_exists=False,
         )
+        _ensure_placeholder_figure_asset(config.root, spec)
         specs.append(spec)
         save_illustration_manifest(specs, manifest_path)
         return {
@@ -1266,18 +1268,20 @@ def _illustration_workbench_payload(root: Path, session: Session, config) -> dic
     manifest_path = root / MANIFEST_PATH
     specs = load_illustration_manifest(manifest_path)
     chapters, chapter_paragraphs = _safe_illustration_chapter_context(session, config)
+    figure_payloads = [
+        _illustration_figure_payload(
+            root,
+            spec,
+            candidates=_safe_illustration_candidate_payloads(session, root, config, spec),
+        )
+        for spec in specs
+    ]
     return {
         "manifest_path": str(MANIFEST_PATH),
-        "figures": [
-            _illustration_figure_payload(
-                root,
-                spec,
-                candidates=_safe_illustration_candidate_payloads(session, root, config, spec),
-            )
-            for spec in specs
-        ],
+        "figures": figure_payloads,
         "figure_count": len(specs),
         "chapters": chapters,
+        "chapter_figure_groups": _illustration_chapter_figure_groups(chapters, specs),
         "chapter_paragraphs": chapter_paragraphs,
         "treatments": list(ILLUSTRATION_TREATMENTS),
         "placements": list(ILLUSTRATION_PLACEMENTS),
@@ -1323,6 +1327,96 @@ def _illustration_spec_dict(spec: IllustrationSpec) -> dict:
         "alt_text": spec.alt_text,
         "generation_goal": spec.generation_goal,
     }
+
+
+def _illustration_chapter_figure_groups(
+    chapters: list[dict],
+    specs: list[IllustrationSpec],
+) -> list[dict]:
+    groups: list[dict] = []
+    known_slugs: set[str] = set()
+    for index, chapter in enumerate(chapters, start=1):
+        slug = str(chapter.get("slug") or "")
+        known_slugs.add(slug)
+        toc_number = int(chapter.get("toc_number") or index)
+        groups.append(
+            _illustration_chapter_figure_group(
+                chapter=chapter,
+                specs=[spec for spec in specs if spec.chapter_slug == slug],
+                toc_number=toc_number,
+                can_create=True,
+            )
+        )
+
+    for slug in sorted({spec.chapter_slug for spec in specs} - known_slugs):
+        groups.append(
+            _illustration_chapter_figure_group(
+                chapter={"slug": slug, "toc_number": "-", "title": slug},
+                specs=[spec for spec in specs if spec.chapter_slug == slug],
+                toc_number=0,
+                can_create=False,
+            )
+        )
+    return groups
+
+
+def _illustration_chapter_figure_group(
+    *,
+    chapter: dict,
+    specs: list[IllustrationSpec],
+    toc_number: int,
+    can_create: bool,
+) -> dict:
+    slug = str(chapter.get("slug") or "")
+    opener_count = sum(1 for spec in specs if spec.treatment == "opener_motif")
+    body_count = sum(1 for spec in specs if spec.treatment == "inline_infographic")
+    opener_id = _default_illustration_id(
+        toc_number=toc_number,
+        chapter_slug=slug,
+        treatment="opener_motif",
+        count=opener_count + 1,
+    )
+    body_id = _default_illustration_id(
+        toc_number=toc_number,
+        chapter_slug=slug,
+        treatment="inline_infographic",
+        count=body_count + 1,
+    )
+    return {
+        "chapter": chapter,
+        "can_create": can_create,
+        "opener_count": opener_count,
+        "body_count": body_count,
+        "figure_count": len(specs),
+        "figures": [
+            {
+                "id": spec.id,
+                "treatment": spec.treatment,
+                "enabled": spec.enabled,
+            }
+            for spec in specs
+        ],
+        "next_opener": {
+            "id": opener_id,
+            "asset_path": f"assets/figures/{opener_id}.svg",
+        },
+        "next_body": {
+            "id": body_id,
+            "asset_path": f"assets/figures/{body_id}.svg",
+        },
+    }
+
+
+def _default_illustration_id(
+    *,
+    toc_number: int,
+    chapter_slug: str,
+    treatment: str,
+    count: int,
+) -> str:
+    kind = "opener" if treatment == "opener_motif" else "body"
+    safe_slug = re.sub(r"[^a-z0-9]+", "-", chapter_slug.lower()).strip("-") or "chapter"
+    return f"ch{toc_number:02d}-{safe_slug}-{kind}-{count:02d}"
 
 
 def _safe_illustration_candidate_payloads(
@@ -1657,6 +1751,7 @@ def _validated_illustration_spec(
     session: Session,
     existing_specs: list[IllustrationSpec],
     current_id: str | None = None,
+    require_asset_exists: bool = True,
 ) -> IllustrationSpec:
     figure_id = _required_string(data, "id")
     if not re.match(r"^[a-z0-9][a-z0-9-]*$", figure_id):
@@ -1674,7 +1769,11 @@ def _validated_illustration_spec(
     placement = _enum_string(data, "placement", ILLUSTRATION_PLACEMENTS)
     opener_position = _enum_string(data, "opener_position", OPENER_POSITIONS)
     opener_scale = _enum_string(data, "opener_scale", OPENER_SCALES)
-    asset_path = _valid_figure_asset_path(_required_string(data, "asset_path"), config.root)
+    asset_path = _valid_figure_asset_path(
+        _required_string(data, "asset_path"),
+        config.root,
+        require_exists=require_asset_exists,
+    )
     caption_policy = str(data.get("caption_policy") or "").strip()
     if not caption_policy:
         caption_policy = "none" if treatment == "opener_motif" else "internal"
@@ -1710,7 +1809,7 @@ def _enum_string(data: dict, key: str, allowed: tuple[str, ...]) -> str:
     return value
 
 
-def _valid_figure_asset_path(value: str, root: Path) -> str:
+def _valid_figure_asset_path(value: str, root: Path, *, require_exists: bool = True) -> str:
     path = Path(value)
     if path.is_absolute() or ".." in path.parts:
         raise HTTPException(status_code=422, detail="asset_path must be relative to assets/figures")
@@ -1722,9 +1821,42 @@ def _valid_figure_asset_path(value: str, root: Path) -> str:
         resolved.relative_to(figures_root)
     except ValueError as exc:
         raise HTTPException(status_code=422, detail="asset_path must stay under assets/figures") from exc
-    if not resolved.exists():
+    if require_exists and not resolved.exists():
         raise HTTPException(status_code=422, detail="asset_path does not exist")
     return path.as_posix()
+
+
+def _ensure_placeholder_figure_asset(root: Path, spec: IllustrationSpec) -> None:
+    path = _resolve_figure_asset_path(root, spec.asset_path)
+    if path is None:
+        raise HTTPException(status_code=422, detail="asset_path must stay under assets/figures")
+    if path.exists():
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(_placeholder_svg_text(spec), encoding="utf-8")
+
+
+def _placeholder_svg_text(spec: IllustrationSpec) -> str:
+    title = escape(spec.id)
+    description = escape(f"Placeholder SVG for {spec.id}.")
+    label = "OPENER MOTIF" if spec.treatment == "opener_motif" else "BODY FIGURE"
+    return (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" '
+        'role="img" data-figure-system="fieldnotes-v1">\n'
+        f"  <title>{title}</title>\n"
+        f"  <desc>{description}</desc>\n"
+        '  <g fill="none" stroke="#aba28d" stroke-width="3">\n'
+        '    <rect x="180" y="150" width="840" height="500" rx="0"/>\n'
+        '    <path d="M260 260h680M260 400h680M260 540h680"/>\n'
+        '  </g>\n'
+        '  <rect x="430" y="320" width="340" height="160" fill="#efe6ce"/>\n'
+        f'  <text x="600" y="395" text-anchor="middle" fill="#221733" '
+        f'font-family="IBM Plex Mono, monospace" font-size="34">{escape(label)}</text>\n'
+        '  <path d="M520 505h160" stroke="#9b7fbc" stroke-width="8"/>\n'
+        '  <text x="600" y="575" text-anchor="middle" fill="#6b5a82" '
+        f'font-family="IBM Plex Mono, monospace" font-size="22">{title}</text>\n'
+        "</svg>\n"
+    )
 
 
 def _validated_svg_text(value: str) -> str:

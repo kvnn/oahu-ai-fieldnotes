@@ -1,6 +1,6 @@
 version = "oahu-vol-1.illustrations.v1"
 book_slug = "oahu-ai-field-notes-vol-1"
-figure_count = 6
+figure_count = 7
 
 [[figures]]
 id = "ch01-introduction-capability-bridge"
@@ -27,7 +27,7 @@ anchor_text = ""
 placement = "after_anchor"
 fallback_placement = "after_first_paragraph"
 opener_position = "bottom_right"
-opener_scale = "medium"
+opener_scale = "large"
 caption_policy = "none"
 alt_text = "Language fragments compress into a callable meaning artifact."
 generation_goal = ""
@@ -91,3 +91,18 @@ opener_scale = "medium"
 caption_policy = "internal"
 alt_text = "Agent orchestration connects a human, broker, sealed runtime, tools, artifacts, hooks, and typed workflow paths."
 generation_goal = ""
+
+[[figures]]
+id = "ch02-introduction-body-01"
+enabled = true
+chapter_slug = "introduction"
+asset_path = "assets/figures/ch02-introduction-body-01.svg"
+treatment = "inline_infographic"
+anchor_text = "What he understood immediately \u2014 and what took me longer to articulate \u2014 is that the barrier was never capability. It was translation. For generations, the people who knew how to do the work were kept from the rooms where the work was awarded, not because they lacked the knowledge but because the knowledge was required to arrive in a particular costume: RFPs, compliance language, project narratives written in the passive voice of institutional trust. The amplifier removes that costume requirement. For the first time, a man who has spent thirty years reading land and animals and weather can walk into that room and be fully understood \u2014 not because he has changed, but because the distance between what he knows and what the room requires has finally closed."
+placement = "after_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = "Two sets of marks, one from the field and one from paperwork, face each other across a narrowing gap bridged by a small aubergine keystone."
+generation_goal = "Represent the following : ```For generations, the people who knewhow to do the work were kept from the rooms where the work was awarded, not because they lacked the knowledge but because the knowledge was required to arrive in a par\u2010 ticular costume: RFPs, compliance language, project narratives written in the passive voice of institutional trust. The amplifier removes that costume requirement. For the first\ntime, a man who has spent thirty years reading land and ani\u2010 mals and weather can walk into that room and be fully understood \u2014 not because he has changed, but because the dis\u2010 tance between what he knows and what the room requires has finally closed.```"

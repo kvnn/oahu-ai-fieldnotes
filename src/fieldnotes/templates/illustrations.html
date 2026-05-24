@@ -14,7 +14,48 @@
   </div>
 </section>
 
-<section class="illustration-create-panel">
+<section class="illustration-create-panel" data-create-panel>
+  <div class="illustration-create-header">
+    <div>
+      <h2>Add Chapter Figure</h2>
+      <p class="muted">Add an opener motif or one of the body figures for a chapter. Each figure becomes its own manifest entry.</p>
+    </div>
+  </div>
+  <div class="illustration-chapter-grid" data-chapter-figure-groups>
+    {% for group in chapter_figure_groups %}
+      <article class="illustration-chapter-card">
+        <div>
+          <p class="eyebrow">Chapter {{ group.chapter.toc_number }}</p>
+          <h3>{{ group.chapter.title }}</h3>
+          <p class="muted">{{ group.figure_count }} figures · {{ group.opener_count }} opener / {{ group.body_count }} body</p>
+        </div>
+        {% if group.can_create %}
+          <div class="illustration-chapter-actions">
+            <button
+              class="secondary compact"
+              type="button"
+              data-create-figure
+              data-chapter-slug="{{ group.chapter.slug }}"
+              data-treatment="opener_motif"
+              data-default-id="{{ group.next_opener.id }}"
+              data-default-path="{{ group.next_opener.asset_path }}"
+            >Add Opener Motif</button>
+            <button
+              class="secondary compact"
+              type="button"
+              data-create-figure
+              data-chapter-slug="{{ group.chapter.slug }}"
+              data-treatment="inline_infographic"
+              data-default-id="{{ group.next_body.id }}"
+              data-default-path="{{ group.next_body.asset_path }}"
+            >Add Body Figure</button>
+          </div>
+        {% endif %}
+      </article>
+    {% else %}
+      <p class="empty-note">Create or approve chapters before adding chapter figures.</p>
+    {% endfor %}
+  </div>
   <form class="illustration-control-form" data-new-illustration-form>
     <div class="illustration-form-grid">
       <label>
@@ -23,7 +64,7 @@
       </label>
       <label>
         Chapter
-        <select name="chapter_slug" required>
+        <select name="chapter_slug" data-chapter-select required>
           {% for chapter in chapters %}
             <option value="{{ chapter.slug }}">{{ chapter.toc_number }} · {{ chapter.title }}</option>
           {% endfor %}
@@ -35,7 +76,7 @@
       </label>
       <label>
         Treatment
-        <select name="treatment">
+        <select name="treatment" data-treatment-select>
           {% for treatment in treatments %}
             <option value="{{ treatment }}">{{ treatment.replace("_", " ") }}</option>
           {% endfor %}
@@ -54,6 +95,63 @@
         Enabled
       </label>
     </div>
+    <div class="illustration-placement-grid">
+      <section data-body-controls>
+        <h3>Body Placement</h3>
+        <div class="illustration-form-grid compact-grid">
+          <label>
+            Placement
+            <select name="placement">
+              {% for placement in placements %}
+                <option value="{{ placement }}">{{ placement.replace("_", " ") }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            Fallback
+            <select name="fallback_placement">
+              {% for fallback in fallback_placements %}
+                <option value="{{ fallback }}">{{ fallback.replace("_", " ") }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            Paragraph
+            <select data-paragraph-picker></select>
+          </label>
+        </div>
+        <div class="illustration-anchor-actions">
+          <button class="secondary compact" type="button" data-anchor-placement="before_anchor">Use Before</button>
+          <button class="secondary compact" type="button" data-anchor-placement="after_anchor">Use After</button>
+        </div>
+        <label>
+          Anchor Text
+          <textarea name="anchor_text" class="illustration-anchor-source" spellcheck="false"></textarea>
+        </label>
+      </section>
+
+      <section data-opener-controls>
+        <h3>Opener Placement</h3>
+        <div class="illustration-form-grid compact-grid">
+          <label>
+            Position
+            <select name="opener_position">
+              {% for position in opener_positions %}
+                <option value="{{ position }}">{{ position.replace("_", " ") }}</option>
+              {% endfor %}
+            </select>
+          </label>
+          <label>
+            Scale
+            <select name="opener_scale">
+              {% for scale in opener_scales %}
+                <option value="{{ scale }}">{{ scale }}</option>
+              {% endfor %}
+            </select>
+          </label>
+        </div>
+      </section>
+    </div>
     <div class="illustration-form-actions">
       <button class="compact" type="submit">Add Figure</button>
       <span class="muted" data-new-illustration-status></span>
@@ -63,11 +161,21 @@
 
 <section class="illustration-workbench">
   <aside class="illustration-index" aria-label="Illustrations">
-    {% for figure in figures %}
-      <a class="illustration-index-item{% if not figure.spec.enabled %} disabled{% endif %}" href="#{{ figure.spec.id }}">
-        <span class="illustration-index-id">{{ figure.spec.id }}</span>
-        <span>{{ figure.spec.treatment.replace("_", " ") }}{% if not figure.spec.enabled %} · disabled{% endif %}</span>
-      </a>
+    {% for group in chapter_figure_groups %}
+      <section class="illustration-index-group">
+        <div class="illustration-index-group-header">
+          <span>{{ group.chapter.toc_number }} · {{ group.chapter.title }}</span>
+          <small>{{ group.opener_count }} / {{ group.body_count }}</small>
+        </div>
+        {% for figure in group.figures %}
+          <a class="illustration-index-item{% if not figure.enabled %} disabled{% endif %}" href="#{{ figure.id }}">
+            <span class="illustration-index-id">{{ figure.id }}</span>
+            <span>{{ figure.treatment.replace("_", " ") }}{% if not figure.enabled %} · disabled{% endif %}</span>
+          </a>
+        {% else %}
+          <p class="empty-note compact-empty">No figures yet.</p>
+        {% endfor %}
+      </section>
     {% endfor %}
   </aside>
 
@@ -390,6 +498,49 @@
         button.append(state);
       }
       return button;
+    }
+
+    const createPanel = document.querySelector("[data-create-panel]");
+    if (createPanel) {
+      const createForm = createPanel.querySelector("[data-new-illustration-form]");
+      fillParagraphPicker(createPanel);
+      syncTreatmentControls(createPanel);
+
+      createPanel.querySelector("[data-chapter-select]")?.addEventListener("change", () => {
+        fillParagraphPicker(createPanel);
+      });
+      createPanel.querySelector("[data-treatment-select]")?.addEventListener("change", () => {
+        syncTreatmentControls(createPanel);
+      });
+      createPanel.querySelectorAll("[data-anchor-placement]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const picker = createPanel.querySelector("[data-paragraph-picker]");
+          const option = picker?.selectedOptions?.[0];
+          const anchor = option?.dataset?.anchorText || "";
+          if (!anchor) return;
+          createPanel.querySelector("[name='anchor_text']").value = anchor;
+          createPanel.querySelector("[name='placement']").value = button.dataset.anchorPlacement;
+        });
+      });
+      createPanel.querySelectorAll("[data-create-figure]").forEach((button) => {
+        button.addEventListener("click", () => {
+          if (!createForm) return;
+          createForm.elements.id.value = button.dataset.defaultId || "";
+          createForm.elements.chapter_slug.value = button.dataset.chapterSlug || "";
+          createForm.elements.asset_path.value = button.dataset.defaultPath || "";
+          createForm.elements.treatment.value = button.dataset.treatment || "inline_infographic";
+          createForm.elements.anchor_text.value = "";
+          createForm.elements.placement.value = "after_anchor";
+          createForm.elements.fallback_placement.value = "after_first_section_break";
+          createForm.elements.opener_position.value = "bottom_right";
+          createForm.elements.opener_scale.value = "medium";
+          if (createForm.elements.enabled) createForm.elements.enabled.checked = true;
+          fillParagraphPicker(createPanel);
+          syncTreatmentControls(createPanel);
+          createForm.scrollIntoView({behavior: "smooth", block: "center"});
+          createForm.elements.id.focus();
+        });
+      });
     }
 
     document.querySelectorAll("[data-illustration-panel]").forEach((panel) => {

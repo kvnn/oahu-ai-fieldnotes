@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" data-figure-system="fieldnotes-v1"><title>Loom of Plain Meaning</title><desc>Animal tracks, weather marks, and land contours are woven through an amplifier into clean proposal lines without changing their source.</desc>
+
+
+<g fill="none" stroke="#aba28d" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><rect x="510" y="180" width="180" height="440"/><path d="M540 180v440M570 180v440M600 180v440M630 180v440M660 180v440"/><path d="M510 260h180M510 360h180M510 460h180M510 560h180"/></g><path d="M500 400h200" stroke="#9b7fbc" stroke-width="10" stroke-linecap="round"/>
+
+<text class="m" x="100" y="408" font-size="25" letter-spacing="2" fill="#6b5a82">FIELD </text>
+<text class="m" x="100" y="438" font-size="25" letter-spacing="2" fill="#6b5a82">EXPERTISE</text>
+
+<circle cx="600" cy="400" r="42" fill="none" stroke="#9b7fbc" stroke-width="6"/>
+
+<text class="n" x="785" y="192" font-size="25" letter-spacing="2" fill="#6b5a82">INSTITUTIONAL </text>
+<text class="n" x="785" y="224" font-size="25" letter-spacing="2" fill="#6b5a82">REQUIREMENTS </text>
+
+<g fill="none" stroke="#221733" stroke-width="4" stroke-linecap="round"><path d="M120 560c46-30 82-30 128 0s82 30 128 0"/><path d="M145 505c34-22 62-22 96 0s62 22 96 0"/><path d="M170 240l-22 54M235 220l-22 54M300 240l-22 54"/><path d="M378 270C430 292 465 318 510 360"/><path d="M360 400C420 400 458 400 510 400"/>
+
+<path d="M378 530C430 508 465 482 510 440"/></g><g fill="#221733">
+
+<ellipse fill="#6b5a82" cx="250" cy="386" rx="12" ry="22" transform="rotate(-26 250 386)"/>
+<ellipse fill="#6b5a82" cx="292" cy="407" rx="9" ry="17" transform="rotate(-26 292 407)"/></g>
+
+<rect x="790" y="250" width="240" height="300" rx="4" fill="#efe6ce" stroke="#c8bfa9" stroke-width="3"/><g fill="none" stroke="#221733" stroke-width="4" stroke-linecap="round"><path d="M690 360C742 330 764 306 790 302"/><path d="M690 400C742 400 764 400 790 398"/><path d="M690 440C742 470 764 494 790 498"/><path d="M830 302h150M830 350h120M830 398h160M830 446h132M830 498h150"/></g><g fill="none" stroke="#6b5a82" stroke-width="3">
+
+<rect x="810" y="289" width="14" height="14"/><rect x="810" y="385" width="14" height="14"/><rect x="810" y="485" width="14" height="14"/></g></svg>
