@@ -297,6 +297,17 @@ svg {
   margin: 0.16in auto;
 }
 
+.book-media {
+  break-inside: avoid;
+}
+
+.book-media img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+
 .book-screenshot {
   margin: 0.24in -0.06in 0.28in;
   padding: 0.08in 0;
@@ -477,6 +488,13 @@ pre {
   justify-content: center;
 }
 
+.opener-title-block > .opener-roman,
+.opener-title-block > h1,
+.opener-title-block > .opener-subtitle {
+  position: relative;
+  z-index: 1;
+}
+
 .opener-roman {
   margin: 0;
   color: var(--aubergine);
@@ -499,6 +517,63 @@ pre {
   display: block;
   width: 100%;
   height: auto;
+}
+
+.opener-media {
+  position: absolute;
+  right: -0.12in;
+  bottom: 0.42in;
+  width: 2.05in;
+  margin: 0;
+  opacity: 0.9;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.opener-media img {
+  width: 100%;
+  height: auto;
+  margin: 0;
+}
+
+.opener-image {
+  max-width: 3in;
+}
+
+.media-position-bottom_right {
+  bottom: 0.42in;
+  left: auto;
+  right: -0.12in;
+  top: auto;
+  transform: none;
+}
+
+.media-position-title_adjacent {
+  bottom: auto;
+  left: auto;
+  right: 0.02in;
+  top: 1.52in;
+  transform: none;
+}
+
+.media-position-center_low {
+  bottom: 0.5in;
+  left: 50%;
+  right: auto;
+  top: auto;
+  transform: translateX(-50%);
+}
+
+.media-scale-small {
+  width: 1.45in;
+}
+
+.media-scale-medium {
+  width: 2.05in;
+}
+
+.media-scale-large {
+  width: 2.7in;
 }
 
 .opener-motif {

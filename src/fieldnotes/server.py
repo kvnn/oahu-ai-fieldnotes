@@ -30,6 +30,7 @@ try:
 except ImportError:  # pragma: no cover - optional runtime integration
     mount_chainlit = None
 
+from fieldnotes.book_media import opener_media_for_slug
 from fieldnotes.book_text import (
     BookRewriteUnavailable,
     RewriteMode,
@@ -2044,6 +2045,9 @@ def _vivliostyle_chapter_markdown(chapter: dict) -> str:
     ]
     if subtitle:
         lines.append(f'<p class="opener-subtitle">{escape(subtitle)}</p>')
+    media = opener_media_for_slug(slug)
+    if media:
+        lines.append(media)
     motif = opener_motif_for_slug(slug)
     if motif:
         lines.append(motif)

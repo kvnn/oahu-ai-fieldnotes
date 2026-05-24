@@ -1,0 +1,17 @@
+version = "oahu-vol-1.media.v1"
+book_slug = "oahu-ai-field-notes-vol-1"
+media_count = 2
+
+
+
+[[media]]
+id = "cover-oahu"
+enabled = true
+chapter_slug = "cover"
+asset_path = "assets/images/oahu.png"
+slot = "cover_front"
+treatment = "cover_image"
+position = "bottom_right"
+scale = "large"
+decorative = true
+alt_text = ""

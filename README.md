@@ -76,6 +76,8 @@ Initial diagram assets live in `assets/figures` and follow the book grammar: 12-
 The first reusable illustration system lives in `design/illustrations/BOOK-ILLUSTRATION-SYSTEM.md`.
 The current volume's gold-standard manifest is `design/illustrations/oahu-vol-1.toml`, which
 drives chapter-opener motifs and inline SVG infographics during print markdown generation.
+Raster and static image placements live outside the SVG illustration system. The current
+volume media manifest is `design/media/oahu-vol-1.toml`.
 
 ## Manuscript Structure
 
@@ -88,20 +90,24 @@ drives chapter-opener motifs and inline SVG infographics during print markdown g
 
 Add new chapters to the `entry` array in `vivliostyle.config.js`.
 
-## Screenshot Assets
+## Book Media Assets
 
 Use `assets/images/screenshots` for final screenshots that should appear in the printed book. Keep `inbox/screenshots` for raw source ingestion and OCR evidence.
 
 For database-generated chapters, place a screenshot in `assets/images/screenshots` and insert a figure block in the chapter draft:
 
 ```html
-<figure class="book-screenshot">
+<figure class="book-media book-screenshot">
   <img src="../../assets/images/screenshots/chapter-slug-short-name.png" alt="Short factual description.">
   <figcaption>Short artifact caption.</figcaption>
 </figure>
 ```
 
 Crop or redact the image before adding it as a final asset. For body-width print, target at least 1200px wide.
+
+For generated title pages, add raster/static opener images to `design/media/oahu-vol-1.toml`
+instead of `design/illustrations/oahu-vol-1.toml`. The illustration manifest remains reserved
+for generated SVG figures and the illustration workbench.
 
 ## Knowledge Database
 
