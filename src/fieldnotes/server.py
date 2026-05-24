@@ -502,7 +502,11 @@ def create_app(
             current,
             candidate_id,
         )
-        svg_text = _read_candidate_svg_text(config.root, candidate)
+        svg_text = _read_candidate_svg_text(
+            config.root,
+            candidate,
+            treatment=current.treatment,
+        )
         target_path = config.root / _valid_figure_asset_path(
             current.asset_path,
             config.root,
@@ -1438,7 +1442,10 @@ def _persist_generated_illustration_candidates(
     assets: list[VisualAsset] = []
     for index, candidate in enumerate(batch.candidates, start=1):
         try:
-            svg_text = _validated_svg_text(candidate.svg_text)
+            svg_text = _validated_generated_candidate_svg_text(
+                candidate.svg_text,
+                treatment=illustration.treatment,
+            )
         except HTTPException as exc:
             logger.warning(
                 "illustrations.candidate.invalid illustration_id=%s batch_id=%s "
@@ -1557,13 +1564,21 @@ def _is_illustration_candidate_asset(asset: VisualAsset, illustration_id: str) -
     )
 
 
-def _read_candidate_svg_text(root: Path, asset: VisualAsset) -> str:
+def _read_candidate_svg_text(
+    root: Path,
+    asset: VisualAsset,
+    *,
+    treatment: str,
+) -> str:
     if not asset.path:
         raise HTTPException(status_code=404, detail="candidate SVG not found")
     path = _resolve_figure_asset_path(root, asset.path)
     if path is None or not path.exists():
         raise HTTPException(status_code=404, detail="candidate SVG not found")
-    return _validated_svg_text(path.read_text(encoding="utf-8"))
+    return _validated_generated_candidate_svg_text(
+        path.read_text(encoding="utf-8"),
+        treatment=treatment,
+    )
 
 
 def _read_svg_text(root: Path, asset_path: str) -> str:
@@ -1730,6 +1745,85 @@ def _validated_svg_text(value: str) -> str:
             if str(attr_value).strip().lower().startswith("javascript:"):
                 raise HTTPException(status_code=422, detail="svg_text cannot include javascript URLs")
     return svg_text + "\n"
+
+
+def _validated_generated_candidate_svg_text(value: str, *, treatment: str) -> str:
+    svg_text = _validated_svg_text(value)
+    if treatment == "opener_motif":
+        _validate_opener_candidate_svg(svg_text)
+    return svg_text
+
+
+def _validate_opener_candidate_svg(svg_text: str) -> None:
+    root = ElementTree.fromstring(svg_text)
+    viewbox = _svg_viewbox_size(root.attrib.get("viewBox") or root.attrib.get("viewbox"))
+    for element in root.iter():
+        colors = _svg_element_colors(element)
+        if "#19142a" in colors:
+            raise HTTPException(
+                status_code=422,
+                detail="opener_motif candidates cannot hardcode the dark background",
+            )
+        if _xml_local_name(element.tag) != "rect":
+            continue
+        if colors.isdisjoint({"#efe6ce", "#f1e9d4"}):
+            continue
+        if _is_full_canvas_rect(element.attrib, viewbox):
+            raise HTTPException(
+                status_code=422,
+                detail="opener_motif candidates must keep transparent backgrounds",
+            )
+
+
+def _svg_element_colors(element: ElementTree.Element) -> set[str]:
+    colors = set()
+    for key in ("fill", "stroke"):
+        value = str(element.attrib.get(key) or "").strip().lower()
+        if value.startswith("#"):
+            colors.add(value)
+    style = str(element.attrib.get("style") or "").lower()
+    colors.update(re.findall(r"#[0-9a-f]{6}", style))
+    return colors
+
+
+def _svg_viewbox_size(value: str | None) -> tuple[float, float] | None:
+    if not value:
+        return None
+    parts = re.split(r"[,\s]+", value.strip())
+    if len(parts) != 4:
+        return None
+    try:
+        return float(parts[2]), float(parts[3])
+    except ValueError:
+        return None
+
+
+def _is_full_canvas_rect(
+    attrs: dict[str, str],
+    viewbox: tuple[float, float] | None,
+) -> bool:
+    x = _svg_numeric_value(attrs.get("x"), default=0)
+    y = _svg_numeric_value(attrs.get("y"), default=0)
+    width_raw = str(attrs.get("width") or "").strip().lower()
+    height_raw = str(attrs.get("height") or "").strip().lower()
+    if x != 0 or y != 0:
+        return False
+    if width_raw == "100%" and height_raw == "100%":
+        return True
+    if viewbox is None:
+        return False
+    width = _svg_numeric_value(width_raw)
+    height = _svg_numeric_value(height_raw)
+    return width == viewbox[0] and height == viewbox[1]
+
+
+def _svg_numeric_value(value: str | None, *, default: float | None = None) -> float | None:
+    if value is None or str(value).strip() == "":
+        return default
+    match = re.match(r"^-?\d+(?:\.\d+)?", str(value).strip())
+    if match is None:
+        return default
+    return float(match.group(0))
 
 
 def _xml_local_name(tag: str) -> str:

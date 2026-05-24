@@ -88,6 +88,21 @@ drives chapter-opener motifs and inline SVG infographics during print markdown g
 
 Add new chapters to the `entry` array in `vivliostyle.config.js`.
 
+## Screenshot Assets
+
+Use `assets/images/screenshots` for final screenshots that should appear in the printed book. Keep `inbox/screenshots` for raw source ingestion and OCR evidence.
+
+For database-generated chapters, place a screenshot in `assets/images/screenshots` and insert a figure block in the chapter draft:
+
+```html
+<figure class="book-screenshot">
+  <img src="../../assets/images/screenshots/chapter-slug-short-name.png" alt="Short factual description.">
+  <figcaption>Short artifact caption.</figcaption>
+</figure>
+```
+
+Crop or redact the image before adding it as a final asset. For body-width print, target at least 1200px wide.
+
 ## Knowledge Database
 
 The Python package in `src/fieldnotes` defines a SQLAlchemy 2.x schema for the knowledge-to-book pipeline:

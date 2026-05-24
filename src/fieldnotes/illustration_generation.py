@@ -49,9 +49,23 @@ ILLUSTRATION_SHOTGUN_SYSTEM_PROMPT = "\n".join(
             "\"0 0 800 800\" for opener motifs."
         ),
         (
-            "- Use the book palette deliberately: #efe6ce for paper, #221733 "
-            "for ink, #9b7fbc for emphasis, with restrained support from "
-            "#aba28d, #c8bfa9, #6b5a82, and #8b8474."
+            "- Use transparent SVG backgrounds. The workbench and print CSS "
+            "own the page surface and dark plates."
+        ),
+        (
+            "- opener_motif: design for a dark aubergine CSS background "
+            "(#19142a), but do not include #19142a or a full-canvas background "
+            "shape in the SVG. Use #aba28d, #c8bfa9, #efe6ce, and #9b7fbc "
+            "for visible motif marks."
+        ),
+        (
+            "- inline_infographic: design for a cream paper CSS background. "
+            "Use #221733 for ink, #9b7fbc for emphasis, and restrained support "
+            "from #aba28d, #c8bfa9, #6b5a82, and #8b8474."
+        ),
+        (
+            "- Use #efe6ce as artifact fill only, not as a full SVG page "
+            "background."
         ),
         (
             "- Avoid literal logos, interface screenshots, photorealism, "
@@ -193,10 +207,26 @@ def _generation_user_prompt(
         f"Illustration id: {illustration.id}\n"
         f"Treatment: {illustration.treatment}\n"
         f"Placement: {illustration.placement}\n"
+        f"Treatment color contract: {_treatment_color_contract(illustration)}\n"
         f"Illustration goal: {goal}\n\n"
         f"Current SVG:\n{current_svg.strip() or 'None.'}\n\n"
         f"Previously generated illustrations:\n{prior_text}\n\n"
         f"Full chapter body:\n{chapter_body.strip()}"
+    )
+
+
+def _treatment_color_contract(illustration: IllustrationSpec) -> str:
+    if illustration.treatment == "opener_motif":
+        return (
+            "Transparent opener motif for a dark aubergine CSS plate (#19142a). "
+            "Do not draw a background rect or hardcode #19142a. Favor parchment, "
+            "cream artifact, and restrained aubergine emphasis marks that remain "
+            "legible on the dark plate."
+        )
+    return (
+        "Transparent inline infographic for a cream paper CSS surface. Do not "
+        "draw a full-page cream background; use dark ink, muted structure, and "
+        "one restrained aubergine emphasis moment."
     )
 
 

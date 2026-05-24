@@ -225,7 +225,7 @@
           </div>
         </form>
 
-        <section class="illustration-candidates" data-candidate-workbench>
+        <section class="illustration-candidates {{ figure.spec.treatment }}" data-candidate-workbench>
           <script type="application/json" data-candidates-json>{{ figure.candidates | tojson }}</script>
           <div class="illustration-candidate-toolbar">
             <div>
@@ -357,6 +357,9 @@
       panel.querySelectorAll("[data-opener-controls]").forEach((node) => {
         node.hidden = treatment !== "opener_motif";
       });
+      const candidateWorkbench = panel.querySelector("[data-candidate-workbench]");
+      candidateWorkbench?.classList.toggle("opener_motif", treatment === "opener_motif");
+      candidateWorkbench?.classList.toggle("inline_infographic", treatment !== "opener_motif");
     }
 
     function candidateCard(candidate) {

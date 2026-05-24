@@ -297,6 +297,30 @@ svg {
   margin: 0.16in auto;
 }
 
+.book-screenshot {
+  margin: 0.24in -0.06in 0.28in;
+  padding: 0.08in 0;
+  border-top: 0.45pt solid rgba(122, 113, 96, 0.4);
+  border-bottom: 0.45pt solid rgba(122, 113, 96, 0.4);
+  break-inside: avoid;
+}
+
+.book-screenshot img {
+  box-sizing: border-box;
+  width: 100%;
+  height: auto;
+  max-height: 5.45in;
+  margin: 0 auto;
+  object-fit: contain;
+  border: 0.45pt solid rgba(42, 37, 32, 0.22);
+  background: #efe6ce;
+}
+
+.book-screenshot figcaption {
+  margin: 0.075in 0 0;
+  color: var(--rail-text);
+}
+
 table {
   width: 100%;
   margin: 0.18in 0;
