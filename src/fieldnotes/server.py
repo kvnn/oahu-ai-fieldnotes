@@ -542,10 +542,16 @@ def create_app(
 
     @app.get("/api/book-text/final-pdf/file")
     def final_pdf_file(
+        render_id: UUID | None = Query(default=None),
         session: Session = Depends(get_session),
     ) -> FileResponse:
         project = ensure_project(session, config)
-        record = _latest_final_pdf_record(session, project, succeeded_only=True)
+        if render_id is not None:
+            record = _final_pdf_record_by_id(session, project, render_id)
+            if record is not None and record.status != RenderStatus.SUCCEEDED.value:
+                record = None
+        else:
+            record = _latest_final_pdf_record(session, project, succeeded_only=True)
         if record is None:
             raise HTTPException(status_code=404, detail="final PDF has not rendered successfully")
         path = _safe_dist_output_path(config.root, record.output_path)
@@ -557,6 +563,10 @@ def create_app(
             path,
             media_type="application/pdf",
             filename=path.name,
+            headers={
+                "Cache-Control": "no-store, max-age=0",
+                "Pragma": "no-cache",
+            },
         )
 
     @app.get("/api/chapters/{chapter_brief_id}/book-text")
@@ -1753,7 +1763,7 @@ def _latest_final_pdf_record(
             RenderedOutput.project_id == project.id,
             RenderedOutput.output_type == render_output_type(FINAL_PDF_PROFILE),
         )
-        .order_by(RenderedOutput.created_at.desc())
+        .order_by(RenderedOutput.rendered_at.desc(), RenderedOutput.created_at.desc())
     )
     records = list(session.scalars(statement))
     for record in records:
@@ -1766,6 +1776,26 @@ def _latest_final_pdf_record(
             continue
         return record
     return None
+
+
+def _final_pdf_record_by_id(
+    session: Session,
+    project: Project,
+    render_id: UUID,
+) -> RenderedOutput | None:
+    record = session.get(RenderedOutput, render_id)
+    if record is None:
+        return None
+    if record.project_id != project.id:
+        return None
+    if record.output_type != render_output_type(FINAL_PDF_PROFILE):
+        return None
+    metadata = dict(record.render_metadata or {})
+    if metadata.get("profile") != FINAL_PDF_PROFILE:
+        return None
+    if metadata.get("source") != "database":
+        return None
+    return record
 
 
 def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
@@ -1797,6 +1827,7 @@ def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
     path = _safe_dist_output_path(root, record.output_path)
     file_exists = bool(path and path.exists())
     succeeded = record.status == RenderStatus.SUCCEEDED.value
+    download_url = f"/api/book-text/final-pdf/file?render_id={record.id}"
     cover_output = metadata.get("cover_output_path") or str(cover_output_path())
     interior_output = metadata.get("interior_output_path") or record.output_path
     return {
@@ -1810,7 +1841,7 @@ def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
             "output_paths",
             {"cover": cover_output, "interior": interior_output},
         ),
-        "download_url": "/api/book-text/final-pdf/file" if succeeded and file_exists else None,
+        "download_url": download_url if succeeded and file_exists else None,
         "rendered_at": record.rendered_at.isoformat() if record.rendered_at else None,
         "returncode": metadata.get("returncode"),
         "error": metadata.get("error"),

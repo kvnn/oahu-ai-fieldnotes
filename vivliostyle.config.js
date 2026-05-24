@@ -43,7 +43,7 @@ export default defineConfig({
     },
   ],
   toc: {
-    title: 'Table of Contents',
+    title: 'FIELD NOTES | volume 01', // Do not change this to "Table of Contents"
     sectionDepth: 2,
   },
   copyAsset: {
