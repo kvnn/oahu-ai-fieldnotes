@@ -3,7 +3,7 @@
 <desc>A truthful rendered interface diagram of Frame Splice: history, preview, timeline, prompt metadata, variants, and a provider gate arranged around the artifact.</desc>
 <style>.m{font-family:'IBM Plex Mono',monospace;}</style>
 <text class="m" x="34" y="32" font-size="9" letter-spacing="2.4" fill="#6b5a82">V · WORKBENCHES</text>
-<text class="m" x="646" y="32" text-anchor="end" font-size="9" letter-spacing="1.8" fill="#8b8474">FIG. 5.1</text>
+><text class="m" x="646" y="32" text-anchor="end" font-size="9" letter-spacing="1.8" fill="#8b8474">FIG. 5.1</text> -->
 <g fill="none" stroke="#aba28d" stroke-width="0.75" opacity="0.78">
 <rect x="34" y="52" width="156" height="122" rx="5"/>
 <rect x="204" y="52" width="290" height="122" rx="5"/>

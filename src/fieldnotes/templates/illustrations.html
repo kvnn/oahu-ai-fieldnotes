@@ -45,6 +45,10 @@
         Alt Text
         <input name="alt_text">
       </label>
+      <label class="illustration-wide-field">
+        Generation Goal
+        <textarea name="generation_goal" rows="2"></textarea>
+      </label>
       <label class="illustration-check-label">
         <input name="enabled" type="checkbox" checked>
         Enabled
@@ -139,6 +143,10 @@
               Alt Text
               <input name="alt_text" value="{{ figure.spec.alt_text }}">
             </label>
+            <label class="illustration-wide-field">
+              Generation Goal
+              <textarea name="generation_goal" rows="3">{{ figure.spec.generation_goal }}</textarea>
+            </label>
             <label class="illustration-check-label">
               <input name="enabled" type="checkbox"{% if figure.spec.enabled %} checked{% endif %}>
               Enabled
@@ -217,6 +225,48 @@
           </div>
         </form>
 
+        <section class="illustration-candidates" data-candidate-workbench>
+          <script type="application/json" data-candidates-json>{{ figure.candidates | tojson }}</script>
+          <div class="illustration-candidate-toolbar">
+            <div>
+              <h3>Generated SVGs</h3>
+              <p class="muted" data-candidate-count>{{ figure.candidates | length }} candidates</p>
+            </div>
+            <div class="illustration-candidate-actions">
+              <button class="compact" type="button" data-generate-candidates>Generate More</button>
+              <span class="muted" data-candidate-status></span>
+            </div>
+          </div>
+          <div class="illustration-candidate-grid" data-candidate-grid>
+            {% for candidate in figure.candidates %}
+              <button
+                class="illustration-candidate-card{% if candidate.applied %} applied{% endif %}"
+                type="button"
+                data-candidate-card
+                data-candidate-id="{{ candidate.id }}"
+              >
+                <span class="illustration-candidate-thumb">{{ candidate.svg_text | safe }}</span>
+                <span class="illustration-candidate-name">{{ candidate.title }}</span>
+                <span class="illustration-candidate-node">{{ candidate.axis_node }}</span>
+                {% if candidate.applied %}
+                  <span class="illustration-candidate-state">applied</span>
+                {% endif %}
+              </button>
+            {% endfor %}
+          </div>
+          <p class="empty-note illustration-candidate-empty"{% if figure.candidates %} hidden{% endif %} data-candidate-empty>No generated SVGs yet.</p>
+          <div class="illustration-candidate-detail" data-candidate-detail hidden>
+            <div class="illustration-candidate-large" data-candidate-large></div>
+            <div class="illustration-candidate-copy">
+              <h3 data-candidate-title></h3>
+              <p class="muted" data-candidate-node></p>
+              <p data-candidate-rationale></p>
+              <p class="muted" data-candidate-alt></p>
+              <button class="compact" type="button" data-apply-candidate>Apply Candidate</button>
+            </div>
+          </div>
+        </section>
+
         <div class="illustration-preview-grid">
           <section class="illustration-preview-card">
             <div class="illustration-preview-toolbar">
@@ -279,6 +329,7 @@
         opener_position: formValue(form, "opener_position") || "bottom_right",
         opener_scale: formValue(form, "opener_scale") || "medium",
         alt_text: formValue(form, "alt_text"),
+        generation_goal: form.elements.generation_goal?.value || "",
       };
     }
 
@@ -308,6 +359,36 @@
       });
     }
 
+    function candidateCard(candidate) {
+      const button = document.createElement("button");
+      button.className = "illustration-candidate-card";
+      if (candidate.applied) button.classList.add("applied");
+      button.type = "button";
+      button.dataset.candidateCard = "";
+      button.dataset.candidateId = candidate.id;
+
+      const thumb = document.createElement("span");
+      thumb.className = "illustration-candidate-thumb";
+      thumb.innerHTML = candidate.svg_text || "";
+
+      const name = document.createElement("span");
+      name.className = "illustration-candidate-name";
+      name.textContent = candidate.title || "Untitled SVG";
+
+      const node = document.createElement("span");
+      node.className = "illustration-candidate-node";
+      node.textContent = candidate.axis_node || "";
+
+      button.append(thumb, name, node);
+      if (candidate.applied) {
+        const state = document.createElement("span");
+        state.className = "illustration-candidate-state";
+        state.textContent = "applied";
+        button.append(state);
+      }
+      return button;
+    }
+
     document.querySelectorAll("[data-illustration-panel]").forEach((panel) => {
       const preview = panel.querySelector("[data-svg-preview]");
       const source = panel.querySelector("[data-svg-source]");
@@ -317,9 +398,58 @@
       const status = panel.querySelector("[data-illustration-status]");
       const saveSvg = panel.querySelector("[data-save-svg]");
       const svgStatus = panel.querySelector("[data-svg-status]");
+      const candidateGrid = panel.querySelector("[data-candidate-grid]");
+      const candidateEmpty = panel.querySelector("[data-candidate-empty]");
+      const candidateStatus = panel.querySelector("[data-candidate-status]");
+      const candidateCount = panel.querySelector("[data-candidate-count]");
+      const generateCandidates = panel.querySelector("[data-generate-candidates]");
+      const candidateDetail = panel.querySelector("[data-candidate-detail]");
+      const candidateLarge = panel.querySelector("[data-candidate-large]");
+      const applyCandidate = panel.querySelector("[data-apply-candidate]");
+      const candidates = new Map();
 
       fillParagraphPicker(panel);
       syncTreatmentControls(panel);
+
+      const candidateJson = panel.querySelector("[data-candidates-json]");
+      if (candidateJson?.textContent) {
+        try {
+          JSON.parse(candidateJson.textContent).forEach((candidate) => {
+            candidates.set(candidate.id, candidate);
+          });
+        } catch {
+          if (candidateStatus) candidateStatus.textContent = "Could not load candidates";
+        }
+      }
+
+      function refreshCandidateEmptyState() {
+        if (candidateEmpty) candidateEmpty.hidden = candidates.size > 0;
+        if (candidateCount) candidateCount.textContent = `${candidates.size} candidates`;
+      }
+
+      function showCandidate(candidate) {
+        if (!candidateDetail || !candidateLarge) return;
+        panel.querySelectorAll("[data-candidate-card]").forEach((card) => {
+          card.classList.toggle("selected", card.dataset.candidateId === candidate.id);
+        });
+        candidateLarge.innerHTML = candidate.svg_text || "";
+        candidateDetail.querySelector("[data-candidate-title]").textContent = candidate.title || "Untitled SVG";
+        candidateDetail.querySelector("[data-candidate-node]").textContent = candidate.axis_node || "";
+        candidateDetail.querySelector("[data-candidate-rationale]").textContent = candidate.rationale || "";
+        candidateDetail.querySelector("[data-candidate-alt]").textContent = candidate.alt_text || "";
+        if (applyCandidate) applyCandidate.dataset.candidateId = candidate.id;
+        candidateDetail.hidden = false;
+      }
+
+      function wireCandidateCard(card) {
+        card.addEventListener("click", () => {
+          const candidate = candidates.get(card.dataset.candidateId);
+          if (candidate) showCandidate(candidate);
+        });
+      }
+
+      panel.querySelectorAll("[data-candidate-card]").forEach(wireCandidateCard);
+      refreshCandidateEmptyState();
 
       panel.querySelector("[data-chapter-select]")?.addEventListener("change", () => {
         fillParagraphPicker(panel);
@@ -376,6 +506,67 @@
         }
         preview.innerHTML = source.value;
         svgStatus.textContent = "Saved";
+      });
+
+      generateCandidates?.addEventListener("click", async () => {
+        if (candidateStatus) candidateStatus.textContent = "Generating...";
+        generateCandidates.disabled = true;
+        const originalId = panel.dataset.illustrationId;
+        const response = await fetch(`/api/illustrations/${encodeURIComponent(originalId)}/candidates/generate`, {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({generation_goal: form.elements.generation_goal?.value || ""}),
+        });
+        const payload = await response.json();
+        generateCandidates.disabled = false;
+        if (!response.ok) {
+          if (candidateStatus) candidateStatus.textContent = payload.detail || "Generation failed";
+          return;
+        }
+        [...payload.candidates].reverse().forEach((candidate) => {
+          candidates.set(candidate.id, candidate);
+          const card = candidateCard(candidate);
+          wireCandidateCard(card);
+          candidateGrid?.prepend(card);
+        });
+        refreshCandidateEmptyState();
+        if (candidateStatus) candidateStatus.textContent = `Generated ${payload.candidates.length}`;
+      });
+
+      applyCandidate?.addEventListener("click", async () => {
+        const candidateId = applyCandidate.dataset.candidateId;
+        if (!candidateId) return;
+        if (candidateStatus) candidateStatus.textContent = "Applying...";
+        const originalId = panel.dataset.illustrationId;
+        const response = await fetch(`/api/illustrations/${encodeURIComponent(originalId)}/candidates/${encodeURIComponent(candidateId)}/apply`, {
+          method: "POST",
+        });
+        const payload = await response.json();
+        if (!response.ok) {
+          if (candidateStatus) candidateStatus.textContent = payload.detail || "Apply failed";
+          return;
+        }
+        source.value = payload.figure.svg_text;
+        preview.innerHTML = payload.figure.svg_text;
+        if (form.elements.enabled) form.elements.enabled.checked = Boolean(payload.figure.fields.enabled);
+        if (form.elements.alt_text && payload.figure.fields.alt_text) {
+          form.elements.alt_text.value = payload.figure.fields.alt_text;
+        }
+        if (payload.candidate) {
+          candidates.set(payload.candidate.id, payload.candidate);
+        }
+        panel.querySelectorAll("[data-candidate-card]").forEach((card) => {
+          const isApplied = card.dataset.candidateId === candidateId;
+          card.classList.toggle("applied", isApplied);
+          card.querySelector(".illustration-candidate-state")?.remove();
+          if (isApplied) {
+            const state = document.createElement("span");
+            state.className = "illustration-candidate-state";
+            state.textContent = "applied";
+            card.append(state);
+          }
+        });
+        if (candidateStatus) candidateStatus.textContent = "Applied";
       });
 
       panel.querySelectorAll("[data-preview-mode]").forEach((button) => {

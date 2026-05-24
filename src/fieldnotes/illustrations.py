@@ -49,6 +49,7 @@ class IllustrationSpec:
     opener_scale: OpenerScale = "medium"
     caption_policy: str = "internal"
     alt_text: str = ""
+    generation_goal: str = ""
 
 
 def load_illustration_manifest(path: Path = MANIFEST_PATH) -> list[IllustrationSpec]:
@@ -71,6 +72,7 @@ def load_illustration_manifest(path: Path = MANIFEST_PATH) -> list[IllustrationS
             opener_scale=str(item.get("opener_scale") or "medium"),  # type: ignore[arg-type]
             caption_policy=str(item.get("caption_policy") or "internal"),
             alt_text=str(item.get("alt_text") or ""),
+            generation_goal=str(item.get("generation_goal") or ""),
         )
         for item in data.get("figures", [])
     ]
@@ -107,6 +109,7 @@ def save_illustration_manifest(
                 f"opener_scale = {_toml_string(spec.opener_scale)}",
                 f"caption_policy = {_toml_string(spec.caption_policy)}",
                 f"alt_text = {_toml_string(spec.alt_text)}",
+                f"generation_goal = {_toml_string(spec.generation_goal)}",
             ]
         )
     path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")

@@ -6,10 +6,12 @@ import logging
 import json
 import re
 import subprocess
+from dataclasses import replace
 from hashlib import sha256
 from html import escape
 from pathlib import Path
 from time import perf_counter
+from typing import Any
 from uuid import UUID
 from uuid import uuid4
 from xml.etree import ElementTree
@@ -59,9 +61,18 @@ from fieldnotes.db.models import (
     ReviewDecision,
     SourceChunk,
     SourceMaterial,
+    VisualAsset,
+    VisualAssetType,
+    WorkStatus,
     utc_now,
 )
 from fieldnotes.db.session import make_engine, make_session_factory
+from fieldnotes.illustration_generation import (
+    ILLUSTRATION_SHOTGUN_PROMPT_VERSION,
+    IllustrationGenerationUnavailable,
+    generate_svg_candidates,
+    illustration_generation_model,
+)
 from fieldnotes.illustrations import (
     ILLUSTRATION_PLACEMENTS,
     ILLUSTRATION_TREATMENTS,
@@ -153,6 +164,7 @@ class IllustrationCreateRequest(BaseModel):
     opener_scale: str = "medium"
     caption_policy: str = ""
     alt_text: str = ""
+    generation_goal: str = ""
 
 
 class IllustrationUpdateRequest(BaseModel):
@@ -168,10 +180,15 @@ class IllustrationUpdateRequest(BaseModel):
     opener_scale: str | None = None
     caption_policy: str | None = None
     alt_text: str | None = None
+    generation_goal: str | None = None
 
 
 class IllustrationSvgUpdateRequest(BaseModel):
     svg_text: str = ""
+
+
+class IllustrationCandidateGenerateRequest(BaseModel):
+    generation_goal: str | None = None
 
 
 def _configure_tracing_logger() -> None:
@@ -392,6 +409,136 @@ def create_app(
         return {
             "status": "saved",
             "figure": _illustration_figure_payload(config.root, current),
+        }
+
+    @app.get("/api/illustrations/{illustration_id}/candidates")
+    def illustration_candidates(
+        illustration_id: str,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        current = _illustration_spec_or_404(
+            load_illustration_manifest(manifest_path), illustration_id
+        )
+        return {
+            "candidates": _illustration_candidate_payloads(
+                session,
+                config.root,
+                config,
+                current,
+            )
+        }
+
+    @app.post("/api/illustrations/{illustration_id}/candidates/generate")
+    def generate_illustration_candidates(
+        illustration_id: str,
+        payload: IllustrationCandidateGenerateRequest,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        current = _illustration_spec_or_404(
+            load_illustration_manifest(manifest_path), illustration_id
+        )
+        goal = (
+            payload.generation_goal or current.generation_goal or current.alt_text
+        ).strip()
+        brief = _chapter_brief_by_slug_or_404(session, config, current.chapter_slug)
+        draft = latest_chapter_draft(session, brief)
+        chapter_body = (
+            draft.body
+            if draft is not None and draft.body.strip()
+            else build_brief_skeleton(brief)
+        )
+        current_svg = _read_svg_text(config.root, current.asset_path)
+        previous_candidates = _illustration_candidate_context(
+            session,
+            config.root,
+            config,
+            current,
+        )
+        try:
+            batch = generate_svg_candidates(
+                config,
+                illustration=current,
+                chapter_title=brief.title,
+                chapter_subtitle=brief.subtitle or "",
+                chapter_body=chapter_body,
+                generation_goal=goal,
+                current_svg=current_svg,
+                previous_candidates=previous_candidates,
+            )
+        except IllustrationGenerationUnavailable as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+        assets = _persist_generated_illustration_candidates(
+            session,
+            config.root,
+            config,
+            illustration=current,
+            brief=brief,
+            draft=draft,
+            generation_goal=goal,
+            batch=batch,
+        )
+        return {
+            "status": "generated",
+            "candidates": [
+                _illustration_candidate_payload(config.root, asset) for asset in assets
+            ],
+        }
+
+    @app.post("/api/illustrations/{illustration_id}/candidates/{candidate_id}/apply")
+    def apply_illustration_candidate(
+        illustration_id: str,
+        candidate_id: UUID,
+        session: Session = Depends(get_session),
+    ) -> dict:
+        manifest_path = config.root / MANIFEST_PATH
+        specs = load_illustration_manifest(manifest_path)
+        current = _illustration_spec_or_404(specs, illustration_id)
+        candidate = _illustration_candidate_or_404(
+            session,
+            config,
+            current,
+            candidate_id,
+        )
+        svg_text = _read_candidate_svg_text(config.root, candidate)
+        target_path = config.root / _valid_figure_asset_path(
+            current.asset_path,
+            config.root,
+        )
+        target_path.write_text(svg_text, encoding="utf-8")
+
+        updated = replace(
+            current,
+            enabled=True,
+            alt_text=current.alt_text or candidate.alt_text or "",
+        )
+        specs = [updated if spec.id == illustration_id else spec for spec in specs]
+        save_illustration_manifest(specs, manifest_path)
+
+        metadata = dict(candidate.asset_metadata or {})
+        metadata["applied"] = True
+        metadata["applied_at"] = utc_now().isoformat()
+        metadata["applied_to"] = current.asset_path
+        candidate.asset_metadata = metadata
+        candidate.status = WorkStatus.ACCEPTED.value
+        session.commit()
+        session.refresh(candidate)
+
+        return {
+            "status": "applied",
+            "figure": _illustration_figure_payload(
+                config.root,
+                updated,
+                candidates=_illustration_candidate_payloads(
+                    session,
+                    config.root,
+                    config,
+                    updated,
+                ),
+            ),
+            "candidate": _illustration_candidate_payload(config.root, candidate),
         }
 
     @app.get("/api/book-text")
@@ -1116,7 +1263,14 @@ def _illustration_workbench_payload(root: Path, session: Session, config) -> dic
     chapters, chapter_paragraphs = _safe_illustration_chapter_context(session, config)
     return {
         "manifest_path": str(MANIFEST_PATH),
-        "figures": [_illustration_figure_payload(root, spec) for spec in specs],
+        "figures": [
+            _illustration_figure_payload(
+                root,
+                spec,
+                candidates=_safe_illustration_candidate_payloads(session, root, config, spec),
+            )
+            for spec in specs
+        ],
         "figure_count": len(specs),
         "chapters": chapters,
         "chapter_paragraphs": chapter_paragraphs,
@@ -1128,7 +1282,12 @@ def _illustration_workbench_payload(root: Path, session: Session, config) -> dic
     }
 
 
-def _illustration_figure_payload(root: Path, spec: IllustrationSpec) -> dict:
+def _illustration_figure_payload(
+    root: Path,
+    spec: IllustrationSpec,
+    *,
+    candidates: list[dict] | None = None,
+) -> dict:
     asset_path = root / spec.asset_path
     svg_text = asset_path.read_text(encoding="utf-8") if asset_path.exists() else ""
     return {
@@ -1139,6 +1298,7 @@ def _illustration_figure_payload(root: Path, spec: IllustrationSpec) -> dict:
         "src": "/" + spec.asset_path,
         "svg_text": svg_text,
         "line_count": svg_text.count("\n") + 1 if svg_text else 0,
+        "candidates": candidates or [],
     }
 
 
@@ -1156,7 +1316,274 @@ def _illustration_spec_dict(spec: IllustrationSpec) -> dict:
         "opener_scale": spec.opener_scale,
         "caption_policy": spec.caption_policy,
         "alt_text": spec.alt_text,
+        "generation_goal": spec.generation_goal,
     }
+
+
+def _safe_illustration_candidate_payloads(
+    session: Session,
+    root: Path,
+    config,
+    spec: IllustrationSpec,
+) -> list[dict]:
+    try:
+        return _illustration_candidate_payloads(session, root, config, spec)
+    except SQLAlchemyError as exc:
+        session.rollback()
+        logger.warning("illustrations.candidates.unavailable error=%r", str(exc))
+        return []
+
+
+def _illustration_candidate_payloads(
+    session: Session,
+    root: Path,
+    config,
+    spec: IllustrationSpec,
+) -> list[dict]:
+    project = ensure_project(session, config)
+    brief = session.scalar(
+        select(ChapterBrief).where(
+            ChapterBrief.project_id == project.id,
+            ChapterBrief.slug == spec.chapter_slug,
+        )
+    )
+    if brief is None:
+        return []
+    return [
+        _illustration_candidate_payload(root, asset)
+        for asset in _illustration_candidate_assets(session, project, brief, spec)
+    ]
+
+
+def _illustration_candidate_assets(
+    session: Session,
+    project: Project,
+    brief: ChapterBrief,
+    spec: IllustrationSpec,
+) -> list[VisualAsset]:
+    assets = session.scalars(
+        select(VisualAsset)
+        .where(
+            VisualAsset.project_id == project.id,
+            VisualAsset.chapter_brief_id == brief.id,
+            VisualAsset.section_key == spec.id,
+            VisualAsset.asset_type == VisualAssetType.VISUAL_MOTIF.value,
+        )
+        .order_by(VisualAsset.created_at.desc(), VisualAsset.updated_at.desc())
+    )
+    return [
+        asset
+        for asset in assets
+        if _is_illustration_candidate_asset(asset, spec.id)
+    ]
+
+
+def _illustration_candidate_payload(root: Path, asset: VisualAsset) -> dict:
+    metadata = dict(asset.asset_metadata or {})
+    path = str(asset.path or "")
+    return {
+        "id": str(asset.id),
+        "path": path,
+        "src": f"/{path}" if path else "",
+        "svg_text": _read_svg_text(root, path) if path else "",
+        "title": str(metadata.get("title") or asset.caption or "Untitled SVG"),
+        "axis_node": str(metadata.get("axis_node") or ""),
+        "rationale": str(metadata.get("rationale") or ""),
+        "alt_text": asset.alt_text or "",
+        "status": asset.status,
+        "applied": bool(metadata.get("applied")),
+        "created_at": asset.created_at.isoformat() if asset.created_at else "",
+    }
+
+
+def _illustration_candidate_context(
+    session: Session,
+    root: Path,
+    config,
+    spec: IllustrationSpec,
+) -> list[dict[str, str]]:
+    payloads = _illustration_candidate_payloads(session, root, config, spec)
+    context: list[dict[str, str]] = []
+    for payload in reversed(payloads):
+        context.append(
+            {
+                "title": str(payload.get("title") or ""),
+                "axis_node": str(payload.get("axis_node") or ""),
+                "rationale": str(payload.get("rationale") or ""),
+                "svg_text": str(payload.get("svg_text") or ""),
+            }
+        )
+    return context
+
+
+def _persist_generated_illustration_candidates(
+    session: Session,
+    root: Path,
+    config,
+    *,
+    illustration: IllustrationSpec,
+    brief: ChapterBrief,
+    draft: Any,
+    generation_goal: str,
+    batch: Any,
+) -> list[VisualAsset]:
+    project = ensure_project(session, config)
+    model_name = illustration_generation_model(config)
+    batch_id = uuid4().hex[:12]
+    candidate_dir = (
+        root / "assets" / "figures" / "generated" / illustration.chapter_slug
+    )
+    candidate_dir.mkdir(parents=True, exist_ok=True)
+
+    assets: list[VisualAsset] = []
+    for index, candidate in enumerate(batch.candidates, start=1):
+        try:
+            svg_text = _validated_svg_text(candidate.svg_text)
+        except HTTPException as exc:
+            logger.warning(
+                "illustrations.candidate.invalid illustration_id=%s batch_id=%s "
+                "index=%s detail=%r",
+                illustration.id,
+                batch_id,
+                index,
+                exc.detail,
+            )
+            continue
+
+        relative_path = (
+            Path("assets")
+            / "figures"
+            / "generated"
+            / illustration.chapter_slug
+            / f"{illustration.id}-{batch_id}-{index:02d}.svg"
+        )
+        absolute_path = root / relative_path
+        absolute_path.write_text(svg_text, encoding="utf-8")
+        asset = VisualAsset(
+            project=project,
+            chapter_brief=brief,
+            chapter_draft=draft,
+            asset_type=VisualAssetType.VISUAL_MOTIF.value,
+            section_key=illustration.id,
+            path=relative_path.as_posix(),
+            prompt=generation_goal,
+            model_provider="openai",
+            model_name=model_name,
+            generation_params={
+                "prompt_version": ILLUSTRATION_SHOTGUN_PROMPT_VERSION,
+                "batch_id": batch_id,
+                "candidate_index": index,
+                "candidate_count": len(batch.candidates),
+            },
+            alt_text=candidate.alt_text,
+            caption=candidate.title,
+            status=WorkStatus.PROPOSED.value,
+            asset_metadata={
+                "kind": "illustration_candidate",
+                "illustration_id": illustration.id,
+                "chapter_slug": illustration.chapter_slug,
+                "title": candidate.title,
+                "axis_node": candidate.axis_node,
+                "rationale": candidate.rationale,
+                "generation_goal": generation_goal,
+                "applied": False,
+            },
+        )
+        session.add(asset)
+        assets.append(asset)
+
+    if not assets:
+        raise HTTPException(
+            status_code=502,
+            detail="generation returned no valid SVG candidates",
+        )
+
+    session.commit()
+    for asset in assets:
+        session.refresh(asset)
+    return assets
+
+
+def _illustration_spec_or_404(
+    specs: list[IllustrationSpec],
+    illustration_id: str,
+) -> IllustrationSpec:
+    current = next((spec for spec in specs if spec.id == illustration_id), None)
+    if current is None:
+        raise HTTPException(status_code=404, detail="illustration not found")
+    return current
+
+
+def _chapter_brief_by_slug_or_404(
+    session: Session,
+    config,
+    slug: str,
+) -> ChapterBrief:
+    project = ensure_project(session, config)
+    brief = session.scalar(
+        select(ChapterBrief).where(
+            ChapterBrief.project_id == project.id,
+            ChapterBrief.slug == slug,
+        )
+    )
+    if brief is None:
+        raise HTTPException(status_code=404, detail="chapter not found")
+    return brief
+
+
+def _illustration_candidate_or_404(
+    session: Session,
+    config,
+    spec: IllustrationSpec,
+    candidate_id: UUID,
+) -> VisualAsset:
+    project = ensure_project(session, config)
+    candidate = session.get(VisualAsset, candidate_id)
+    if (
+        candidate is None
+        or candidate.project_id != project.id
+        or candidate.section_key != spec.id
+        or not _is_illustration_candidate_asset(candidate, spec.id)
+    ):
+        raise HTTPException(status_code=404, detail="candidate not found")
+    return candidate
+
+
+def _is_illustration_candidate_asset(asset: VisualAsset, illustration_id: str) -> bool:
+    metadata = dict(asset.asset_metadata or {})
+    return (
+        metadata.get("kind") == "illustration_candidate"
+        and metadata.get("illustration_id") == illustration_id
+    )
+
+
+def _read_candidate_svg_text(root: Path, asset: VisualAsset) -> str:
+    if not asset.path:
+        raise HTTPException(status_code=404, detail="candidate SVG not found")
+    path = _resolve_figure_asset_path(root, asset.path)
+    if path is None or not path.exists():
+        raise HTTPException(status_code=404, detail="candidate SVG not found")
+    return _validated_svg_text(path.read_text(encoding="utf-8"))
+
+
+def _read_svg_text(root: Path, asset_path: str) -> str:
+    path = _resolve_figure_asset_path(root, asset_path)
+    if path is None or not path.exists():
+        return ""
+    return path.read_text(encoding="utf-8")
+
+
+def _resolve_figure_asset_path(root: Path, asset_path: str) -> Path | None:
+    path = Path(asset_path)
+    if path.is_absolute() or ".." in path.parts:
+        return None
+    figures_root = (root / "assets" / "figures").resolve()
+    resolved = (root / path).resolve()
+    try:
+        resolved.relative_to(figures_root)
+    except ValueError:
+        return None
+    return resolved
 
 
 def _safe_illustration_chapter_context(
@@ -1249,6 +1676,7 @@ def _validated_illustration_spec(
         opener_scale=opener_scale,  # type: ignore[arg-type]
         caption_policy=caption_policy,
         alt_text=str(data.get("alt_text") or ""),
+        generation_goal=str(data.get("generation_goal") or ""),
     )
 
 

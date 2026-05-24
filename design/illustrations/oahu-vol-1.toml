@@ -15,6 +15,7 @@ opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "none"
 alt_text = "Local capability nodes are connected by one amplifying bridge."
+generation_goal = ""
 
 [[figures]]
 id = "ch02-what-ai-is-meaning-machine"
@@ -29,6 +30,7 @@ opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "none"
 alt_text = "Language fragments compress into a callable meaning artifact."
+generation_goal = ""
 
 [[figures]]
 id = "ch03-use-loops-three-loops"
@@ -43,20 +45,22 @@ opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "internal"
 alt_text = "Three feedback loops share the same produce, evaluate, correct, repeat structure."
+generation_goal = ""
 
 [[figures]]
 id = "ch04-ai-is-profound-translation-threshold"
 enabled = true
 chapter_slug = "why-a-i-is-profound"
 asset_path = "assets/figures/ch04-ai-is-profound-translation-threshold.svg"
-treatment = "opener_motif"
-anchor_text = ""
+treatment = "inline_infographic"
+anchor_text = "This is happening across every domain where expertise and access have historically been rationed."
 placement = "after_anchor"
-fallback_placement = "opener_title_block_after_title"
+fallback_placement = "after_first_paragraph"
 opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "none"
 alt_text = "Embodied knowledge crosses an institutional language threshold."
+generation_goal = ""
 
 [[figures]]
 id = "ch05-workbenches-frame-splice"
@@ -71,6 +75,7 @@ opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "internal"
 alt_text = "A rendered Frame Splice workbench shows history, preview, prompt metadata, timeline, and decision gates around a central artifact."
+generation_goal = ""
 
 [[figures]]
 id = "ch06-agent-orchestration-loop"
@@ -85,3 +90,4 @@ opener_position = "bottom_right"
 opener_scale = "medium"
 caption_policy = "internal"
 alt_text = "Agent orchestration connects a human, broker, sealed runtime, tools, artifacts, hooks, and typed workflow paths."
+generation_goal = ""

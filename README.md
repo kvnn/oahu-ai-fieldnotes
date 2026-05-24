@@ -2,6 +2,12 @@
 
 Book-printing workspace powered by Vivliostyle.
 
+## TO-DO upon Book-Complete
+1. add / fix the "Fig 5.1" type annotations to each of the illustrations
+2. check for missing citation callouts (e.g. `[1]`)
+3. check for missing / broken citation sources (e.g. `1: https://oahu.ai`)
+4. generate QR codes for citations
+
 ## Requirements
 
 - Node.js 20 or newer
