@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Orchestration — Local-First CLI</title>
+  <desc id="desc">A vector infographic showing a supervised local-first CLI production line: a human operator and CLI agent work inside a real repository, specialist agent stations produce artifacts, deterministic ledgers preserve state, and cloud publishing occurs only after gates.</desc>
+
+  <style>
+    text{font-family:"Courier New",Courier,monospace;fill:#1d1835;font-weight:500}
+    .title{font-size:34px;letter-spacing:4px;font-weight:700}
+    .sub{font-size:14px;letter-spacing:.55px;fill:#6d5a91;font-weight:700}
+    .box{fill:#f5ecd9;stroke:#1d1835;stroke-width:3.1}
+    .panel{fill:#f2e8d4;stroke:#1d1835;stroke-width:3.2}
+    .purple-box{fill:#f5ecd9;stroke:#9b79c6;stroke-width:3.2}
+    .cloud{fill:#f5ecd9;stroke:#9b79c6;stroke-width:2.8;stroke-dasharray:0}
+    .thin{fill:none;stroke:#9c9787;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .arrow{fill:none;stroke:#1d1835;stroke-width:4.6;stroke-linecap:round;stroke-linejoin:round}
+    .parrow{fill:none;stroke:#9b79c6;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round}
+    .head{font-size:18px;letter-spacing:.5px;font-weight:700}
+    .gate-head{font-size:16px;letter-spacing:.4px;font-weight:700}
+    .txt{font-size:15px;letter-spacing:.3px}
+    .sm{font-size:13px;letter-spacing:.25px}
+    .micro{font-size:12px;letter-spacing:.35px}
+    .chip{fill:#f5ecd9;stroke:#9b79c6;stroke-width:2}
+    .chiptext{font-size:13px;letter-spacing:.25px}
+    .ledger{fill:none;stroke:#bdb49f;stroke-width:1.6}
+  </style>
+
+  <defs>
+    <marker id="ad" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1d1835"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="18" markerHeight="18" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9b79c6"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9c9787"/></marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+  <!-- <text class="title" x="40" y="66">AGENT ORCHESTRATION — LOCAL-FIRST CLI</text> -->
+  <text class="sub" x="43" y="96">a supervised production line: model labor inside a real repo, remembered by files + database</text>
+
+  <!-- Human and CLI interface -->
+  <g id="operator-and-cli">
+    <rect class="purple-box" x="50" y="126" width="230" height="116" rx="14"/>
+    <text class="head" text-anchor="middle" x="165" y="163">human operator</text>
+    <text class="txt" text-anchor="middle"><tspan x="165" y="194">defines good</tspan><tspan x="165" y="222">approves gates</tspan></text>
+
+    <rect class="box" x="320" y="126" width="270" height="116" rx="14"/>
+    <text class="head" text-anchor="middle" x="455" y="163">Claude Code / Codex</text>
+    <text class="txt" text-anchor="middle"><tspan x="455" y="194">working interface</tspan><tspan x="455" y="222">delegates sub-agents</tspan></text>
+    <path class="parrow" marker-end="url(#ap)" d="M280 184H318"/>
+    <path class="arrow" marker-end="url(#ad)" d="M590 184 C660 184 690 208 710 250"/>
+  </g>
+
+  <!-- Local repository workspace -->
+  <g id="local-repository">
+    <rect class="panel" x="60" y="278" width="965" height="612" rx="20"/>
+    <text class="head" x="94" y="320">LOCAL REPOSITORY WORKSPACE</text>
+    <text class="sm" x="94" y="346">real checkout • markdown runbooks • scripts • JSON status • SQL tables • logs • output paths</text>
+
+    <rect class="box" x="91" y="370" width="884" height="76" rx="12"/>
+    <text class="head" text-anchor="middle" x="533" y="400">agents/00-orchestrator.md</text>
+    <text class="sm" text-anchor="middle" x="533" y="427">role order + dependency structure + acceptance criteria; not an autonomous swarm</text>
+
+    <!-- Pipeline stations -->
+    <g id="pipeline-stations">
+      <rect class="box" x="94" y="490" width="170" height="96" rx="12"/>
+      <text class="head" text-anchor="middle" x="179" y="521">AGENT 0</text>
+      <text class="sm" text-anchor="middle"><tspan x="179" y="548">pre-flight</tspan><tspan x="179" y="572">config + env</tspan></text>
+
+      <rect class="box" x="313" y="468" width="190" height="86" rx="12"/>
+      <text class="head" text-anchor="middle" x="408" y="499">AGENT 1</text>
+      <text class="sm" text-anchor="middle"><tspan x="408" y="526">brand analysis</tspan></text>
+
+      <rect class="box" x="313" y="574" width="190" height="86" rx="12"/>
+      <text class="head" text-anchor="middle" x="408" y="605">AGENT 2</text>
+      <text class="sm" text-anchor="middle"><tspan x="408" y="632">Meta + Canva research</tspan></text>
+
+      <rect class="box" x="552" y="468" width="190" height="86" rx="12"/>
+      <text class="head" text-anchor="middle" x="647" y="499">AGENT 3</text>
+      <text class="sm" text-anchor="middle"><tspan x="647" y="526">visual patterns</tspan></text>
+
+      <rect class="box" x="552" y="574" width="190" height="86" rx="12"/>
+      <text class="head" text-anchor="middle" x="647" y="605">AGENT 4</text>
+      <text class="sm" text-anchor="middle"><tspan x="647" y="632">competitor intel</tspan></text>
+
+      <rect class="box" x="790" y="520" width="170" height="96" rx="12"/>
+      <text class="head" text-anchor="middle" x="875" y="551">AGENT 5</text>
+      <text class="sm" text-anchor="middle"><tspan x="875" y="578">static ads</tspan><tspan x="875" y="602">creative output</tspan></text>
+
+      <path class="arrow" marker-end="url(#ad)" d="M264 538H305"/>
+      <path class="arrow" marker-end="url(#ad)" d="M264 538 C290 538 290 617 305 617"/>
+      <path class="arrow" marker-end="url(#ad)" d="M503 511H544"/>
+      <path class="arrow" marker-end="url(#ad)" d="M503 617H544"/>
+      <path class="arrow" marker-end="url(#ad)" d="M742 511 C767 511 767 568 782 568"/>
+      <path class="arrow" marker-end="url(#ad)" d="M742 617 C767 617 767 568 782 568"/>
+    </g>
+
+    <!-- Ledger inside repo -->
+    <g id="deterministic-ledger">
+      <rect class="box" x="94" y="704" width="520" height="154" rx="14"/>
+      <text class="head" x="124" y="738">DETERMINISTIC LEDGER</text>
+      <text class="sm" x="124" y="765">Postgres: runs • steps • artifacts • traces • approvals</text>
+      <line class="ledger" x1="124" y1="782" x2="584" y2="782"/>
+      <text class="sm" x="124" y="805">state files: pipeline-status.json • concepts.json</text>
+      <text class="sm" x="124" y="827">logs: generation-log.jsonl • dirty-state markers</text>
+      <line class="ledger" x1="124" y1="840" x2="584" y2="840"/>
+      <text class="sm" x="124" y="854">paths: brands/...  output/{brand}/{run}/...</text>
+    </g>
+
+    <!-- Local output artifacts -->
+    <g id="local-artifacts">
+      <rect class="box" x="650" y="704" width="325" height="154" rx="14"/>
+      <text class="head" x="680" y="738">LOCAL ARTIFACTS FIRST</text>
+      <text class="sm" x="680" y="765">open • inspect • diff • delete</text>
+      <line class="ledger" x1="680" y1="782" x2="945" y2="782"/>
+      <text class="sm" x="680" y="808">regenerate before publication</text>
+      <line class="ledger" x1="680" y1="825" x2="945" y2="825"/>
+      <text class="sm" x="680" y="850">work remains close to the repo</text>
+    </g>
+  </g>
+
+  <!-- Gates and post-local stations -->
+  <g id="approval-gates">
+    <rect class="purple-box" x="1038" y="512" width="164" height="110" rx="14"/>
+    <text class="gate-head" text-anchor="middle" x="1120" y="550">human gate</text>
+    <text class="sm" text-anchor="middle"><tspan x="1120" y="580">approve</tspan><tspan x="1120" y="604">motion step</tspan></text>
+
+    <rect class="box" x="1232" y="512" width="164" height="110" rx="14"/>
+    <text class="head" text-anchor="middle" x="1314" y="550">AGENT 6</text>
+    <text class="sm" text-anchor="middle"><tspan x="1314" y="580">motion ads</tspan><tspan x="1314" y="604">not automatic</tspan></text>
+
+    <rect class="purple-box" x="1038" y="665" width="164" height="112" rx="14"/>
+    <text class="gate-head" text-anchor="middle" x="1120" y="703">human trigger</text>
+    <text class="sm" text-anchor="middle"><tspan x="1120" y="733">matrix step</tspan><tspan x="1120" y="757">never automatic</tspan></text>
+
+    <rect class="box" x="1232" y="665" width="164" height="112" rx="14"/>
+    <text class="head" text-anchor="middle" x="1314" y="703">AGENT 7</text>
+    <text class="sm" text-anchor="middle"><tspan x="1314" y="733">creative matrix</tspan><tspan x="1314" y="757">only on request</tspan></text>
+
+    <path class="arrow" marker-end="url(#ad)" d="M960 568H1030"/>
+    <path class="parrow" marker-end="url(#ap)" d="M1202 567H1224"/>
+    <path class="parrow" marker-end="url(#ap)" d="M1120 622V657"/>
+    <path class="parrow" marker-end="url(#ap)" d="M1202 721H1224"/>
+  </g>
+
+  <!-- Cloud-backed, cloud-published -->
+  <g id="cloud-backed">
+    <rect class="purple-box" x="1054" y="806" width="342" height="162" rx="18"/>
+    <text class="head" text-anchor="middle" x="1225" y="844">CLOUD AFTER GATES</text>
+    <text class="sm" text-anchor="middle"><tspan x="1225" y="873">GCS: brand assets • ads • motion files</tspan><tspan x="1225" y="902">Render: external output viewer</tspan><tspan x="1225" y="931">Notion: readable run summaries</tspan><tspan x="1225" y="960">Canva: optional final upload</tspan></text>
+    <path class="parrow" marker-end="url(#ap)" d="M1314 777V798"/>
+  </g>
+
+  <!-- Cross-cutting labels -->
+  <g id="cross-cutting">
+    <rect class="chip" x="714" y="144" width="250" height="42" rx="21"/>
+    <text class="chiptext" text-anchor="middle" x="839" y="170">probabilistic agents</text>
+    <rect class="chip" x="982" y="144" width="270" height="42" rx="21"/>
+    <text class="chiptext" text-anchor="middle" x="1117" y="170">deterministic ledgers</text>
+    <path class="thin" marker-end="url(#at)" d="M354 704 C430 655 695 662 812 704"/>
+    <path class="thin" marker-end="url(#at)" d="M874 616 C892 650 892 678 844 704"/>
+  </g>
+</svg>

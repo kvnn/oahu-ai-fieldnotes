@@ -22,6 +22,10 @@ body {
   color: var(--ink);
 }
 
+body.modal-open {
+  overflow: hidden;
+}
+
 a {
   color: var(--accent-strong);
   text-decoration: none;
@@ -615,6 +619,7 @@ dd {
 }
 
 .illustration-svg-preview {
+  cursor: zoom-in;
   width: min(100%, 560px);
 }
 
@@ -711,6 +716,7 @@ dd {
   background: #f1e9d4;
   border: 1px solid #ded4bb;
   border-radius: 6px;
+  cursor: zoom-in;
   display: flex;
   height: 132px;
   justify-content: center;
@@ -781,6 +787,7 @@ dd {
   background: #f1e9d4;
   border: 1px solid #ded4bb;
   border-radius: 8px;
+  cursor: zoom-in;
   display: flex;
   justify-content: center;
   min-height: 360px;
@@ -819,6 +826,88 @@ dd {
 .illustration-candidate-copy h3,
 .illustration-candidate-copy p {
   margin-bottom: 0;
+}
+
+.svg-lightbox[hidden] {
+  display: none;
+}
+
+.svg-lightbox {
+  inset: 0;
+  position: fixed;
+  z-index: 30;
+}
+
+.svg-lightbox-backdrop {
+  background: rgba(15, 18, 21, 0.72);
+  border: 0;
+  cursor: zoom-out;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.svg-lightbox-panel {
+  background: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.32);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  inset: 28px;
+  overflow: hidden;
+  position: absolute;
+}
+
+.svg-lightbox-header {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 18px;
+  justify-content: space-between;
+  padding: 16px 18px;
+}
+
+.svg-lightbox-header h2 {
+  margin-bottom: 0;
+}
+
+.svg-lightbox-surface {
+  align-items: center;
+  background: #f1e9d4;
+  display: flex;
+  justify-content: center;
+  min-height: 0;
+  overflow: auto;
+  padding: 28px;
+}
+
+.svg-lightbox-surface[data-mode="dark"] {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 24px,
+      rgba(255, 255, 255, 0.025) 24px,
+      rgba(255, 255, 255, 0.025) 26px
+    ),
+    #19142a;
+}
+
+.svg-lightbox-surface[data-mode="paper"],
+.svg-lightbox-surface[data-mode="native"] {
+  background: #f1e9d4;
+}
+
+.svg-lightbox-art {
+  width: min(100%, 1100px);
+}
+
+.svg-lightbox-art svg {
+  display: block;
+  height: auto;
+  max-height: calc(100vh - 150px);
+  width: 100%;
 }
 
 @media (max-width: 980px) {

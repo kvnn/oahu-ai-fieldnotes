@@ -1,6 +1,6 @@
 version = "oahu-vol-1.illustrations.v1"
 book_slug = "oahu-ai-field-notes-vol-1"
-figure_count = 7
+figure_count = 13
 
 [[figures]]
 id = "ch01-introduction-capability-bridge"
@@ -106,3 +106,93 @@ opener_scale = "medium"
 caption_policy = "internal"
 alt_text = "Two sets of marks, one from the field and one from paperwork, face each other across a narrowing gap bridged by a small aubergine keystone."
 generation_goal = "Represent the following : ```For generations, the people who knewhow to do the work were kept from the rooms where the work was awarded, not because they lacked the knowledge but because the knowledge was required to arrive in a par\u2010 ticular costume: RFPs, compliance language, project narratives written in the passive voice of institutional trust. The amplifier removes that costume requirement. For the first\ntime, a man who has spent thirty years reading land and ani\u2010 mals and weather can walk into that room and be fully understood \u2014 not because he has changed, but because the dis\u2010 tance between what he knows and what the room requires has finally closed.```"
+
+[[figures]]
+id = "ch04-the-loop-is-the-teacher-body-02"
+enabled = true
+chapter_slug = "the-loop-is-the-teacher"
+asset_path = "assets/figures/ch04-the-loop-is-the-teacher-body-02.svg"
+treatment = "inline_infographic"
+anchor_text = "The first loop began with a customer intake workflow for adverse events. The application had enough custom branching and conditional logic that its possible paths numbered in the millions. Quality assurance engineers needed a way to simulate a user moving through the form from a plain-language description of an incident. The desired interaction sounded simple: enter what happened, press go, and let a user simulator navigate the workflow as a human might."
+placement = "before_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = "A rounded central trace database labeled deterministic ledger and not the decision maker sits inside a clockwise runtime loop of six boxes. Thin arrows show records being appended. A lavender debugging loop leaves the ledger, passes through me plus coding agent, then patch failsafe refactor, and returns to the runtime loop."
+generation_goal = "Create a Field Notes-style SVG infographic on a pale parchment background. Use dark purple linework, muted lavender correction arrows, rounded rectangles, monospaced typography, and no gradients or drop shadows.\n\nTitle: PATTERN ONE \u2014 THE TRACE LOOP\n\nThe diagram has two loops.\n\nThe main dark loop is the runtime simulator loop. Arrange six rounded boxes clockwise around a central trace database:\n\n1. incident description + visible HTML\n2. simulator LLM chooses next action\n3. structured action map: fill / click / stop\n4. frontend guard: click verdict / invalid action check\n5. backend state check + return payload\n6. new visible HTML or legitimate stop\n\nConnect these boxes with a thick clockwise circular arrow labeled \u201cone form step repeats.\u201d\n\nIn the center, place a larger rounded rectangle labeled TRACE DATABASE / DETERMINISTIC LEDGER. Inside it, draw stacked ledger rows:\n- what the model saw\n- what it chose\n- how the frontend interpreted it\n- what the backend returned\n- where the chain broke\n- why it stopped\n\nDraw thin hairline arrows from each runtime box into the central trace database to show that every layer appends records.\n\nAdd a second muted lavender debugging loop outside the main loop:\nTRACE DATABASE \u2192 me + coding agent \u2192 patch / failsafe / refactor \u2192 runtime loop.\n\nThe correction should visibly pass through \u201cme + coding agent,\u201d not directly from the trace database to the action map.\n\nAdd small failure chips near the trace database:\nwrong click\nearly stop\ninvalid branch\nslow path\n\nFooter caption:\n\u201cthe loop closes against records, not recollection\u201d\n\nThe composition should make clear that the trace database is not the decision-maker. It is the evidence ledger that lets the coding agent debug what actually happened."
+
+[[figures]]
+id = "ch04-the-loop-is-the-teacher-body-03"
+enabled = true
+chapter_slug = "the-loop-is-the-teacher"
+asset_path = "assets/figures/ch04-the-loop-is-the-teacher-body-03.svg"
+treatment = "inline_infographic"
+anchor_text = "An eval harness is the part of the system that turns prior experience into reusable tests. It is usually built from unglamorous material: production traces, reviewed outputs, rejected generations, approved examples, edge cases, support tickets, bug reports, and the private notes of people who understand the work. Its value comes from preserving those materials in a form that can be run again."
+placement = "after_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = ""
+generation_goal = ""
+
+[[figures]]
+id = "ch04-the-loop-is-the-teacher-body-04"
+enabled = true
+chapter_slug = "the-loop-is-the-teacher"
+asset_path = "assets/figures/ch04-the-loop-is-the-teacher-body-04.svg"
+treatment = "inline_infographic"
+anchor_text = "Classic ETL \u2014 extract, transform, load \u2014 is the old, durable pattern of data engineering. You pull material from a source, shape it into something the system can use, and persist it in a place where downstream work can depend on it. The Agent ETL Loop applies that pattern to meaning."
+placement = "before_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = ""
+generation_goal = ""
+
+[[figures]]
+id = "ch04-the-loop-is-the-teacher-body-05"
+enabled = true
+chapter_slug = "the-loop-is-the-teacher"
+asset_path = "assets/figures/ch04-the-loop-is-the-teacher-body-05.svg"
+treatment = "inline_infographic"
+anchor_text = "Most people who use language models for any length of time develop an instinct for prompting. They learn that asking for a list produces one kind of answer, that asking for a memo produces another, that examples often help, that tone changes with small shifts in address, and that certain phrases seem to make the model more careful. This informal prompt engineering is real craft knowledge. It comes from repeated contact with the system."
+placement = "before_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = ""
+generation_goal = ""
+
+[[figures]]
+id = "ch05-agent-orchestration-body-02"
+enabled = true
+chapter_slug = "agent-orchestration"
+asset_path = "assets/figures/ch05-agent-orchestration-body-02.svg"
+treatment = "inline_infographic"
+anchor_text = "What follows is a solution implemented for an A.I. Ad Agency. They needed the ability for their creative staff to use the most powerful content management paradigms (Claude Code, at the time) tuned towards static image ad generations (connectors to Google's Gemini API) while still being able to work cohesively as a team."
+placement = "after_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = ""
+generation_goal = ""
+
+[[figures]]
+id = "ch05-agent-orchestration-body-03"
+enabled = true
+chapter_slug = "agent-orchestration"
+asset_path = "assets/figures/ch05-agent-orchestration-body-03.svg"
+treatment = "inline_infographic"
+anchor_text = "What follows now is a system built for the Strategic Finance team at a large public SaaS company."
+placement = "before_anchor"
+fallback_placement = "after_first_section_break"
+opener_position = "bottom_right"
+opener_scale = "medium"
+caption_policy = "internal"
+alt_text = ""
+generation_goal = ""

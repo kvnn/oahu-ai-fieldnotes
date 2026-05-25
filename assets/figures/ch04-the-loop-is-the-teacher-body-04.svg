@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Pattern Three — The Agent ETL Loop</title>
+  <desc id="desc">A vector infographic showing an agent ETL loop: source material becomes candidate meanings, human review turns candidates into canonical graph structure, decisions are loaded into a knowledge graph, and stored judgment guides the next extraction pass.</desc>
+
+  <style>
+    text{font-family:"Courier New", Courier, monospace; fill:#1d1835; font-weight:500;}
+    .title{font-size:34px; letter-spacing:4px; font-weight:700;}
+    .box-text{font-size:16px; letter-spacing:.35px;}
+    .box-head{font-size:18px; letter-spacing:.45px; font-weight:700;}
+    .small{font-size:13px; letter-spacing:.45px;}
+    .tiny{font-size:12px; letter-spacing:.55px;}
+    .center-title{font-size:30px; letter-spacing:2px; font-weight:700;}
+    .object-head{font-size:15px; letter-spacing:1px; font-weight:700; fill:#6d5a91;}
+    .object-text{font-size:13px; letter-spacing:.2px;}
+    .box{fill:#f5ecd9; stroke:#1d1835; stroke-width:3.2;}
+    .review-box{fill:#f5ecd9; stroke:#9b79c6; stroke-width:3.3;}
+    .center-box{fill:#f2e8d4; stroke:#1d1835; stroke-width:3.2;}
+    .inner-card{fill:none; stroke:#bdb49f; stroke-width:1.8;}
+    .main-loop{fill:none; stroke:#1d1835; stroke-width:7; stroke-linecap:round; stroke-linejoin:round;}
+    .thin-spoke{fill:none; stroke:#9c9787; stroke-width:1.9; stroke-linecap:round;}
+    .purple{fill:none; stroke:#9b79c6; stroke-width:3.6; stroke-linecap:round; stroke-linejoin:round;}
+    .purple-box{fill:#f5ecd9; stroke:#9b79c6; stroke-width:3.2;}
+    .chip{fill:#f5ecd9; stroke:#9b79c6; stroke-width:2.1;}
+    .chip-text{font-size:13px; fill:#1d1835; letter-spacing:.25px;}
+    .label-purple{font-size:13px; fill:#6d5a91; letter-spacing:.65px; font-weight:700;}
+    .hair{stroke:#bdb49f; stroke-width:1.5;}
+  </style>
+
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="28" markerHeight="28" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d1835"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b79c6"/>
+    </marker>
+    <marker id="arrow-thin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9c9787"/>
+    </marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+
+  <!-- Title -->
+  <text class="title" x="40" y="66">PATTERN THREE — THE AGENT ETL LOOP</text>
+
+  <!-- Main dark ETL loop: source -> extract -> review -> transform -> load -> next pass. -->
+  <g id="etl-loop">
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 370 228 C 420 160 468 127 518 130"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 836 139 C 902 147 962 176 1012 214"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1180 356 C 1245 454 1246 579 1196 678"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1012 793 C 944 858 879 888 814 894"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 535 896 C 455 895 382 860 330 810"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 190 675 C 118 560 114 425 176 360"/>
+  </g>
+
+  <!-- Thin arrows showing which stages write to / read from durable graph memory. -->
+  <g id="memory-spokes">
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 675 218 L 675 336"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 1010 335 L 923 405"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 1006 690 L 934 658"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 675 855 L 675 742"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 392 720 L 490 670"/>
+  </g>
+
+  <!-- Purple feedback: stored judgment guides the next extraction pass. -->
+  <g id="stored-judgment-feedback">
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 484 635 C 454 655 432 688 434 735"/>
+    <text class="label-purple" x="218" y="666">memory guides next pass</text>
+  </g>
+
+  <!-- Outer ETL process nodes. -->
+  <g id="process-nodes">
+    <g id="source-material">
+      <rect class="box" x="80" y="225" width="330" height="138" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="245" y="264">source material</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="245" y="295">passages / transcripts</tspan>
+        <tspan x="245" y="324">artifacts / notes</tspan>
+        <tspan x="245" y="353">raw meaning-bearing work</tspan>
+      </text>
+    </g>
+
+    <g id="extract-candidates">
+      <rect class="box" x="518" y="104" width="318" height="114" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="677" y="145">EXTRACT</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="677" y="176">agent proposes</tspan>
+        <tspan x="677" y="205">candidate meanings</tspan>
+      </text>
+    </g>
+
+    <g id="review-gate">
+      <rect class="review-box" x="1010" y="205" width="350" height="152" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1185" y="246">HUMAN REVIEW</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1185" y="276">real? duplicate? reusable?</tspan>
+        <tspan x="1185" y="305">too narrow? canonical?</tspan>
+        <tspan x="1185" y="334">own node or existing idea?</tspan>
+      </text>
+    </g>
+
+    <g id="transform-structure">
+      <rect class="box" x="1006" y="678" width="354" height="150" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1183" y="718">TRANSFORM</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1183" y="748">merge aliases</tspan>
+        <tspan x="1183" y="777">promote canonical concepts</tspan>
+        <tspan x="1183" y="806">revise / reject relationships</tspan>
+      </text>
+    </g>
+
+    <g id="load-decisions">
+      <rect class="box" x="535" y="855" width="302" height="108" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="686" y="896">LOAD</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="686" y="927">nodes / edges / aliases</tspan>
+        <tspan x="686" y="955">notes / rejects / status</tspan>
+      </text>
+    </g>
+
+    <g id="next-pass">
+      <rect class="box" x="80" y="675" width="354" height="142" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="257" y="716">next extraction pass</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="257" y="747">inherits clarified structure</tspan>
+        <tspan x="257" y="776">less ambiguity</tspan>
+        <tspan x="257" y="805">more exception handling</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- Center database: the memory of the loop. -->
+  <g id="knowledge-graph-memory">
+    <rect class="center-box" x="484" y="336" width="452" height="410" rx="16"/>
+    <text class="center-title" text-anchor="middle" x="710" y="382">KNOWLEDGE GRAPH</text>
+    <text class="small" text-anchor="middle" x="710" y="410">the database accumulates judgment</text>
+
+    <rect class="inner-card" x="510" y="436" width="400" height="54" rx="9"/>
+    <text class="object-head" x="530" y="459">CANONICAL CONCEPTS</text>
+    <text class="object-text" x="530" y="480">definitions strong enough to reuse</text>
+
+    <rect class="inner-card" x="510" y="502" width="400" height="54" rx="9"/>
+    <text class="object-head" x="530" y="525">ALIASES + REJECTED PRIMITIVES</text>
+    <text class="object-text" x="530" y="546">duplicate labels compressed into decisions</text>
+
+    <rect class="inner-card" x="510" y="568" width="400" height="54" rx="9"/>
+    <text class="object-head" x="530" y="591">RELATIONSHIPS</text>
+    <text class="object-text" x="530" y="612">accepted • revised • rejected</text>
+
+    <rect class="inner-card" x="510" y="634" width="400" height="54" rx="9"/>
+    <text class="object-head" x="530" y="657">REVIEWER NOTES + STATUS</text>
+    <text class="object-text" x="530" y="678">canonical • provisional • hold • rejected</text>
+
+    <rect class="inner-card" x="510" y="700" width="400" height="32" rx="9"/>
+    <text class="object-text" x="530" y="721">themes • value tensions • symbols • situations</text>
+  </g>
+
+  <!-- Sprawl pressure chips: what review prevents. -->
+  <g id="sprawl-pressure">
+    <text class="label-purple" x="214" y="500">SPRAWL PRESSURE</text>
+
+    <rect class="chip" x="210" y="520" width="126" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="273" y="543">duplicate label</text>
+
+    <rect class="chip" x="348" y="520" width="94" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="395" y="543">too narrow</text>
+
+    <rect class="chip" x="210" y="566" width="142" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="281" y="589">vague abstraction</text>
+
+    <rect class="chip" x="365" y="566" width="128" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="429" y="589">one-off meaning</text>
+
+    <rect class="chip" x="210" y="612" width="145" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="282.5" y="635">collapsed concepts</text>
+  </g>
+
+  <!-- Decision chips: what can happen to a candidate. -->
+  <g id="candidate-decisions">
+    <text class="label-purple" x="956" y="480">CANDIDATE DECISIONS</text>
+
+    <rect class="chip" x="956" y="500" width="96" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1004" y="523">canonical</text>
+
+    <rect class="chip" x="1064" y="500" width="72" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1100" y="523">alias</text>
+
+    <rect class="chip" x="956" y="546" width="126" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1019" y="569">specialization</text>
+
+    <rect class="chip" x="1094" y="546" width="80" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1134" y="569">hold</text>
+
+    <rect class="chip" x="956" y="592" width="104" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1008" y="615">provisional</text>
+
+    <rect class="chip" x="1072" y="592" width="84" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1114" y="615">reject</text>
+  </g>
+
+  <!-- Evals: keep the graph sharp rather than merely larger. -->
+  <g id="graph-evals">
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 936 432 C 1035 420 1110 426 1184 468"/>
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 1246 456 C 1258 420 1240 385 1210 358"/>
+
+    <rect class="purple-box" x="1184" y="438" width="230" height="158" rx="14"/>
+    <text class="box-head" text-anchor="middle" x="1299" y="475">GRAPH EVALS</text>
+    <text class="small" text-anchor="middle">
+      <tspan x="1299" y="505">duplicate rate</tspan>
+      <tspan x="1299" y="530">canonical reuse</tspan>
+      <tspan x="1299" y="555">edge acceptance</tspan>
+      <tspan x="1299" y="580">drift / missed themes</tspan>
+    </text>
+  </g>
+</svg>

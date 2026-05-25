@@ -386,7 +386,7 @@
               </div>
             </div>
             <div class="illustration-preview-surface {{ figure.spec.treatment }}" data-preview-surface>
-              <div class="illustration-svg-preview" data-svg-preview>
+              <div class="illustration-svg-preview" data-svg-preview role="button" tabindex="0" title="View larger">
                 {{ figure.svg_text | safe }}
               </div>
             </div>
@@ -413,6 +413,22 @@
     {% endfor %}
   </div>
 </section>
+
+<div class="svg-lightbox" data-svg-lightbox hidden>
+  <button class="svg-lightbox-backdrop" type="button" data-svg-lightbox-close aria-label="Close SVG preview"></button>
+  <section class="svg-lightbox-panel" role="dialog" aria-modal="true" aria-labelledby="svg-lightbox-title">
+    <header class="svg-lightbox-header">
+      <div>
+        <p class="eyebrow">SVG Preview</p>
+        <h2 id="svg-lightbox-title" data-svg-lightbox-title>Untitled SVG</h2>
+      </div>
+      <button class="secondary compact" type="button" data-svg-lightbox-close>Close</button>
+    </header>
+    <div class="svg-lightbox-surface" data-svg-lightbox-surface>
+      <div class="svg-lightbox-art" data-svg-lightbox-art></div>
+    </div>
+  </section>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -480,6 +496,7 @@
 
       const thumb = document.createElement("span");
       thumb.className = "illustration-candidate-thumb";
+      thumb.title = "View larger";
       thumb.innerHTML = candidate.svg_text || "";
 
       const name = document.createElement("span");
@@ -499,6 +516,43 @@
       }
       return button;
     }
+
+    const lightbox = document.querySelector("[data-svg-lightbox]");
+    const lightboxTitle = document.querySelector("[data-svg-lightbox-title]");
+    const lightboxSurface = document.querySelector("[data-svg-lightbox-surface]");
+    const lightboxArt = document.querySelector("[data-svg-lightbox-art]");
+
+    function openSvgLightbox({title, svgText, mode = "paper"}) {
+      if (!lightbox || !lightboxArt || !lightboxSurface || !svgText.trim()) return;
+      lightboxTitle.textContent = title || "Untitled SVG";
+      lightboxArt.innerHTML = svgText;
+      lightboxSurface.dataset.mode = mode;
+      lightbox.hidden = false;
+      document.body.classList.add("modal-open");
+      lightbox.querySelector("[data-svg-lightbox-close]")?.focus();
+    }
+
+    function closeSvgLightbox() {
+      if (!lightbox || !lightboxArt) return;
+      lightbox.hidden = true;
+      lightboxArt.innerHTML = "";
+      document.body.classList.remove("modal-open");
+    }
+
+    function lightboxModeForPanel(panel) {
+      const surface = panel.querySelector("[data-preview-surface]");
+      const explicitMode = surface?.dataset?.mode;
+      if (explicitMode && explicitMode !== "native") return explicitMode;
+      const treatment = panel.querySelector("[data-treatment-select]")?.value || panel.dataset.treatment;
+      return treatment === "opener_motif" ? "dark" : "paper";
+    }
+
+    lightbox?.querySelectorAll("[data-svg-lightbox-close]").forEach((button) => {
+      button.addEventListener("click", closeSvgLightbox);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && lightbox && !lightbox.hidden) closeSvgLightbox();
+    });
 
     const createPanel = document.querySelector("[data-create-panel]");
     if (createPanel) {
@@ -587,6 +641,10 @@
           card.classList.toggle("selected", card.dataset.candidateId === candidate.id);
         });
         candidateLarge.innerHTML = candidate.svg_text || "";
+        candidateLarge.dataset.candidateId = candidate.id;
+        candidateLarge.title = "View larger";
+        candidateLarge.tabIndex = 0;
+        candidateLarge.setAttribute("role", "button");
         candidateDetail.querySelector("[data-candidate-title]").textContent = candidate.title || "Untitled SVG";
         candidateDetail.querySelector("[data-candidate-node]").textContent = candidate.axis_node || "";
         candidateDetail.querySelector("[data-candidate-rationale]").textContent = candidate.rationale || "";
@@ -599,6 +657,17 @@
         card.addEventListener("click", () => {
           const candidate = candidates.get(card.dataset.candidateId);
           if (candidate) showCandidate(candidate);
+        });
+        card.querySelector(".illustration-candidate-thumb")?.addEventListener("click", (event) => {
+          const candidate = candidates.get(card.dataset.candidateId);
+          if (!candidate) return;
+          event.stopPropagation();
+          showCandidate(candidate);
+          openSvgLightbox({
+            title: candidate.title || card.dataset.candidateId,
+            svgText: candidate.svg_text || "",
+            mode: lightboxModeForPanel(panel),
+          });
         });
       }
 
@@ -643,6 +712,42 @@
 
       apply?.addEventListener("click", () => {
         preview.innerHTML = source.value;
+      });
+
+      preview?.addEventListener("click", () => {
+        openSvgLightbox({
+          title: formValue(form, "id"),
+          svgText: preview.innerHTML,
+          mode: lightboxModeForPanel(panel),
+        });
+      });
+      preview?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        openSvgLightbox({
+          title: formValue(form, "id"),
+          svgText: preview.innerHTML,
+          mode: lightboxModeForPanel(panel),
+        });
+      });
+
+      candidateLarge?.addEventListener("click", () => {
+        const candidate = candidates.get(candidateLarge.dataset.candidateId);
+        openSvgLightbox({
+          title: candidate?.title || candidateLarge.dataset.candidateId || "Candidate SVG",
+          svgText: candidate?.svg_text || candidateLarge.innerHTML,
+          mode: lightboxModeForPanel(panel),
+        });
+      });
+      candidateLarge?.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        const candidate = candidates.get(candidateLarge.dataset.candidateId);
+        openSvgLightbox({
+          title: candidate?.title || candidateLarge.dataset.candidateId || "Candidate SVG",
+          svgText: candidate?.svg_text || candidateLarge.innerHTML,
+          mode: lightboxModeForPanel(panel),
+        });
       });
 
       saveSvg?.addEventListener("click", async () => {

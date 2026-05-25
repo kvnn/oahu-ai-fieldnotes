@@ -1,0 +1,204 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Pattern Four — The Prompt Optimization Loop</title>
+  <desc id="desc">A vector infographic showing prompt optimization as an evidence-driven loop: establish a baseline, let an optimizer search prompt variants, score against an eval standard, inspect slices and holdout behavior, review wins and losses, and refine the measurement so optimization stays attached to the real task.</desc>
+
+  <style>
+    text{font-family:"Courier New", Courier, monospace; fill:#1d1835; font-weight:500;}
+    .title{font-size:34px; letter-spacing:4px; font-weight:700;}
+    .box-text{font-size:16px; letter-spacing:.35px;}
+    .box-head{font-size:18px; letter-spacing:.45px; font-weight:700;}
+    .small{font-size:13px; letter-spacing:.45px;}
+    .tiny{font-size:12px; letter-spacing:.55px;}
+    .center-title{font-size:30px; letter-spacing:2px; font-weight:700;}
+    .object-head{font-size:15px; letter-spacing:1px; font-weight:700; fill:#6d5a91;}
+    .object-text{font-size:13px; letter-spacing:.2px;}
+    .box{fill:#f5ecd9; stroke:#1d1835; stroke-width:3.2;}
+    .center-box{fill:#f2e8d4; stroke:#1d1835; stroke-width:3.2;}
+    .inner-card{fill:none; stroke:#bdb49f; stroke-width:1.8;}
+    .holdout-card{fill:none; stroke:#9b79c6; stroke-width:2.2;}
+    .main-loop{fill:none; stroke:#1d1835; stroke-width:7; stroke-linecap:round; stroke-linejoin:round;}
+    .thin-spoke{fill:none; stroke:#9c9787; stroke-width:1.9; stroke-linecap:round;}
+    .purple{fill:none; stroke:#9b79c6; stroke-width:3.6; stroke-linecap:round; stroke-linejoin:round;}
+    .purple-box{fill:#f5ecd9; stroke:#9b79c6; stroke-width:3.2;}
+    .chip{fill:#f5ecd9; stroke:#9b79c6; stroke-width:2.1;}
+    .chip-text{font-size:13px; fill:#1d1835; letter-spacing:.25px;}
+    .label-purple{font-size:13px; fill:#6d5a91; letter-spacing:.65px; font-weight:700;}
+    .hair{stroke:#bdb49f; stroke-width:1.5;}
+  </style>
+
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="28" markerHeight="28" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d1835"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b79c6"/>
+    </marker>
+    <marker id="arrow-thin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9c9787"/>
+    </marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+
+  <!-- Title -->
+<!--  <text class="title" x="40" y="66">PATTERN FOUR — THE PROMPT OPTIMIZATION LOOP</text> -->
+
+  <!-- Main optimization loop: baseline -> search -> candidates -> eval -> slices -> review -> release decision. -->
+  <g id="optimization-loop">
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 374 170 C 422 130 468 112 514 118"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 828 125 C 876 132 912 148 944 176"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1242 292 C 1304 350 1325 392 1304 424"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1232 550 C 1236 645 1198 727 1138 785"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 884 870 C 832 920 794 935 760 917"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 430 896 C 342 892 272 850 232 811"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 145 670 C 78 532 90 386 185 300"/>
+  </g>
+
+  <!-- Thin spokes: process stages read from or write to the defined standard. -->
+  <g id="standard-spokes">
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 374 298 L 486 395"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 672 220 L 672 318"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 1014 312 L 930 390"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 1034 507 L 948 512"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 930 790 L 888 760"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 592 845 L 640 778"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 408 742 L 486 665"/>
+  </g>
+
+  <!-- Purple measurement-refinement loop: when score and judgment disagree, refine the eval standard. -->
+  <g id="measurement-refinement-loop">
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 438 850 C 330 804 262 725 256 584"/>
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 410 502 C 440 496 456 492 484 488"/>
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 850 390 C 916 340 964 306 1018 296"/>
+  </g>
+
+  <!-- Outer process nodes. -->
+  <g id="process-nodes">
+    <g id="baseline-prompt">
+      <rect class="box" x="92" y="170" width="318" height="130" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="251" y="210">baseline prompt</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="251" y="241">current production prompt</tspan>
+        <tspan x="251" y="270">run first for comparison</tspan>
+        <tspan x="251" y="296">honest starting line</tspan>
+      </text>
+    </g>
+
+    <g id="optimizer-search">
+      <rect class="box" x="514" y="96" width="314" height="124" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="671" y="137">prompt optimizer</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="671" y="168">searches variations</tspan>
+        <tspan x="671" y="197">instead of hand-polish</tspan>
+      </text>
+    </g>
+
+    <g id="candidate-prompts">
+      <rect class="box" x="944" y="176" width="344" height="138" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1116" y="216">candidate prompts</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1116" y="247">instructions / demos</tspan>
+        <tspan x="1116" y="276">framing / ordering</tspan>
+        <tspan x="1116" y="304">odd-looking prompts can win</tspan>
+      </text>
+    </g>
+
+    <g id="eval-run">
+      <rect class="box" x="1034" y="424" width="330" height="130" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1199" y="464">eval run</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1199" y="495">score outputs against</tspan>
+        <tspan x="1199" y="524">metric + eval suite</tspan>
+        <tspan x="1199" y="550">track cost / tokens</tspan>
+      </text>
+    </g>
+
+    <g id="slice-holdout-check">
+      <rect class="box" x="884" y="790" width="362" height="148" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1065" y="830">slice + holdout check</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1065" y="861">common / rare / high-risk</tspan>
+        <tspan x="1065" y="890">long / short / ambiguous</tspan>
+        <tspan x="1065" y="919">protected unseen cases</tspan>
+      </text>
+    </g>
+
+    <g id="human-review">
+      <rect class="box" x="430" y="845" width="330" height="132" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="595" y="886">human review</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="595" y="916">inspect wins + losses</tspan>
+        <tspan x="595" y="945">where score and judgment</tspan>
+        <tspan x="595" y="973">disagree</tspan>
+      </text>
+    </g>
+
+    <g id="release-decision">
+      <rect class="box" x="78" y="670" width="330" height="146" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="243" y="711">release decision</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="243" y="742">ship / block / rollback</tspan>
+        <tspan x="243" y="771">compare to baseline</tspan>
+        <tspan x="243" y="800">new baseline if improvement holds</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- Center: the standard that gives the optimizer something meaningful to search against. -->
+  <g id="eval-standard">
+    <rect class="center-box" x="484" y="318" width="464" height="460" rx="16"/>
+    <text class="center-title" text-anchor="middle" x="716" y="365">EVAL STANDARD</text>
+    <text class="small" text-anchor="middle" x="716" y="393">downstream of evals; optimizer learns what this rewards</text>
+
+    <rect class="inner-card" x="510" y="420" width="412" height="58" rx="9"/>
+    <text class="object-head" x="530" y="444">TASK DEFINITION</text>
+    <text class="object-text" x="530" y="466">what good output is supposed to do</text>
+
+    <rect class="inner-card" x="510" y="490" width="412" height="58" rx="9"/>
+    <text class="object-head" x="530" y="514">EXAMPLES + REFERENCES</text>
+    <text class="object-text" x="530" y="536">representative cases, not just happy paths</text>
+
+    <rect class="inner-card" x="510" y="560" width="412" height="58" rx="9"/>
+    <text class="object-head" x="530" y="584">METRIC + RUBRIC</text>
+    <text class="object-text" x="530" y="606">faithfulness • clarity • tool use • abstention</text>
+
+    <rect class="holdout-card" x="510" y="630" width="412" height="58" rx="9"/>
+    <text class="object-head" x="530" y="654">PROTECTED HOLDOUT</text>
+    <text class="object-text" x="530" y="676">unseen edge cases preserved from optimization</text>
+
+    <rect class="inner-card" x="510" y="700" width="412" height="58" rx="9"/>
+    <text class="object-head" x="530" y="724">RELEASE BLOCKERS</text>
+    <text class="object-text" x="530" y="746">failures that score cannot smooth over</text>
+  </g>
+
+  <!-- Measurement refinement box. -->
+  <g id="builder-judgment">
+    <rect class="purple-box" x="70" y="424" width="340" height="160" rx="14"/>
+    <text class="box-head" text-anchor="middle" x="240" y="464">builder judgment</text>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="240" y="495">refine metric</tspan>
+      <tspan x="240" y="524">curate examples</tspan>
+      <tspan x="240" y="553">protect holdout + blockers</tspan>
+    </text>
+  </g>
+
+  <!-- Metric pressure: what the optimizer may exploit when the eval is shallow. -->
+  <g id="metric-pressure">
+    <text class="label-purple" x="965" y="615">METRIC PRESSURE</text>
+
+    <rect class="chip" x="964" y="636" width="96" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1012" y="659">verbosity</text>
+
+    <rect class="chip" x="1074" y="636" width="140" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1144" y="659">overconfidence</text>
+
+    <rect class="chip" x="964" y="682" width="154" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1041" y="705">shallow similarity</text>
+
+    <rect class="chip" x="1130" y="682" width="142" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1201" y="705">happy-path fit</text>
+
+    <rect class="chip" x="964" y="728" width="134" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1031" y="751">edge tradeoff</text>
+  </g>
+</svg>

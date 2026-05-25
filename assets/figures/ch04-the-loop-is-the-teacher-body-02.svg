@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Pattern One — The Trace Loop</title>
+  <desc id="desc">A vector infographic showing a runtime simulator loop around a trace database, with a separate debugging loop from the trace database through a coding agent to corrections.</desc>
+  <style>
+      text{font-family:"Courier New", Courier, monospace; fill:#1d1835; font-weight:500;}
+      .title{font-size:34px; letter-spacing:4px; font-weight:700;}
+      .box-text{font-size:17px; letter-spacing:.4px;}
+      .debug-text{font-size:16px; letter-spacing:.25px;}
+      .small{font-size:13px; letter-spacing:.45px;}
+      .tiny{font-size:12px; letter-spacing:.6px;}
+      .ledger-title{font-size:30px; letter-spacing:2px; font-weight:700;}
+      .ledger-row{font-size:16px; letter-spacing:.25px;}
+      .box{fill:#f5ecd9; stroke:#1d1835; stroke-width:3.2;}
+      .center-box{fill:#f2e8d4; stroke:#1d1835; stroke-width:3.2;}
+      .purple-box{fill:#f5ecd9; stroke:#9b79c6; stroke-width:3.3;}
+      .main-loop{fill:none; stroke:#1d1835; stroke-width:7; stroke-linecap:round; stroke-linejoin:round;}
+      .thin-spoke{fill:none; stroke:#9c9787; stroke-width:1.9; stroke-linecap:round;}
+      .debug{fill:none; stroke:#9b79c6; stroke-width:3.5; stroke-linecap:round; stroke-linejoin:round;}
+      .chip{fill:#f5ecd9; stroke:#9b79c6; stroke-width:2.2;}
+      .chip-text{font-size:14px; fill:#1d1835; letter-spacing:.3px;}
+      .ledger-hair{stroke:#bdb49f; stroke-width:1.6;}
+      .evidence-label{font-size:13px; fill:#6d5a91; letter-spacing:.65px; font-weight:700;}
+  </style>
+
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="28" markerHeight="28" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d1835"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b79c6"/>
+    </marker>
+    <marker id="arrow-thin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9c9787"/>
+    </marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+
+  <!-- Title -->
+  <text class="title" x="40" y="66">PATTERN ONE — THE TRACE LOOP</text>
+
+  <!-- Main dark runtime loop: drawn behind nodes -->
+  <g id="runtime-loop" opacity="1">
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 390 188 C 436 159 483 140 525 136"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 805 136 C 838 146 865 162 894 190"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1037 289 C 1116 407 1120 609 1035 752"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 879 858 C 839 889 816 899 805 891"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 525 891 C 466 914 413 902 379 856"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 279 752 C 203 619 204 430 279 286"/>
+  </g>
+
+  <!-- Thin evidence spokes into trace database -->
+  <g id="evidence-spokes">
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 414 286 L 478 376"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 665 196 L 665 350"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 932 289 L 856 376"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 882 752 L 856 692"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 665 840 L 665 692"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 416 752 L 478 692"/>
+  </g>
+
+  <!-- Purple debugging loop -->
+  <g id="debugging-loop">
+    <path class="debug" marker-end="url(#arrow-purple)" d="M 856 468 C 962 469 1051 405 1167 407"/>
+    <path class="debug" marker-end="url(#arrow-purple)" d="M 1274 500 C 1296 534 1298 575 1298 625"/>
+    <path class="debug" marker-end="url(#arrow-purple)" d="M 1298 758 C 1284 812 1215 836 1144 821"/>
+  </g>
+
+  <!-- Outer runtime boxes -->
+  <g id="nodes">
+    <rect class="box" x="166" y="188" width="282" height="98" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="307" y="228">incident description</tspan>
+      <tspan x="307" y="260">+ current visible HTML</tspan>
+    </text>
+
+    <rect class="box" x="526" y="98" width="282" height="100" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="667" y="140">simulator LLM</tspan>
+      <tspan x="667" y="172">chooses next action</tspan>
+    </text>
+
+    <rect class="box" x="872" y="190" width="264" height="98" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="1004" y="231">structured action map</tspan>
+      <tspan x="1004" y="263">fill / click / stop</tspan>
+    </text>
+
+    <rect class="box" x="878" y="752" width="266" height="110" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="1011" y="791">frontend guard</tspan>
+      <tspan x="1011" y="823">click verdict /</tspan>
+      <tspan x="1011" y="855">invalid action check</tspan>
+    </text>
+
+    <rect class="box" x="526" y="836" width="282" height="104" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="667" y="877">backend state check</tspan>
+      <tspan x="667" y="909">+ return payload</tspan>
+    </text>
+
+    <rect class="box" x="166" y="752" width="282" height="104" rx="13"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="307" y="794">new visible HTML</tspan>
+      <tspan x="307" y="826">or legitimate stop</tspan>
+    </text>
+  </g>
+
+  <!-- Center trace database -->
+  <g id="trace-database">
+    <text class="evidence-label" text-anchor="middle" x="667" y="360">DETERMINISTIC LEDGER / EVIDENCE STORE</text>
+    <rect class="center-box" x="478" y="378" width="378" height="316" rx="15"/>
+    <text class="ledger-title" text-anchor="middle" x="667" y="426">TRACE DATABASE</text>
+    <text class="small" text-anchor="middle" x="667" y="454">append-only evidence, not planner</text>
+
+    <line class="ledger-hair" x1="500" y1="480" x2="834" y2="480"/>
+    <text class="ledger-row" x="516" y="507">what the model saw</text>
+    <line class="ledger-hair" x1="500" y1="518" x2="834" y2="518"/>
+    <text class="ledger-row" x="516" y="544">what it chose</text>
+    <line class="ledger-hair" x1="500" y1="555" x2="834" y2="555"/>
+    <text class="ledger-row" x="516" y="581">how the frontend interpreted it</text>
+    <line class="ledger-hair" x1="500" y1="592" x2="834" y2="592"/>
+    <text class="ledger-row" x="516" y="618">what the backend returned</text>
+    <line class="ledger-hair" x1="500" y1="629" x2="834" y2="629"/>
+    <text class="ledger-row" x="516" y="655">where the chain broke</text>
+    <line class="ledger-hair" x1="500" y1="666" x2="834" y2="666"/>
+    <text class="ledger-row" x="516" y="688">why it stopped</text>
+  </g>
+
+  <!-- Failure chips -->
+  <g id="failure-chips">
+    <rect class="chip" x="307" y="351" width="127" height="38" rx="19"/>
+    <text class="chip-text" text-anchor="middle" x="370.5" y="375">wrong click</text>
+
+    <rect class="chip" x="886" y="351" width="118" height="38" rx="19"/>
+    <text class="chip-text" text-anchor="middle" x="945" y="375">early stop</text>
+
+    <rect class="chip" x="297" y="670" width="138" height="38" rx="19"/>
+    <text class="chip-text" text-anchor="middle" x="366" y="694">invalid branch</text>
+
+    <rect class="chip" x="884" y="670" width="117" height="38" rx="19"/>
+    <text class="chip-text" text-anchor="middle" x="942.5" y="694">slow path</text>
+  </g>
+
+  <!-- Right-side agent and correction boxes -->
+  <g id="debugging-boxes">
+    <rect class="purple-box" x="1158" y="342" width="260" height="162" rx="13"/>
+    <text class="debug-text" text-anchor="middle">
+      <tspan x="1288" y="383">me + coding agent</tspan>
+      <tspan x="1288" y="415">inspect trace</tspan>
+      <tspan x="1288" y="447">explain failure</tspan>
+      <tspan x="1288" y="479">propose correction</tspan>
+    </text>
+
+    <rect class="purple-box" x="1158" y="626" width="260" height="132" rx="13"/>
+    <text class="debug-text" text-anchor="middle">
+      <tspan x="1285" y="664">correction</tspan>
+      <tspan x="1285" y="696">prompt / schema / guard</tspan>
+      <tspan x="1285" y="728">backend / refactor</tspan>
+    </text>
+  </g>
+</svg>

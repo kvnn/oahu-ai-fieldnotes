@@ -1,0 +1,138 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Agent Orchestration — Web Workbench</title>
+  <desc id="desc">A vector infographic showing web workbench orchestration: browser sessions attach to durable workflow identity through a dispatch broker; replaceable sealed runtime containers receive init configuration, use scoped tools and hooks, write artifacts outside model context, and support both open-ended Claude SDK sessions and typed graph workflows.</desc>
+
+  <style>
+    text{font-family:"Courier New",Courier,monospace;fill:#1d1835;font-weight:500}
+    .title{font-size:34px;letter-spacing:4px;font-weight:700}
+    .sub{font-size:14px;letter-spacing:.55px;fill:#6d5a91;font-weight:700}
+    .box{fill:#f5ecd9;stroke:#1d1835;stroke-width:3.1}
+    .panel{fill:#f2e8d4;stroke:#1d1835;stroke-width:3.2}
+    .purple-box{fill:#f5ecd9;stroke:#9b79c6;stroke-width:3.2}
+    .inner{fill:none;stroke:#bdb49f;stroke-width:1.7}
+    .arrow{fill:none;stroke:#1d1835;stroke-width:4.8;stroke-linecap:round;stroke-linejoin:round}
+    .parrow{fill:none;stroke:#9b79c6;stroke-width:3.7;stroke-linecap:round;stroke-linejoin:round}
+    .thin{fill:none;stroke:#9c9787;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+    .head{font-size:18px;letter-spacing:.5px;font-weight:700}
+    .txt{font-size:15px;letter-spacing:.3px}
+    .sm{font-size:13px;letter-spacing:.25px}
+    .micro{font-size:12px;letter-spacing:.35px}
+    .chip{fill:#f5ecd9;stroke:#9b79c6;stroke-width:2}
+    .chiptext{font-size:13px;letter-spacing:.25px}
+    .label{font-size:13px;fill:#6d5a91;letter-spacing:.65px;font-weight:700}
+  </style>
+
+  <defs>
+    <marker id="ad" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="20" markerHeight="20" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#1d1835"/></marker>
+    <marker id="ap" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="18" markerHeight="18" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9b79c6"/></marker>
+    <marker id="at" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9c9787"/></marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+ <!-- <text class="title" x="40" y="66">AGENT ORCHESTRATION — WEB WORKBENCH</text> -->
+  <text class="sub" x="43" y="96">the workflow is durable; the runtime is replaceable; the human still defines good</text>
+
+  <!-- Browser workbench -->
+  <g id="browser-workbench">
+    <rect class="purple-box" x="48" y="138" width="300" height="184" rx="16"/>
+    <text class="head" text-anchor="middle" x="198" y="178">BROWSER WORKBENCH</text>
+    <text class="txt" text-anchor="middle"><tspan x="198" y="209">human enters / steers</tspan><tspan x="198" y="238">interrupts / resumes</tspan><tspan x="198" y="267">inspects artifacts</tspan><tspan x="198" y="296">approves decisions</tspan></text>
+
+    <rect class="chip" x="70" y="346" width="128" height="38" rx="19"/>
+    <text class="chiptext" text-anchor="middle" x="134" y="370">active writer</text>
+    <rect class="chip" x="214" y="346" width="130" height="38" rx="19"/>
+    <text class="chiptext" text-anchor="middle" x="279" y="370">read-only tabs</text>
+  </g>
+
+  <!-- Dispatch broker -->
+  <g id="dispatch-broker">
+    <rect class="panel" x="416" y="150" width="388" height="320" rx="18"/>
+    <text class="head" text-anchor="middle" x="610" y="190">DISPATCH BROKER</text>
+    <text class="sm" text-anchor="middle"><tspan x="610" y="212">control plane</tspan><tspan x="610" y="233">traffic controller + record keeper</tspan></text>
+
+    <rect class="inner" x="446" y="246" width="328" height="50" rx="9"/>
+    <text class="sm" x="466" y="276">workflow identity + reconnect state</text>
+    <rect class="inner" x="446" y="306" width="328" height="50" rx="9"/>
+    <text class="sm" x="466" y="336">chat history + runtime metadata</text>
+    <rect class="inner" x="446" y="366" width="328" height="50" rx="9"/>
+    <text class="sm" x="466" y="396">single-writer attachment control</text>
+    <text class="label" text-anchor="middle" x="610" y="445">dispatch does not think</text>
+  </g>
+
+  <path class="parrow" marker-end="url(#ap)" d="M348 230H408"/>
+  <text class="label" x="360" y="210">websocket</text>
+
+  <!-- Durable state below dispatch -->
+  <g id="durable-state">
+    <rect class="box" x="418" y="510" width="180" height="144" rx="14"/>
+    <text class="head" text-anchor="middle" x="508" y="548">DATABASE</text>
+    <text class="sm" text-anchor="middle"><tspan x="508" y="578">workflow state</tspan><tspan x="508" y="606">settings / events</tspan><tspan x="508" y="634">history / metadata</tspan></text>
+
+    <rect class="box" x="625" y="510" width="180" height="144" rx="14"/>
+    <text class="head" text-anchor="middle" x="715" y="548">ARTIFACTS</text>
+    <text class="sm" text-anchor="middle"><tspan x="715" y="578">/workspace</tspan><tspan x="715" y="606">/resources</tspan><tspan x="715" y="634">browse / download</tspan></text>
+
+    <path class="thin" marker-end="url(#at)" d="M545 470V502"/>
+    <path class="thin" marker-end="url(#at)" d="M685 470V502"/>
+  </g>
+
+  <!-- Spawner and runtime -->
+  <g id="spawner-runtime">
+    <rect class="box" x="870" y="150" width="220" height="120" rx="14"/>
+    <text class="head" text-anchor="middle" x="980" y="188">SPAWNER</text>
+    <text class="txt" text-anchor="middle"><tspan x="980" y="220">Docker local</tspan><tspan x="980" y="249">Kubernetes cloud</tspan></text>
+
+    <rect class="panel" x="878" y="330" width="520" height="340" rx="18"/>
+    <text class="head" text-anchor="middle" x="1138" y="370">SEALED RUNTIME CONTAINER</text>
+    <text class="sm" text-anchor="middle"><tspan x="1138" y="394">prebuilt environment</tspan><tspan x="1138" y="416">no package management at runtime</tspan></text>
+
+    <rect class="inner" x="908" y="426" width="215" height="92" rx="10"/>
+    <text class="sm" text-anchor="middle"><tspan x="1015" y="456">workflow/user/project id</tspan><tspan x="1015" y="482">agent token</tspan><tspan x="1015" y="508">workspace root</tspan></text>
+
+    <rect class="inner" x="1152" y="426" width="215" height="92" rx="10"/>
+    <text class="sm" text-anchor="middle"><tspan x="1260" y="456">secrets scope</tspan><tspan x="1260" y="482">budget + profile</tspan><tspan x="1260" y="508">tracing config</tspan></text>
+
+    <rect class="purple-box" x="908" y="546" width="459" height="88" rx="12"/>
+    <text class="head" text-anchor="middle" x="1138" y="580">init_config handoff</text>
+    <text class="sm" text-anchor="middle"><tspan x="1138" y="605">model • fallback • prompt pack • commands • sub-agents</tspan><tspan x="1138" y="626">MCP • files • prior conversation history</tspan></text>
+
+    <path class="arrow" marker-end="url(#ad)" d="M804 305 C832 305 852 250 862 220"/>
+    <path class="arrow" marker-end="url(#ad)" d="M980 270V322"/>
+    <path class="parrow" marker-end="url(#ap)" d="M804 390 C842 450 866 520 902 590"/>
+  </g>
+
+  <!-- Runtime execution paths -->
+  <g id="execution-paths">
+    <rect class="box" x="90" y="728" width="360" height="190" rx="16"/>
+    <text class="head" text-anchor="middle" x="270" y="768">CLAUDE SDK PATH</text>
+    <text class="sm" text-anchor="middle"><tspan x="270" y="800">open-ended work</tspan><tspan x="270" y="827">research • code • SQL • docs</tspan><tspan x="270" y="854">sub-agent roles</tspan><tspan x="270" y="881">interrupts + human steering</tspan></text>
+
+    <rect class="box" x="515" y="728" width="388" height="190" rx="16"/>
+    <text class="head" text-anchor="middle" x="709" y="768">SCOPED CAPABILITY</text>
+    <text class="sm" text-anchor="middle"><tspan x="709" y="800">profiles decide what is allowed</tspan><tspan x="709" y="827">agent markdown defines roles</tspan><tspan x="709" y="854">tools do the work</tspan><tspan x="709" y="881">hooks convert proposal into allowed action</tspan></text>
+
+    <rect class="box" x="970" y="728" width="382" height="190" rx="16"/>
+    <text class="head" text-anchor="middle" x="1161" y="768">TYPED GRAPH PATH</text>
+    <text class="sm" text-anchor="middle"><tspan x="1161" y="800">known workflow shape</tspan><tspan x="1161" y="827">load → specialists → join → synthesize</tspan><tspan x="1161" y="854">schemas + retries + structured outputs</tspan><tspan x="1161" y="881">DBOS checkpoints for durability</tspan></text>
+
+    <path class="thin" marker-end="url(#at)" d="M1138 670 C1100 710 990 720 904 742"/>
+    <path class="thin" marker-end="url(#at)" d="M1015 670 C880 710 690 711 708 728"/>
+    <path class="thin" marker-end="url(#at)" d="M928 660 C620 665 400 715 270 728"/>
+  </g>
+
+  <!-- Hooks as guardrails -->
+  <g id="hooks-guardrails">
+    <rect class="purple-box" x="940" y="950" width="430" height="96" rx="14"/>
+    <text class="head" text-anchor="middle" x="1161" y="986">HOOKS ARE GUARDRAILS</text>
+    <text class="sm" text-anchor="middle"><tspan x="1161" y="1010">block dangerous commands • route AskUserQuestion</tspan><tspan x="1161" y="1032">log status • warn budget • preserve trace material</tspan></text>
+    <path class="parrow" marker-end="url(#ap)" d="M1161 918V942"/>
+  </g>
+
+  <!-- Core principle chips -->
+  <g id="principle-chips">
+    <rect class="chip" x="56" y="964" width="350" height="42" rx="21"/>
+    <text class="chiptext" text-anchor="middle" x="231" y="990">agent = choreography, not chat ghost</text>
+    <rect class="chip" x="430" y="964" width="400" height="42" rx="21"/>
+    <text class="chiptext" text-anchor="middle" x="630" y="990">large artifacts live outside model context</text>
+  </g>
+</svg>

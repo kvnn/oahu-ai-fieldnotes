@@ -1,0 +1,188 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1448" height="1086" viewBox="0 0 1448 1086" role="img" aria-labelledby="title desc">
+  <title id="title">Pattern Two — The Eval Harness Loop</title>
+  <desc id="desc">A vector infographic showing how prior experience is curated into eval cases, grouped into suites, run against a system version, recorded as results, and then fed back into repairs and new reusable tests.</desc>
+
+  <style>
+    text{font-family:"Courier New", Courier, monospace; fill:#1d1835; font-weight:500;}
+    .title{font-size:34px; letter-spacing:4px; font-weight:700;}
+    .box-text{font-size:16px; letter-spacing:.35px;}
+    .box-head{font-size:18px; letter-spacing:.45px; font-weight:700;}
+    .small{font-size:13px; letter-spacing:.45px;}
+    .tiny{font-size:12px; letter-spacing:.55px;}
+    .ledger-title{font-size:30px; letter-spacing:2px; font-weight:700;}
+    .object-head{font-size:15px; letter-spacing:1px; font-weight:700; fill:#6d5a91;}
+    .object-text{font-size:13px; letter-spacing:.2px;}
+    .box{fill:#f5ecd9; stroke:#1d1835; stroke-width:3.2;}
+    .center-box{fill:#f2e8d4; stroke:#1d1835; stroke-width:3.2;}
+    .inner-card{fill:none; stroke:#bdb49f; stroke-width:1.8;}
+    .main-loop{fill:none; stroke:#1d1835; stroke-width:7; stroke-linecap:round; stroke-linejoin:round;}
+    .thin-spoke{fill:none; stroke:#9c9787; stroke-width:1.9; stroke-linecap:round;}
+    .purple{fill:none; stroke:#9b79c6; stroke-width:3.6; stroke-linecap:round; stroke-linejoin:round;}
+    .purple-box{fill:#f5ecd9; stroke:#9b79c6; stroke-width:3.2;}
+    .chip{fill:#f5ecd9; stroke:#9b79c6; stroke-width:2.1;}
+    .chip-text{font-size:13px; fill:#1d1835; letter-spacing:.25px;}
+    .label-purple{font-size:13px; fill:#6d5a91; letter-spacing:.65px; font-weight:700;}
+  </style>
+
+  <defs>
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="28" markerHeight="28" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#1d1835"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="22" markerHeight="22" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9b79c6"/>
+    </marker>
+    <marker id="arrow-thin" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#9c9787"/>
+    </marker>
+  </defs>
+
+  <rect width="1448" height="1086" fill="#efe6d4"/>
+
+  <!-- Title -->
+  <!-- <text class="title" x="40" y="66">PATTERN TWO — THE EVAL HARNESS LOOP</text> -->
+
+  <!-- Main dark loop: experience becomes tests, tests become results, results feed repair. -->
+  <g id="main-loop">
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 386 205 C 424 154 477 128 518 134"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 740 140 C 800 146 846 166 884 200"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1112 290 C 1185 344 1215 389 1202 435"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 1178 565 C 1147 665 1105 735 1056 803"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 760 902 C 705 918 662 918 612 900"/>
+    <path class="main-loop" marker-end="url(#arrow-dark)" d="M 274 805 C 167 668 148 490 198 350"/>
+  </g>
+
+  <!-- Thin evidence spokes into the central harness store. -->
+  <g id="evidence-spokes">
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 408 326 L 473 397"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 617 217 L 620 322"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 900 289 L 842 356"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 1030 436 L 933 462"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 851 805 L 815 750"/>
+    <path class="thin-spoke" marker-end="url(#arrow-thin)" d="M 570 804 L 608 750"/>
+  </g>
+
+  <!-- Purple reviewer feedback loop: quiet failures become rubric and case updates. -->
+  <g id="reviewer-loop">
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 1090 840 C 1160 820 1192 782 1205 735"/>
+    <path class="purple" marker-end="url(#arrow-purple)" d="M 1190 640 C 1055 585 990 530 933 492"/>
+  </g>
+
+  <!-- Outer process nodes -->
+  <g id="process-nodes">
+    <g id="prior-experience">
+      <rect class="box" x="76" y="195" width="332" height="168" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="242" y="233">prior experience</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="242" y="263">production traces</tspan>
+        <tspan x="242" y="292">reviewed outputs</tspan>
+        <tspan x="242" y="321">rejected + approved examples</tspan>
+        <tspan x="242" y="350">edge cases • tickets • notes</tspan>
+      </text>
+    </g>
+
+    <g id="curate-cases">
+      <rect class="box" x="518" y="105" width="310" height="112" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="673" y="146">curate eval cases</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="673" y="177">fixture / reference</tspan>
+        <tspan x="673" y="205">rubric / tags / status</tspan>
+      </text>
+    </g>
+
+    <g id="assemble-suites">
+      <rect class="box" x="884" y="185" width="312" height="112" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1040" y="226">assemble suites</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1040" y="257">group cases by slice</tspan>
+        <tspan x="1040" y="285">regression / holdout</tspan>
+      </text>
+    </g>
+
+    <g id="eval-run">
+      <rect class="box" x="1030" y="435" width="318" height="132" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="1189" y="475">eval run</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="1189" y="505">test one system version</tspan>
+        <tspan x="1189" y="535">model / prompt / tools</tspan>
+        <tspan x="1189" y="563">code / data</tspan>
+      </text>
+    </g>
+
+    <g id="eval-results">
+      <rect class="box" x="760" y="805" width="336" height="132" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="928" y="845">eval results</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="928" y="875">score + pass/fail</tspan>
+        <tspan x="928" y="905">rationale + artifact</tspan>
+        <tspan x="928" y="933">trace link</tspan>
+      </text>
+    </g>
+
+    <g id="repair-preserve">
+      <rect class="box" x="250" y="800" width="362" height="142" rx="14"/>
+      <text class="box-head" text-anchor="middle" x="431" y="842">repair + preserve</text>
+      <text class="box-text" text-anchor="middle">
+        <tspan x="431" y="872">patch the system</tspan>
+        <tspan x="431" y="902">promote failure to case</tspan>
+        <tspan x="431" y="930">rerun the suite</tspan>
+      </text>
+    </g>
+  </g>
+
+  <!-- Center harness / durable object store -->
+  <g id="eval-harness">
+    <rect class="center-box" x="470" y="322" width="466" height="430" rx="16"/>
+    <text class="ledger-title" text-anchor="middle" x="703" y="370">EVAL HARNESS</text>
+    <text class="small" text-anchor="middle" x="703" y="397">prior experience preserved as runnable tests</text>
+
+    <rect class="inner-card" x="496" y="420" width="414" height="72" rx="9"/>
+    <text class="object-head" x="516" y="445">EVAL CASES</text>
+    <text class="object-text" x="516" y="468">task type • fixture • source trace</text>
+    <text class="object-text" x="516" y="488">reference / rubric • tags • status</text>
+
+    <rect class="inner-card" x="496" y="505" width="414" height="72" rx="9"/>
+    <text class="object-head" x="516" y="530">EVAL SUITES</text>
+    <text class="object-text" x="516" y="553">meaningful slices and holdouts</text>
+    <text class="object-text" x="516" y="573">form • graph • citation • synthesis</text>
+
+    <rect class="inner-card" x="496" y="590" width="414" height="72" rx="9"/>
+    <text class="object-head" x="516" y="615">EVAL RUNS</text>
+    <text class="object-text" x="516" y="638">model • prompt hash • tools • commit</text>
+    <text class="object-text" x="516" y="658">dataset • cost • tokens • pass rate</text>
+
+    <rect class="inner-card" x="496" y="675" width="414" height="68" rx="9"/>
+    <text class="object-head" x="516" y="699">EVAL RESULTS</text>
+    <text class="object-text" x="516" y="719">score • pass/fail • rationale</text>
+    <text class="object-text" x="516" y="736">evaluator • artifact • trace link</text>
+  </g>
+
+  <!-- Quiet failure chips -->
+  <g id="quiet-failures">
+    <text class="label-purple" x="950" y="611">QUIET FAILURE SIGNALS</text>
+
+    <rect class="chip" x="948" y="628" width="76" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="986" y="651">drift</text>
+
+    <rect class="chip" x="1038" y="628" width="144" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1110" y="651">overconfidence</text>
+
+    <rect class="chip" x="948" y="674" width="160" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1028" y="697">flattened meaning</text>
+
+    <rect class="chip" x="948" y="720" width="158" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1027" y="743">hidden regression</text>
+
+    <rect class="chip" x="948" y="766" width="136" height="36" rx="18"/>
+    <text class="chip-text" text-anchor="middle" x="1016" y="789">local tradeoff</text>
+  </g>
+
+  <!-- Reviewer box for subjective but recorded assessment -->
+  <g id="reviewer-judgment">
+    <rect class="purple-box" x="1190" y="596" width="230" height="138" rx="14"/>
+    <text class="box-text" text-anchor="middle">
+      <tspan x="1305" y="636">reviewer judgment</tspan>
+      <tspan x="1305" y="668">inspect outputs</tspan>
+      <tspan x="1305" y="700">write rationale</tspan>
+    </text>
+  </g>
+</svg>
