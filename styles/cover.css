@@ -80,6 +80,29 @@ body {
   );
 }
 
+.cover-spine {
+  position: relative;
+  overflow: hidden;
+}
+
+.cover-spine-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7.55in;
+  margin: 0;
+  color: var(--cover-cream);
+  font-family: var(--mono);
+  font-size: 5.4pt;
+  line-height: 1;
+  letter-spacing: 0.09em;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translate(-50%, -50%) rotate(90deg);
+  transform-origin: center;
+}
+
 .cover-panel {
   position: relative;
   padding: 0.54in 0.5in 0.55in;

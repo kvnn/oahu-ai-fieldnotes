@@ -23,6 +23,8 @@ COVER_TRIM_SIZE = "11.18in,8.5in"
 COVER_SPINE_WIDTH = "0.18in"
 INTERIOR_PAGE_TARGET = 68
 BOOK_OUTPUT_FILE_STEM = "oahu-ai-field-notes"
+UPLOAD_COVER_FILE = f"01_{BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf"
+UPLOAD_INTERIOR_FILE = f"02_{BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf"
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
     "paper": {
@@ -182,15 +184,11 @@ def print_build_id(now: datetime | None = None) -> str:
 
 
 def cover_output_path(build_id: str | None = None) -> Path:
-    if build_id:
-        return Path(f"dist/{BOOK_OUTPUT_FILE_STEM}-{build_id}-cover.pdf")
-    return Path("dist/cover.pdf")
+    return Path(f"dist/{UPLOAD_COVER_FILE}")
 
 
 def interior_output_path(build_id: str | None = None) -> Path:
-    if build_id:
-        return Path(f"dist/{BOOK_OUTPUT_FILE_STEM}-{build_id}-interior.pdf")
-    return Path("dist/interior.pdf")
+    return Path(f"dist/{UPLOAD_INTERIOR_FILE}")
 
 
 def print_output_paths(build_id: str) -> dict[str, Path]:

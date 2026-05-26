@@ -76,7 +76,10 @@ const html = `<!doctype html>
         <p class="cover-back-mark">O'AHU A.I. FIELD NOTES</p>
         <p class="cover-back-symbol">&oplus;</p>
       </section>
-      <section class="cover-spine" aria-label="Spine"></section>
+      <section class="cover-spine" aria-label="Spine">
+        <p class="cover-spine-title">
+        </p>
+      </section>
       <section class="cover-panel cover-front" aria-label="Front cover">
         <header class="cover-topline">
           <span>O'AHU A.I.</span>

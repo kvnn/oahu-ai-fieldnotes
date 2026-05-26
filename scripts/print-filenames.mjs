@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 export const BOOK_OUTPUT_TITLE = 'Oahu AI Field Notes';
 export const BOOK_OUTPUT_FILE_STEM = 'oahu-ai-field-notes';
 export const PRINT_BUILD_ID_ENV = 'FIELDNOTES_PRINT_BUILD_ID';
+export const UPLOAD_COVER_FILE = `01_${BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf`;
+export const UPLOAD_INTERIOR_FILE = `02_${BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf`;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -25,8 +27,8 @@ export function printBuildId(env = process.env) {
 
 export function printOutputPaths(buildId = printBuildId()) {
   return {
-    cover: `dist/${BOOK_OUTPUT_FILE_STEM}-${buildId}-cover.pdf`,
-    interior: `dist/${BOOK_OUTPUT_FILE_STEM}-${buildId}-interior.pdf`,
+    cover: `dist/${UPLOAD_COVER_FILE}`,
+    interior: `dist/${UPLOAD_INTERIOR_FILE}`,
   };
 }
 
