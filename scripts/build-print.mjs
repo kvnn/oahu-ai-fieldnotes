@@ -21,7 +21,7 @@ function writeManifest(extra = {}) {
 
 writeManifest({ status: 'started' });
 
-for (const scriptName of ['build:cover', 'build:flatten-cover', 'build:interior']) {
+for (const scriptName of ['build:cover', 'build:flatten-cover', 'build:interior', 'build:flatten-interior']) {
   execFileSync('npm', ['run', scriptName], {
     env,
     stdio: 'inherit',
@@ -38,5 +38,6 @@ console.log(
     manifest.outputPaths.coverBack,
     manifest.outputPaths.coverSpine,
     manifest.outputPaths.interior,
+    manifest.outputPaths.interiorFlattened,
   ].join(' '),
 );

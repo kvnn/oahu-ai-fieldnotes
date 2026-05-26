@@ -27,6 +27,7 @@ UPLOAD_COVER_FRONT_FILE = f"01_{BOOK_OUTPUT_FILE_STEM}_outer-front-cover.pdf"
 UPLOAD_COVER_BACK_FILE = f"02_{BOOK_OUTPUT_FILE_STEM}_outer-back-cover.pdf"
 UPLOAD_COVER_SPINE_FILE = f"03_{BOOK_OUTPUT_FILE_STEM}_spine.pdf"
 UPLOAD_INTERIOR_FILE = f"04_{BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf"
+FLATTENED_INTERIOR_FILE = f"04_{BOOK_OUTPUT_FILE_STEM}_inner-pages_flattened.pdf"
 SOURCE_COVER_FILE = f"source_{BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf"
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
@@ -210,6 +211,10 @@ def interior_output_path(build_id: str | None = None) -> Path:
     return Path(f"dist/{UPLOAD_INTERIOR_FILE}")
 
 
+def interior_flattened_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{FLATTENED_INTERIOR_FILE}")
+
+
 def print_output_paths(build_id: str) -> dict[str, Path]:
     return {
         "cover_source": cover_source_output_path(build_id),
@@ -218,4 +223,5 @@ def print_output_paths(build_id: str) -> dict[str, Path]:
         "cover_spine": cover_spine_output_path(build_id),
         "cover": cover_output_path(build_id),
         "interior": interior_output_path(build_id),
+        "interior_flattened": interior_flattened_output_path(build_id),
     }

@@ -6,7 +6,10 @@ const DEFAULT_COVER_FRONT_PATH = 'dist/01_oahu-ai-field-notes_outer-front-cover.
 const DEFAULT_COVER_BACK_PATH = 'dist/02_oahu-ai-field-notes_outer-back-cover.pdf';
 const DEFAULT_COVER_SPINE_PATH = 'dist/03_oahu-ai-field-notes_spine.pdf';
 const DEFAULT_INTERIOR_PATH = 'dist/04_oahu-ai-field-notes_inner-pages.pdf';
+const DEFAULT_FLATTENED_INTERIOR_PATH = 'dist/04_oahu-ai-field-notes_inner-pages_flattened.pdf';
 const EXPECTED_INTERIOR_PAGES = 68;
+const EXPECTED_INTERIOR_WIDTH_PT = 414.72;
+const EXPECTED_INTERIOR_HEIGHT_PT = 630.72;
 const EXPECTED_COVER_PANEL_WIDTH_PT = 414.72;
 const EXPECTED_COVER_SPINE_WIDTH_PT = 12.96;
 const EXPECTED_COVER_HEIGHT_PT = 630.72;
@@ -20,6 +23,7 @@ function printOutputPaths() {
       coverBack: DEFAULT_COVER_BACK_PATH,
       coverSpine: DEFAULT_COVER_SPINE_PATH,
       coverSource: null,
+      interiorFlattened: DEFAULT_FLATTENED_INTERIOR_PATH,
     };
   }
   const manifest = JSON.parse(readFileSync(PRINT_BUILD_MANIFEST, 'utf8'));
@@ -29,6 +33,7 @@ function printOutputPaths() {
     coverBack: manifest.outputPaths?.coverBack || DEFAULT_COVER_BACK_PATH,
     coverSpine: manifest.outputPaths?.coverSpine || DEFAULT_COVER_SPINE_PATH,
     coverSource: manifest.outputPaths?.coverSource || null,
+    interiorFlattened: manifest.outputPaths?.interiorFlattened || DEFAULT_FLATTENED_INTERIOR_PATH,
   };
 }
 
@@ -38,6 +43,7 @@ const {
   coverBack: COVER_BACK_PATH,
   coverSpine: COVER_SPINE_PATH,
   coverSource: COVER_SOURCE_PATH,
+  interiorFlattened: INTERIOR_FLATTENED_PATH,
 } = printOutputPaths();
 
 function run(command, args) {
@@ -116,30 +122,36 @@ function assertDisplayFontEmbedded(path) {
   }
 }
 
-function assertFlattenedCover(path) {
+function assertNoTransparencyMarkers(path) {
   const bytes = readFileSync(path);
   const text = bytes.toString('latin1');
   for (const marker of ['/SMask', '/Transparency', '/OCProperties', '/OCG']) {
     if (text.includes(marker)) {
-      fail(`${path} still contains ${marker}; cover is not fully flattened`);
+      fail(`${path} still contains ${marker}; PDF is not fully flattened`);
     }
   }
 }
 
 function assertCoverImagePpi(path) {
+  assertFlattenedImagePpi(path, 1);
+}
+
+function assertFlattenedImagePpi(path, expectedImageCount) {
   const images = run('pdfimages', ['-list', path]);
   const imageRows = images
     .split('\n')
     .filter((line) => /^\s*\d+\s+\d+\s+image\s+/.test(line));
-  if (imageRows.length !== 1) {
-    fail(`${path} should contain exactly one flattened image; found ${imageRows.length}`);
+  if (imageRows.length !== expectedImageCount) {
+    fail(`${path} should contain ${expectedImageCount} flattened images; found ${imageRows.length}`);
     return;
   }
-  const parts = imageRows[0].trim().split(/\s+/);
-  const xPpi = Number(parts[12]);
-  const yPpi = Number(parts[13]);
-  if (xPpi < 300 || yPpi < 300) {
-    fail(`${path} flattened cover image is ${xPpi} x ${yPpi} ppi; expected at least 300`);
+  for (const row of imageRows) {
+    const parts = row.trim().split(/\s+/);
+    const xPpi = Number(parts[12]);
+    const yPpi = Number(parts[13]);
+    if (xPpi < 300 || yPpi < 300) {
+      fail(`${path} flattened image is ${xPpi} x ${yPpi} ppi; expected at least 300`);
+    }
   }
 }
 
@@ -156,13 +168,22 @@ const coverParts = [
 
 for (const [path, expectedWidth, expectedHeight] of coverParts) {
   assertPdfSize(path, expectedWidth, expectedHeight);
-  assertFlattenedCover(path);
+  assertNoTransparencyMarkers(path);
   assertCoverImagePpi(path);
   assertPdfx4(path);
 }
 assertDisplayFontEmbedded(INTERIOR_PATH);
 if (COVER_SOURCE_PATH && existsSync(COVER_SOURCE_PATH)) {
   assertDisplayFontEmbedded(COVER_SOURCE_PATH);
+}
+if (INTERIOR_FLATTENED_PATH && existsSync(INTERIOR_FLATTENED_PATH)) {
+  const flattenedPages = pageCount(INTERIOR_FLATTENED_PATH);
+  if (flattenedPages !== pages) {
+    fail(`${INTERIOR_FLATTENED_PATH} has ${flattenedPages} pages; expected ${pages}`);
+  }
+  assertPdfSize(INTERIOR_FLATTENED_PATH, EXPECTED_INTERIOR_WIDTH_PT, EXPECTED_INTERIOR_HEIGHT_PT);
+  assertNoTransparencyMarkers(INTERIOR_FLATTENED_PATH);
+  assertFlattenedImagePpi(INTERIOR_FLATTENED_PATH, flattenedPages);
 }
 assertPdfx4(INTERIOR_PATH);
 
