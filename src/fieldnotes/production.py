@@ -23,8 +23,11 @@ COVER_TRIM_SIZE = "11.18in,8.5in"
 COVER_SPINE_WIDTH = "0.18in"
 INTERIOR_PAGE_TARGET = 68
 BOOK_OUTPUT_FILE_STEM = "oahu-ai-field-notes"
-UPLOAD_COVER_FILE = f"01_{BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf"
-UPLOAD_INTERIOR_FILE = f"02_{BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf"
+UPLOAD_COVER_FRONT_FILE = f"01_{BOOK_OUTPUT_FILE_STEM}_outer-front-cover.pdf"
+UPLOAD_COVER_BACK_FILE = f"02_{BOOK_OUTPUT_FILE_STEM}_outer-back-cover.pdf"
+UPLOAD_COVER_SPINE_FILE = f"03_{BOOK_OUTPUT_FILE_STEM}_spine.pdf"
+UPLOAD_INTERIOR_FILE = f"04_{BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf"
+SOURCE_COVER_FILE = f"source_{BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf"
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
     "paper": {
@@ -184,7 +187,23 @@ def print_build_id(now: datetime | None = None) -> str:
 
 
 def cover_output_path(build_id: str | None = None) -> Path:
-    return Path(f"dist/{UPLOAD_COVER_FILE}")
+    return cover_front_output_path(build_id)
+
+
+def cover_front_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{UPLOAD_COVER_FRONT_FILE}")
+
+
+def cover_back_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{UPLOAD_COVER_BACK_FILE}")
+
+
+def cover_spine_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{UPLOAD_COVER_SPINE_FILE}")
+
+
+def cover_source_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{SOURCE_COVER_FILE}")
 
 
 def interior_output_path(build_id: str | None = None) -> Path:
@@ -193,6 +212,10 @@ def interior_output_path(build_id: str | None = None) -> Path:
 
 def print_output_paths(build_id: str) -> dict[str, Path]:
     return {
+        "cover_source": cover_source_output_path(build_id),
+        "cover_front": cover_front_output_path(build_id),
+        "cover_back": cover_back_output_path(build_id),
+        "cover_spine": cover_spine_output_path(build_id),
         "cover": cover_output_path(build_id),
         "interior": interior_output_path(build_id),
     }

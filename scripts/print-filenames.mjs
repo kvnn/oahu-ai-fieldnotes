@@ -4,8 +4,11 @@ import { fileURLToPath } from 'node:url';
 export const BOOK_OUTPUT_TITLE = 'Oahu AI Field Notes';
 export const BOOK_OUTPUT_FILE_STEM = 'oahu-ai-field-notes';
 export const PRINT_BUILD_ID_ENV = 'FIELDNOTES_PRINT_BUILD_ID';
-export const UPLOAD_COVER_FILE = `01_${BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf`;
-export const UPLOAD_INTERIOR_FILE = `02_${BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf`;
+export const UPLOAD_COVER_FRONT_FILE = `01_${BOOK_OUTPUT_FILE_STEM}_outer-front-cover.pdf`;
+export const UPLOAD_COVER_BACK_FILE = `02_${BOOK_OUTPUT_FILE_STEM}_outer-back-cover.pdf`;
+export const UPLOAD_COVER_SPINE_FILE = `03_${BOOK_OUTPUT_FILE_STEM}_spine.pdf`;
+export const UPLOAD_INTERIOR_FILE = `04_${BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf`;
+export const SOURCE_COVER_FILE = `source_${BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf`;
 
 function pad(value) {
   return String(value).padStart(2, '0');
@@ -27,7 +30,11 @@ export function printBuildId(env = process.env) {
 
 export function printOutputPaths(buildId = printBuildId()) {
   return {
-    cover: `dist/${UPLOAD_COVER_FILE}`,
+    coverSource: `dist/${SOURCE_COVER_FILE}`,
+    cover: `dist/${UPLOAD_COVER_FRONT_FILE}`,
+    coverFront: `dist/${UPLOAD_COVER_FRONT_FILE}`,
+    coverBack: `dist/${UPLOAD_COVER_BACK_FILE}`,
+    coverSpine: `dist/${UPLOAD_COVER_SPINE_FILE}`,
     interior: `dist/${UPLOAD_INTERIOR_FILE}`,
   };
 }

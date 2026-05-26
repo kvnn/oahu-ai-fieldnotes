@@ -77,8 +77,7 @@ const html = `<!doctype html>
         <p class="cover-back-symbol">&oplus;</p>
       </section>
       <section class="cover-spine" aria-label="Spine">
-        <p class="cover-spine-title">
-        </p>
+        <p class="cover-spine-title">O'ahu A.I. | Field Notes | Volume 01</p>
       </section>
       <section class="cover-panel cover-front" aria-label="Front cover">
         <header class="cover-topline">

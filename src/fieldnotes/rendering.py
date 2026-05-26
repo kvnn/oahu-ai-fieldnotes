@@ -108,10 +108,7 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
             "print_build_id": build_id,
             "cover_output_path": str(upload_paths["cover"]),
             "interior_output_path": str(upload_paths["interior"]),
-            "output_paths": {
-                "cover": str(upload_paths["cover"]),
-                "interior": str(upload_paths["interior"]),
-            },
+            "output_paths": {key: str(path) for key, path in upload_paths.items()},
             "cover_trim_size": COVER_TRIM_SIZE,
             "cover_spine_width": COVER_SPINE_WIDTH,
             "interior_page_target": INTERIOR_PAGE_TARGET,
@@ -188,10 +185,7 @@ def render_database_book_pdf(
             "print_build_id": build_id,
             "cover_output_path": str(upload_paths["cover"]),
             "interior_output_path": str(upload_paths["interior"]),
-            "output_paths": {
-                "cover": str(upload_paths["cover"]),
-                "interior": str(upload_paths["interior"]),
-            },
+            "output_paths": {key: str(path) for key, path in upload_paths.items()},
             "profile_note": (
                 "Print output is built from the database-compiled manuscript shown "
                 "in the Book Markdown drawer and emitted as separate Mixam cover "

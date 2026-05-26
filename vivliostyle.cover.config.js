@@ -17,7 +17,7 @@ export default {
   ],
   output: [
     {
-      path: printPaths.cover,
+      path: printPaths.coverSource,
       format: 'pdf',
       pdfPostprocess: baseConfig.output[0].pdfPostprocess,
     },

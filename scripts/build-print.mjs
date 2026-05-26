@@ -21,7 +21,7 @@ function writeManifest(extra = {}) {
 
 writeManifest({ status: 'started' });
 
-for (const scriptName of ['build:cover', 'build:interior']) {
+for (const scriptName of ['build:cover', 'build:flatten-cover', 'build:interior']) {
   execFileSync('npm', ['run', scriptName], {
     env,
     stdio: 'inherit',
@@ -31,4 +31,12 @@ for (const scriptName of ['build:cover', 'build:interior']) {
 writeManifest({ status: 'completed', completedAt: new Date().toISOString() });
 
 const manifest = printBuildManifest(buildId);
-console.log(`print outputs: ${manifest.outputPaths.cover} ${manifest.outputPaths.interior}`);
+console.log(
+  [
+    'print outputs:',
+    manifest.outputPaths.coverFront,
+    manifest.outputPaths.coverBack,
+    manifest.outputPaths.coverSpine,
+    manifest.outputPaths.interior,
+  ].join(' '),
+);

@@ -2,10 +2,13 @@ import { existsSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 
 const PRINT_BUILD_MANIFEST = 'dist/print-build.json';
-const DEFAULT_INTERIOR_PATH = 'dist/02_oahu-ai-field-notes_inner-pages.pdf';
-const DEFAULT_COVER_PATH = 'dist/01_oahu-ai-field-notes_front-back-spine-cover.pdf';
+const DEFAULT_COVER_FRONT_PATH = 'dist/01_oahu-ai-field-notes_outer-front-cover.pdf';
+const DEFAULT_COVER_BACK_PATH = 'dist/02_oahu-ai-field-notes_outer-back-cover.pdf';
+const DEFAULT_COVER_SPINE_PATH = 'dist/03_oahu-ai-field-notes_spine.pdf';
+const DEFAULT_INTERIOR_PATH = 'dist/04_oahu-ai-field-notes_inner-pages.pdf';
 const EXPECTED_INTERIOR_PAGES = 68;
-const EXPECTED_COVER_WIDTH_PT = 823.68;
+const EXPECTED_COVER_PANEL_WIDTH_PT = 414.72;
+const EXPECTED_COVER_SPINE_WIDTH_PT = 12.96;
 const EXPECTED_COVER_HEIGHT_PT = 630.72;
 const SIZE_TOLERANCE_PT = 1.2;
 
@@ -13,17 +16,29 @@ function printOutputPaths() {
   if (!existsSync(PRINT_BUILD_MANIFEST)) {
     return {
       interior: DEFAULT_INTERIOR_PATH,
-      cover: DEFAULT_COVER_PATH,
+      coverFront: DEFAULT_COVER_FRONT_PATH,
+      coverBack: DEFAULT_COVER_BACK_PATH,
+      coverSpine: DEFAULT_COVER_SPINE_PATH,
+      coverSource: null,
     };
   }
   const manifest = JSON.parse(readFileSync(PRINT_BUILD_MANIFEST, 'utf8'));
   return {
     interior: manifest.outputPaths?.interior || DEFAULT_INTERIOR_PATH,
-    cover: manifest.outputPaths?.cover || DEFAULT_COVER_PATH,
+    coverFront: manifest.outputPaths?.coverFront || DEFAULT_COVER_FRONT_PATH,
+    coverBack: manifest.outputPaths?.coverBack || DEFAULT_COVER_BACK_PATH,
+    coverSpine: manifest.outputPaths?.coverSpine || DEFAULT_COVER_SPINE_PATH,
+    coverSource: manifest.outputPaths?.coverSource || null,
   };
 }
 
-const { interior: INTERIOR_PATH, cover: COVER_PATH } = printOutputPaths();
+const {
+  interior: INTERIOR_PATH,
+  coverFront: COVER_FRONT_PATH,
+  coverBack: COVER_BACK_PATH,
+  coverSpine: COVER_SPINE_PATH,
+  coverSource: COVER_SOURCE_PATH,
+} = printOutputPaths();
 
 function run(command, args) {
   return execFileSync(command, args, {
@@ -59,7 +74,7 @@ function pageCount(path) {
   return Number(match[1]);
 }
 
-function assertCoverSize(path) {
+function assertPdfSize(path, expectedWidth, expectedHeight) {
   const info = run('pdfinfo', ['-box', path]);
   const match = info.match(/^Page size:\s+([\d.]+) x ([\d.]+) pts/m);
   if (!match) {
@@ -69,12 +84,12 @@ function assertCoverSize(path) {
   const width = Number(match[1]);
   const height = Number(match[2]);
   if (
-    Math.abs(width - EXPECTED_COVER_WIDTH_PT) > SIZE_TOLERANCE_PT ||
-    Math.abs(height - EXPECTED_COVER_HEIGHT_PT) > SIZE_TOLERANCE_PT
+    Math.abs(width - expectedWidth) > SIZE_TOLERANCE_PT ||
+    Math.abs(height - expectedHeight) > SIZE_TOLERANCE_PT
   ) {
     fail(
       `${path} size ${width} x ${height} pts does not match expected ` +
-        `${EXPECTED_COVER_WIDTH_PT} x ${EXPECTED_COVER_HEIGHT_PT} pts`,
+        `${expectedWidth} x ${expectedHeight} pts`,
     );
   }
 }
@@ -101,16 +116,55 @@ function assertDisplayFontEmbedded(path) {
   }
 }
 
+function assertFlattenedCover(path) {
+  const bytes = readFileSync(path);
+  const text = bytes.toString('latin1');
+  for (const marker of ['/SMask', '/Transparency', '/OCProperties', '/OCG']) {
+    if (text.includes(marker)) {
+      fail(`${path} still contains ${marker}; cover is not fully flattened`);
+    }
+  }
+}
+
+function assertCoverImagePpi(path) {
+  const images = run('pdfimages', ['-list', path]);
+  const imageRows = images
+    .split('\n')
+    .filter((line) => /^\s*\d+\s+\d+\s+image\s+/.test(line));
+  if (imageRows.length !== 1) {
+    fail(`${path} should contain exactly one flattened image; found ${imageRows.length}`);
+    return;
+  }
+  const parts = imageRows[0].trim().split(/\s+/);
+  const xPpi = Number(parts[12]);
+  const yPpi = Number(parts[13]);
+  if (xPpi < 300 || yPpi < 300) {
+    fail(`${path} flattened cover image is ${xPpi} x ${yPpi} ppi; expected at least 300`);
+  }
+}
+
 const pages = pageCount(INTERIOR_PATH);
 if (pages !== EXPECTED_INTERIOR_PAGES) {
   warn(`${INTERIOR_PATH} has ${pages} pages; expected ${EXPECTED_INTERIOR_PAGES}`);
 }
 
-assertCoverSize(COVER_PATH);
+const coverParts = [
+  [COVER_FRONT_PATH, EXPECTED_COVER_PANEL_WIDTH_PT, EXPECTED_COVER_HEIGHT_PT],
+  [COVER_BACK_PATH, EXPECTED_COVER_PANEL_WIDTH_PT, EXPECTED_COVER_HEIGHT_PT],
+  [COVER_SPINE_PATH, EXPECTED_COVER_SPINE_WIDTH_PT, EXPECTED_COVER_HEIGHT_PT],
+];
+
+for (const [path, expectedWidth, expectedHeight] of coverParts) {
+  assertPdfSize(path, expectedWidth, expectedHeight);
+  assertFlattenedCover(path);
+  assertCoverImagePpi(path);
+  assertPdfx4(path);
+}
 assertDisplayFontEmbedded(INTERIOR_PATH);
-assertDisplayFontEmbedded(COVER_PATH);
+if (COVER_SOURCE_PATH && existsSync(COVER_SOURCE_PATH)) {
+  assertDisplayFontEmbedded(COVER_SOURCE_PATH);
+}
 assertPdfx4(INTERIOR_PATH);
-assertPdfx4(COVER_PATH);
 
 if (!process.exitCode) {
   console.log('verify:print passed');
