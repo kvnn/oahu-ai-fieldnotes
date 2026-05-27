@@ -12,8 +12,8 @@ from typing import Any
 class ProductionMargins:
     top: str = "0.5in"
     bottom: str = "0.75in"
-    inside: str = "0.625in"
-    outside: str = "0.875in"
+    inside: str = "0.875in"
+    outside: str = "0.625in"
 
 
 PRODUCTION_MARGINS = ProductionMargins()

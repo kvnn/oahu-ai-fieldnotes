@@ -73,18 +73,20 @@ const html = `<!doctype html>
   <body>
     <main class="cover-wrap" aria-label="O'ahu A.I. Field Notes cover wrap">
       <section class="cover-panel cover-back" aria-label="Back cover">
-        <p class="cover-back-mark">O'AHU A.I. FIELD NOTES</p>
-        <p class="cover-back-symbol">&oplus;</p>
+        <p class="cover-back-mark">O'ahu A.I. | FIELD NOTES | Voume 01</p>
+        <p class="cover-back-symbol"></p>
       </section>
       <section class="cover-spine" aria-label="Spine">
-        <p class="cover-spine-title">O'ahu A.I. | Field Notes | Volume 01</p>
+        <p class="cover-spine-title">Oahu.AI | Field Notes | Volume 01</p>
       </section>
       <section class="cover-panel cover-front" aria-label="Front cover">
+      <!--
         <header class="cover-topline">
           <span>O'AHU A.I.</span>
           <span>VOL. 01</span>
         </header>
         <div class="cover-rule"></div>
+      -->
         ${coverFrontMedia}
         <div class="cover-title-block">
           <h1>O'ahu A.I.</h1>
@@ -93,8 +95,7 @@ const html = `<!doctype html>
           <p class="cover-tagline"></p>
         </div>
         <footer class="cover-footer">
-          <span>EDITION / 200</span>
-          <span>&oplus;</span>
+
         </footer>
       </section>
     </main>

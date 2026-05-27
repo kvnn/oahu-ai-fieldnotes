@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -12,6 +12,10 @@ const COVER_BLEED_PT = 9.36;
 const COVER_PANEL_TRIM_WIDTH_PT = 396;
 const COVER_PANEL_WIDTH_PT = COVER_PANEL_TRIM_WIDTH_PT + COVER_BLEED_PT * 2;
 const COVER_SPINE_WIDTH_PT = 12.96;
+const COVER_BLEED_PX = 39;
+const COVER_PANEL_TRIM_WIDTH_PX = 1650;
+const COVER_PANEL_WIDTH_PX = 1728;
+const COVER_HEIGHT_PX = 2628;
 const FLATTEN_DPI = 300;
 const LEGACY_FULL_SPREAD_UPLOAD_PATH = 'dist/01_oahu-ai-field-notes_front-back-spine-cover.pdf';
 
@@ -27,7 +31,13 @@ async function flattenCover() {
         path: printPaths.coverFront,
         rasterPrefix: join(workDir, 'front'),
         width: COVER_PANEL_WIDTH_PT,
-        pixelCrop: { x: 1704, y: 0, width: 1728, height: 2628 },
+        pixelCrop: { x: 1704, y: 0, width: COVER_PANEL_WIDTH_PX, height: COVER_HEIGHT_PX },
+        // Keep panel bleed dimensions, but do not carry spine artwork into the front upload.
+        bindingBleedPatch: {
+          sourceX: COVER_BLEED_PX,
+          targetX: 0,
+          width: COVER_BLEED_PX,
+        },
         trimBox: {
           x: COVER_BLEED_PT,
           y: COVER_BLEED_PT,
@@ -40,7 +50,13 @@ async function flattenCover() {
         path: printPaths.coverBack,
         rasterPrefix: join(workDir, 'back'),
         width: COVER_PANEL_WIDTH_PT,
-        pixelCrop: { x: 0, y: 0, width: 1728, height: 2628 },
+        pixelCrop: { x: 0, y: 0, width: COVER_PANEL_WIDTH_PX, height: COVER_HEIGHT_PX },
+        // Keep panel bleed dimensions, but do not carry spine artwork into the back upload.
+        bindingBleedPatch: {
+          sourceX: COVER_PANEL_TRIM_WIDTH_PX,
+          targetX: COVER_BLEED_PX + COVER_PANEL_TRIM_WIDTH_PX,
+          width: COVER_BLEED_PX,
+        },
         trimBox: {
           x: COVER_BLEED_PT,
           y: COVER_BLEED_PT,
@@ -53,7 +69,7 @@ async function flattenCover() {
         path: printPaths.coverSpine,
         rasterPrefix: join(workDir, 'spine'),
         width: COVER_SPINE_WIDTH_PT,
-        pixelCrop: { x: 1689, y: 0, width: 54, height: 2628 },
+        pixelCrop: { x: 1689, y: 0, width: 54, height: COVER_HEIGHT_PX },
         trimBox: {
           x: 0,
           y: COVER_BLEED_PT,
@@ -64,7 +80,10 @@ async function flattenCover() {
     ];
 
     for (const part of coverParts) {
-      const rasterPath = renderRasterPart(part);
+      let rasterPath = renderRasterPart(part);
+      if (part.bindingBleedPatch) {
+        rasterPath = patchBindingBleed(part, rasterPath);
+      }
       await writeCoverPart(part, readFileSync(rasterPath));
       console.log(`flattened ${part.label.toLowerCase()} output: ${part.path}`);
     }
@@ -98,6 +117,29 @@ function renderRasterPart(part) {
     { stdio: 'inherit' },
   );
   return `${part.rasterPrefix}.png`;
+}
+
+function patchBindingBleed(part, rasterPath) {
+  const patchedPath = `${part.rasterPrefix}-patched.png`;
+  execFileSync(
+    'magick',
+    [
+      rasterPath,
+      '(',
+      rasterPath,
+      '-crop',
+      `${part.bindingBleedPatch.width}x${COVER_HEIGHT_PX}+${part.bindingBleedPatch.sourceX}+0`,
+      '+repage',
+      ')',
+      '-geometry',
+      `+${part.bindingBleedPatch.targetX}+0`,
+      '-composite',
+      patchedPath,
+    ],
+    { stdio: 'inherit' },
+  );
+  renameSync(patchedPath, rasterPath);
+  return rasterPath;
 }
 
 async function writeCoverPart(part, rasterBytes) {

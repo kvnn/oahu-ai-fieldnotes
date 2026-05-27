@@ -59,7 +59,7 @@
   size: 5.5in 8.5in;
   marks: crop;
   bleed: 0.13in;
-  margin: 0.5in 0.875in 0.75in 0.625in;
+  margin: 0.5in 0.625in 0.75in 0.875in;
   background: #f1e9d4;
 
   @top-left {
@@ -90,7 +90,7 @@
 }
 
 @page :left {
-  margin: 0.5in 0.625in 0.75in 0.875in;
+  margin: 0.5in 0.875in 0.75in 0.625in;
 
   @top-left {
     content: counter(page);
@@ -102,7 +102,7 @@
 }
 
 @page :right {
-  margin: 0.5in 0.875in 0.75in 0.625in;
+  margin: 0.5in 0.625in 0.75in 0.875in;
 
   @top-left {
     content: string(chapter-title);
@@ -150,13 +150,44 @@
 }
 
 @page body {
-  margin: 0.5in 0.875in 0.75in 0.625in;
+  margin: 0.5in 0.625in 0.75in 0.875in;
   background: #f1e9d4;
 }
 
-@page front-matter {
+@page body:left {
   margin: 0.5in 0.875in 0.75in 0.625in;
+}
+
+@page body:right {
+  margin: 0.5in 0.625in 0.75in 0.875in;
+}
+
+@page front-matter {
+  margin: 0.5in 0.625in 0.75in 0.875in;
   background: #f1e9d4;
+}
+
+@page front-matter:left {
+  margin: 0.5in 0.875in 0.75in 0.625in;
+}
+
+@page front-matter:right {
+  margin: 0.5in 0.625in 0.75in 0.875in;
+}
+
+@page :first {
+  @top-left {
+    content: "";
+  }
+
+  @bottom-center {
+    content: "© 2026 Kevin Riggen | kevin@oahu.ai";
+    font-family: var(--mono);
+    font-size: 6.6pt;
+    letter-spacing: 0.16em;
+    text-transform: none;
+    color: var(--muted-label);
+  }
 }
 
 @page divider {
@@ -166,8 +197,16 @@
 }
 
 @page closing {
-  margin: 0.5in 0.875in 0.75in 0.625in;
+  margin: 0.5in 0.625in 0.75in 0.875in;
   background: #f1e9d4;
+}
+
+@page closing:left {
+  margin: 0.5in 0.875in 0.75in 0.625in;
+}
+
+@page closing:right {
+  margin: 0.5in 0.625in 0.75in 0.875in;
 }
 
 body {

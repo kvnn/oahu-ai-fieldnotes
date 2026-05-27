@@ -211,7 +211,7 @@ body {
 }
 
 .cover-title-block h1 {
-  margin: 0;
+  margin: 0 0 0 -8px;
   color: var(--cover-accent);
   font-family: var(--display-serif);
   font-size: 69pt;
