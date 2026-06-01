@@ -23,6 +23,7 @@ from fieldnotes.production import (
     INTERIOR_PAGE_TARGET,
     TRIM_SIZE,
     cover_output_path,
+    download_output_path,
     interior_output_path,
     print_build_id,
     print_output_paths,
@@ -68,7 +69,7 @@ def render_commands(
         return [(proof_command, proof_output_path())]
 
     if profile == "print":
-        return [(["npm", "run", "build:print"], interior_output_path(build_id))]
+        return [(["npm", "run", "build:print"], download_output_path(build_id))]
     raise ValueError(f"unknown render profile: {profile}")
 
 
@@ -87,12 +88,16 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
     upload_paths = (
         print_output_paths(build_id)
         if build_id is not None
-        else {"cover": cover_output_path(), "interior": interior_output_path()}
+        else {
+            "cover": cover_output_path(),
+            "interior": interior_output_path(),
+            "download": download_output_path(),
+        }
     )
     output_path = {
         "draft": Path("dist/oahu-ai-field-notes.pdf"),
         "proof": proof_output_path(),
-        "print": upload_paths["interior"],
+        "print": upload_paths["download"],
     }[profile]
     metadata = render_profile_metadata(profile)
     metadata.update(
@@ -100,14 +105,15 @@ def render_book_pdf(root: Path, profile: RenderProfile) -> BookPdfRenderResult:
             "commands": [],
             "returncode": None,
             "profile_note": (
-                "Print output is built for Mixam upload as single pages with bleed, "
-                "CMYK mapping, and no crop marks."
+                "Print output emits the separate Mixam upload PDFs plus a combined "
+                "trim-box final PDF for download."
             ),
             "trim_size": TRIM_SIZE,
             "bleed": BLEED,
             "print_build_id": build_id,
             "cover_output_path": str(upload_paths["cover"]),
             "interior_output_path": str(upload_paths["interior"]),
+            "download_output_path": str(upload_paths["download"]),
             "output_paths": {key: str(path) for key, path in upload_paths.items()},
             "cover_trim_size": COVER_TRIM_SIZE,
             "cover_spine_width": COVER_SPINE_WIDTH,
@@ -168,7 +174,7 @@ def render_database_book_pdf(
     relative_markdown_path = markdown_path.relative_to(root)
     build_id = print_build_id()
     upload_paths = print_output_paths(build_id)
-    output_path = upload_paths["interior"]
+    output_path = upload_paths["download"]
     command = ["npm", "run", "build:print"]
     metadata = render_profile_metadata("print")
     metadata.update(
@@ -185,11 +191,12 @@ def render_database_book_pdf(
             "print_build_id": build_id,
             "cover_output_path": str(upload_paths["cover"]),
             "interior_output_path": str(upload_paths["interior"]),
+            "download_output_path": str(upload_paths["download"]),
             "output_paths": {key: str(path) for key, path in upload_paths.items()},
             "profile_note": (
                 "Print output is built from the database-compiled manuscript shown "
-                "in the Book Markdown drawer and emitted as separate Mixam cover "
-                "and interior upload PDFs."
+                "in the Book Markdown drawer and emitted as separate Mixam upload "
+                "PDFs plus a combined final PDF for download."
             ),
             "trim_size": TRIM_SIZE,
             "bleed": BLEED,

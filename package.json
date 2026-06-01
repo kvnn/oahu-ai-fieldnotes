@@ -13,6 +13,7 @@
     "build:flatten-cover": "node scripts/flatten-cover.mjs",
     "build:interior": "vivliostyle build --config vivliostyle.database-print.config.js",
     "build:flatten-interior": "node scripts/flatten-interior.mjs",
+    "build:download-pdf": "node scripts/build-download-pdf.mjs",
     "build:print": "node scripts/build-print.mjs",
     "verify:print": "node scripts/verify-print.mjs",
     "build:print:manuscript": "vivliostyle build --config vivliostyle.print.config.js",

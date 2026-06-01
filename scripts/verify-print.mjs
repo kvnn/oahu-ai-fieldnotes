@@ -7,6 +7,7 @@ const DEFAULT_COVER_BACK_PATH = 'dist/02_oahu-ai-field-notes_outer-back-cover.pd
 const DEFAULT_COVER_SPINE_PATH = 'dist/03_oahu-ai-field-notes_spine.pdf';
 const DEFAULT_INTERIOR_PATH = 'dist/04_oahu-ai-field-notes_inner-pages.pdf';
 const DEFAULT_FLATTENED_INTERIOR_PATH = 'dist/04_oahu-ai-field-notes_inner-pages_flattened.pdf';
+const DEFAULT_DOWNLOAD_PATH = 'dist/oahu-ai-field-notes_final-download.pdf';
 const EXPECTED_INTERIOR_PAGES = 68;
 const EXPECTED_INTERIOR_WIDTH_PT = 414.72;
 const EXPECTED_INTERIOR_HEIGHT_PT = 630.72;
@@ -24,6 +25,7 @@ function printOutputPaths() {
       coverSpine: DEFAULT_COVER_SPINE_PATH,
       coverSource: null,
       interiorFlattened: DEFAULT_FLATTENED_INTERIOR_PATH,
+      download: DEFAULT_DOWNLOAD_PATH,
     };
   }
   const manifest = JSON.parse(readFileSync(PRINT_BUILD_MANIFEST, 'utf8'));
@@ -34,6 +36,7 @@ function printOutputPaths() {
     coverSpine: manifest.outputPaths?.coverSpine || DEFAULT_COVER_SPINE_PATH,
     coverSource: manifest.outputPaths?.coverSource || null,
     interiorFlattened: manifest.outputPaths?.interiorFlattened || DEFAULT_FLATTENED_INTERIOR_PATH,
+    download: manifest.outputPaths?.download || DEFAULT_DOWNLOAD_PATH,
   };
 }
 
@@ -44,6 +47,7 @@ const {
   coverSpine: COVER_SPINE_PATH,
   coverSource: COVER_SOURCE_PATH,
   interiorFlattened: INTERIOR_FLATTENED_PATH,
+  download: DOWNLOAD_PATH,
 } = printOutputPaths();
 
 function run(command, args) {
@@ -184,6 +188,14 @@ if (INTERIOR_FLATTENED_PATH && existsSync(INTERIOR_FLATTENED_PATH)) {
   assertPdfSize(INTERIOR_FLATTENED_PATH, EXPECTED_INTERIOR_WIDTH_PT, EXPECTED_INTERIOR_HEIGHT_PT);
   assertNoTransparencyMarkers(INTERIOR_FLATTENED_PATH);
   assertFlattenedImagePpi(INTERIOR_FLATTENED_PATH, flattenedPages);
+}
+if (DOWNLOAD_PATH && existsSync(DOWNLOAD_PATH)) {
+  const downloadPages = pageCount(DOWNLOAD_PATH);
+  if (downloadPages !== pages + 2) {
+    fail(`${DOWNLOAD_PATH} has ${downloadPages} pages; expected ${pages + 2}`);
+  }
+} else {
+  fail(`${DOWNLOAD_PATH} is missing`);
 }
 assertPdfx4(INTERIOR_PATH);
 

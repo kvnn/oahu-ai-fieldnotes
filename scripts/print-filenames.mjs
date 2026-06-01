@@ -9,6 +9,7 @@ export const UPLOAD_COVER_BACK_FILE = `02_${BOOK_OUTPUT_FILE_STEM}_outer-back-co
 export const UPLOAD_COVER_SPINE_FILE = `03_${BOOK_OUTPUT_FILE_STEM}_spine.pdf`;
 export const UPLOAD_INTERIOR_FILE = `04_${BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf`;
 export const FLATTENED_INTERIOR_FILE = `04_${BOOK_OUTPUT_FILE_STEM}_inner-pages_flattened.pdf`;
+export const FINAL_DOWNLOAD_FILE = `${BOOK_OUTPUT_FILE_STEM}_final-download.pdf`;
 export const SOURCE_COVER_FILE = `source_${BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf`;
 
 function pad(value) {
@@ -38,6 +39,7 @@ export function printOutputPaths(buildId = printBuildId()) {
     coverSpine: `dist/${UPLOAD_COVER_SPINE_FILE}`,
     interior: `dist/${UPLOAD_INTERIOR_FILE}`,
     interiorFlattened: `dist/${FLATTENED_INTERIOR_FILE}`,
+    download: `dist/${FINAL_DOWNLOAD_FILE}`,
   };
 }
 

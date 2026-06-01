@@ -86,7 +86,12 @@ from fieldnotes.illustrations import (
     opener_motif_for_slug,
     save_illustration_manifest,
 )
-from fieldnotes.production import cover_output_path, mixam_page_count_profile, print_output_path
+from fieldnotes.production import (
+    cover_output_path,
+    mixam_page_count_profile,
+    print_output_path,
+    print_output_paths,
+)
 from fieldnotes.rendering import (
     record_book_pdf_render,
     render_book_pdf,
@@ -2459,20 +2464,23 @@ def _final_pdf_record_by_id(
 def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
     if record is None:
         output_path = str(print_output_path())
-        cover_path = str(cover_output_path())
+        output_paths = {key: str(path) for key, path in print_output_paths().items()}
+        cover_path = output_paths.get("cover", str(cover_output_path()))
+        interior_path = output_paths.get("interior", output_path)
         return {
             "profile": FINAL_PDF_PROFILE,
             "status": "missing",
             "output_path": output_path,
             "cover_output_path": cover_path,
-            "interior_output_path": output_path,
-            "output_paths": {"cover": cover_path, "interior": output_path},
+            "interior_output_path": interior_path,
+            "download_output_path": output_path,
+            "output_paths": output_paths,
             "download_url": None,
             "rendered_at": None,
             "returncode": None,
             "error": None,
             "logs_excerpt": None,
-            "pdf_standard_target": "Mixam PDF/X-4 upload pair",
+            "pdf_standard_target": "Mixam PDF/X-4 upload set plus final download PDF",
             "source": "database",
             "generated_markdown_path": None,
             "generated_cover_path": None,
@@ -2488,6 +2496,7 @@ def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
     download_url = f"/api/book-text/final-pdf/file?render_id={record.id}"
     cover_output = metadata.get("cover_output_path") or str(cover_output_path())
     interior_output = metadata.get("interior_output_path") or record.output_path
+    download_output = metadata.get("download_output_path") or record.output_path
     return {
         "id": str(record.id),
         "profile": metadata.get("profile") or FINAL_PDF_PROFILE,
@@ -2495,16 +2504,24 @@ def _final_pdf_payload(root: Path, record: RenderedOutput | None) -> dict:
         "output_path": record.output_path,
         "cover_output_path": cover_output,
         "interior_output_path": interior_output,
+        "download_output_path": download_output,
         "output_paths": metadata.get(
             "output_paths",
-            {"cover": cover_output, "interior": interior_output},
+            {
+                "cover": cover_output,
+                "interior": interior_output,
+                "download": download_output,
+            },
         ),
         "download_url": download_url if succeeded and file_exists else None,
         "rendered_at": record.rendered_at.isoformat() if record.rendered_at else None,
         "returncode": metadata.get("returncode"),
         "error": metadata.get("error"),
         "logs_excerpt": _text_tail(record.build_logs or metadata.get("error")),
-        "pdf_standard_target": metadata.get("pdf_standard_target", "Mixam PDF/X-4 upload pair"),
+        "pdf_standard_target": metadata.get(
+            "pdf_standard_target",
+            "Mixam PDF/X-4 upload set plus final download PDF",
+        ),
         "source": metadata.get("source", "database"),
         "generated_markdown_path": metadata.get("generated_markdown_path"),
         "generated_cover_path": metadata.get("generated_cover_path"),

@@ -28,6 +28,7 @@ UPLOAD_COVER_BACK_FILE = f"02_{BOOK_OUTPUT_FILE_STEM}_outer-back-cover.pdf"
 UPLOAD_COVER_SPINE_FILE = f"03_{BOOK_OUTPUT_FILE_STEM}_spine.pdf"
 UPLOAD_INTERIOR_FILE = f"04_{BOOK_OUTPUT_FILE_STEM}_inner-pages.pdf"
 FLATTENED_INTERIOR_FILE = f"04_{BOOK_OUTPUT_FILE_STEM}_inner-pages_flattened.pdf"
+FINAL_DOWNLOAD_FILE = f"{BOOK_OUTPUT_FILE_STEM}_final-download.pdf"
 SOURCE_COVER_FILE = f"source_{BOOK_OUTPUT_FILE_STEM}_front-back-spine-cover.pdf"
 
 COLOR_SWATCHES: dict[str, dict[str, Any]] = {
@@ -163,7 +164,7 @@ def render_profile_metadata(profile: str) -> dict[str, Any]:
         "margins": asdict(PRODUCTION_MARGINS),
         "colors": COLOR_SWATCHES,
         "pdf_standard_target": (
-            "Mixam PDF/X-4 upload pair: separate cover and interior PDFs"
+            "Mixam PDF/X-4 upload set plus final download PDF"
             if profile == "print"
             else "draft/proof"
         ),
@@ -174,8 +175,8 @@ def proof_output_path() -> Path:
     return Path("dist/oahu-ai-field-notes-proof.pdf")
 
 
-def print_output_path() -> Path:
-    return interior_output_path()
+def print_output_path(build_id: str | None = None) -> Path:
+    return download_output_path(build_id)
 
 
 def short_datetime_stamp(now: datetime | None = None) -> str:
@@ -215,7 +216,11 @@ def interior_flattened_output_path(build_id: str | None = None) -> Path:
     return Path(f"dist/{FLATTENED_INTERIOR_FILE}")
 
 
-def print_output_paths(build_id: str) -> dict[str, Path]:
+def download_output_path(build_id: str | None = None) -> Path:
+    return Path(f"dist/{FINAL_DOWNLOAD_FILE}")
+
+
+def print_output_paths(build_id: str | None = None) -> dict[str, Path]:
     return {
         "cover_source": cover_source_output_path(build_id),
         "cover_front": cover_front_output_path(build_id),
@@ -224,4 +229,5 @@ def print_output_paths(build_id: str) -> dict[str, Path]:
         "cover": cover_output_path(build_id),
         "interior": interior_output_path(build_id),
         "interior_flattened": interior_flattened_output_path(build_id),
+        "download": download_output_path(build_id),
     }
