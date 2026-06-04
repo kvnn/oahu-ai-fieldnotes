@@ -1,0 +1,49 @@
+{
+  "id": "field-notes-essay",
+  "name": "Field Notes Essay",
+  "subtitle": "Scene-grounded essays for builder-readers",
+  "description": "A reusable field-note book profile: concrete scenes, durable distinctions, aphoristic titles, and source-grounded prose.",
+  "defaultVolumeTitle": "Untitled Field Notes",
+  "defaultVolumeSubtitle": "Vol. 1",
+  "writingSystem": "Write for technically curious builder-readers. Begin from a real artifact, scene, interface, failure, output, decision, or confusion. Keep source grounding mostly invisible in the prose. Make every paragraph reveal a distinction, compress an experience, sharpen a term, complicate an assumption, or move toward a usable idea.",
+  "voiceRules": [
+    "Concrete, observant, exact, alive.",
+    "Use simple words when they preserve meaning and precise technical terms when needed.",
+    "Avoid generic futurism, hype cadence, tutorial drone, and bland productivity claims.",
+    "Welcome tension and title-level turns.",
+    "Let place-awareness recur subtly when relevant rather than forcing a local section."
+  ],
+  "chapterForms": [
+    "scene_to_principle",
+    "concept_first",
+    "notebook_mosaic"
+  ],
+  "visualCadence": "Aim for roughly two visual pages per chapter. Images should amplify meaning first and act as evidence artifacts second.",
+  "rubric": [
+    "clarity",
+    "usefulness",
+    "specificity",
+    "grounding",
+    "opinion strength",
+    "local or place resonance",
+    "visual fit",
+    "print rhythm"
+  ],
+  "starterChapters": [
+    {
+      "title": "What The Work Remembers",
+      "subtitle": "Sources, scenes, and the book before the book",
+      "form": "scene_to_principle",
+      "thesis": "A book becomes easier to write when the source trail is treated as part of the instrument, not as backstage debris.",
+      "body": "# What The Work Remembers\n\n<p class=\"chapter-subtitle\">Sources, scenes, and the book before the book</p>\n\nStart with the artifact in front of you: a notebook page, a screenshot, a command log, a calendar block, a draft that failed in an interesting way.\n\nThe point is not to cite everything. The point is to let the work remember enough that prose can become precise without becoming procedural.\n\nA field note turns source material into a shape the reader can use."
+    },
+    {
+      "title": "The Draft Is A Workbench",
+      "subtitle": "Versioned prose, visible constraints, and the next useful move",
+      "form": "concept_first",
+      "thesis": "A draft is not a document state; it is a working surface where constraints, evidence, and voice can meet.",
+      "body": "# The Draft Is A Workbench\n\n<p class=\"chapter-subtitle\">Versioned prose, visible constraints, and the next useful move</p>\n\nThe useful draft is rarely the cleanest one. It is the one with enough structure to be changed without losing the reason it exists.\n\nVersioning matters because a chapter is not only text. It is a trail of decisions."
+    }
+  ]
+}
+

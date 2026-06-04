@@ -1,0 +1,36 @@
+{
+  "id": "blank-builder-book",
+  "name": "Blank Builder Book",
+  "subtitle": "A minimal profile for custom nonfiction",
+  "description": "A minimal book profile with only lightweight voice and chapter defaults.",
+  "defaultVolumeTitle": "Untitled Book",
+  "defaultVolumeSubtitle": "Vol. 1",
+  "writingSystem": "Write clearly from concrete evidence toward reusable ideas. Keep the reader oriented and keep the prose specific.",
+  "voiceRules": [
+    "Use concrete nouns and active verbs.",
+    "Keep claims tied to scenes, examples, or artifacts.",
+    "Prefer useful distinctions over broad declarations."
+  ],
+  "chapterForms": [
+    "scene_to_principle",
+    "concept_first"
+  ],
+  "visualCadence": "Use visuals when they make an idea easier to see.",
+  "rubric": [
+    "clarity",
+    "specificity",
+    "usefulness",
+    "grounding",
+    "print rhythm"
+  ],
+  "starterChapters": [
+    {
+      "title": "Untitled Chapter",
+      "subtitle": "",
+      "form": "scene_to_principle",
+      "thesis": "",
+      "body": "# Untitled Chapter\n\nBegin from the artifact, scene, question, or constraint that makes this chapter necessary."
+    }
+  ]
+}
+

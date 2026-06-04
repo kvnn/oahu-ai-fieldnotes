@@ -1,0 +1,40 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "title",
+    "subtitle",
+    "thesis",
+    "chapter_form",
+    "source_cluster",
+    "page_rhythm",
+    "visual_slots",
+    "key_claims"
+  ],
+  "properties": {
+    "title": {"type": "string"},
+    "subtitle": {"type": "string"},
+    "thesis": {"type": "string"},
+    "chapter_form": {
+      "type": "string",
+      "enum": ["scene_to_principle", "concept_first", "notebook_mosaic"]
+    },
+    "source_cluster": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "page_rhythm": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "visual_slots": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "key_claims": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}
+

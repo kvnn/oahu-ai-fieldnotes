@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "summary",
+    "scores",
+    "revision_priorities"
+  ],
+  "properties": {
+    "summary": {"type": "string"},
+    "scores": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "clarity",
+        "usefulness",
+        "specificity",
+        "grounding",
+        "opinion_strength",
+        "visual_fit",
+        "print_rhythm"
+      ],
+      "properties": {
+        "clarity": {"type": "number"},
+        "usefulness": {"type": "number"},
+        "specificity": {"type": "number"},
+        "grounding": {"type": "number"},
+        "opinion_strength": {"type": "number"},
+        "visual_fit": {"type": "number"},
+        "print_rhythm": {"type": "number"}
+      }
+    },
+    "revision_priorities": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  }
+}
+

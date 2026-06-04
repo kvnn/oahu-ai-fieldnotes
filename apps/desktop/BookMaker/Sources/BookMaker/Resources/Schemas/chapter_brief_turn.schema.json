@@ -1,0 +1,100 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "assistant_text",
+    "brief",
+    "change_summary"
+  ],
+  "properties": {
+    "assistant_text": {
+      "type": "string"
+    },
+    "brief": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "chapter_form",
+        "goal",
+        "reader",
+        "thesis",
+        "situation",
+        "constraint",
+        "build",
+        "pattern",
+        "field_note",
+        "next_build",
+        "source_cluster",
+        "visual_slots",
+        "success_criteria",
+        "open_questions",
+        "confidence_0_to_1"
+      ],
+      "properties": {
+        "chapter_form": {
+          "type": "string",
+          "enum": ["scene_to_principle", "concept_first", "notebook_mosaic"]
+        },
+        "goal": {
+          "type": "string"
+        },
+        "reader": {
+          "type": "string"
+        },
+        "thesis": {
+          "type": "string"
+        },
+        "situation": {
+          "type": "string"
+        },
+        "constraint": {
+          "type": "string"
+        },
+        "build": {
+          "type": "string"
+        },
+        "pattern": {
+          "type": "string"
+        },
+        "field_note": {
+          "type": "string"
+        },
+        "next_build": {
+          "type": "string"
+        },
+        "source_cluster": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "visual_slots": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "success_criteria": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence_0_to_1": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      }
+    },
+    "change_summary": {
+      "type": "string"
+    }
+  }
+}
