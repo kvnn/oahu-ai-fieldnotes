@@ -196,3 +196,104 @@ func chapterBriefTurnResultDecodesSnakeCase() throws {
     #expect(decoded.brief.confidence0To1 == 0.72)
     #expect(decoded.brief.openQuestions == ["Which source scenes belong here?"])
 }
+
+@Test
+func sourceRootResolverPrefersCurrentPackageDirectory() throws {
+    let root = try makeTemporaryDirectory(prefix: "bookmaker-source-root")
+    defer { try? FileManager.default.removeItem(at: root) }
+    try "test package".write(to: root.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
+
+    let resolved = BookMakerPathResolver.sourceRoot(currentDirectory: root, workspaceRoot: root.deletingLastPathComponent().path)
+    #expect(resolved == root.standardizedFileURL.path)
+}
+
+@Test
+func sourceRootResolverFindsNestedBookMakerPackage() throws {
+    let workspace = try makeTemporaryDirectory(prefix: "bookmaker-workspace-root")
+    defer { try? FileManager.default.removeItem(at: workspace) }
+    let nested = workspace.appendingPathComponent("apps/desktop/BookMaker", isDirectory: true)
+    try FileManager.default.createDirectory(at: nested, withIntermediateDirectories: true)
+    try "test package".write(to: nested.appendingPathComponent("Package.swift"), atomically: true, encoding: .utf8)
+
+    let unrelated = workspace.appendingPathComponent("notes", isDirectory: true)
+    try FileManager.default.createDirectory(at: unrelated, withIntermediateDirectories: true)
+    let resolved = BookMakerPathResolver.sourceRoot(currentDirectory: unrelated, workspaceRoot: workspace.path)
+    #expect(resolved == nested.standardizedFileURL.path)
+}
+
+@Test
+func shellCommandRunnerCapturesStdoutAndStderr() async throws {
+    let root = try makeTemporaryDirectory(prefix: "bookmaker-shell-output")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let runner = ShellCommandRunner()
+
+    let result = try await collectShellCommand(
+        runner.run(command: "printf 'hello'; printf 'warn' >&2", workingDirectory: root.path)
+    )
+
+    #expect(result.stdout.contains("hello"))
+    #expect(result.stderr.contains("warn"))
+    #expect(result.result?.status == .succeeded)
+    #expect(result.result?.exitCode == 0)
+}
+
+@Test
+func shellCommandRunnerReportsFailedExit() async throws {
+    let root = try makeTemporaryDirectory(prefix: "bookmaker-shell-failure")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let runner = ShellCommandRunner()
+
+    let result = try await collectShellCommand(
+        runner.run(command: "printf 'bad' >&2; exit 7", workingDirectory: root.path)
+    )
+
+    #expect(result.stderr.contains("bad"))
+    #expect(result.result?.status == .failed)
+    #expect(result.result?.exitCode == 7)
+}
+
+@Test
+func shellCommandRunnerCancelsActiveProcess() async throws {
+    let root = try makeTemporaryDirectory(prefix: "bookmaker-shell-cancel")
+    defer { try? FileManager.default.removeItem(at: root) }
+    let runner = ShellCommandRunner()
+
+    let task = Task {
+        try await collectShellCommand(runner.run(command: "sleep 2", workingDirectory: root.path))
+    }
+    try await Task.sleep(nanoseconds: 120_000_000)
+    runner.cancel()
+
+    let result = try await task.value
+    #expect(result.result?.status == .cancelled)
+}
+
+private func makeTemporaryDirectory(prefix: String) throws -> URL {
+    let url = FileManager.default.temporaryDirectory
+        .appendingPathComponent("\(prefix)-\(UUID().uuidString)", isDirectory: true)
+    try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+    return url
+}
+
+private func collectShellCommand(_ stream: AsyncThrowingStream<ShellCommandEvent, Error>) async throws -> (
+    stdout: String,
+    stderr: String,
+    result: TerminalRunResult?
+) {
+    var stdout = ""
+    var stderr = ""
+    var result: TerminalRunResult?
+    for try await event in stream {
+        switch event {
+        case .output(.stdout, let text):
+            stdout += text
+        case .output(.stderr, let text):
+            stderr += text
+        case .output(.system, _):
+            break
+        case .finished(let runResult):
+            result = runResult
+        }
+    }
+    return (stdout, stderr, result)
+}

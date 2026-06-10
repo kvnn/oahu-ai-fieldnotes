@@ -303,6 +303,78 @@ struct ChapterBriefTurnResult: Codable, Hashable {
     var changeSummary: String
 }
 
+enum TerminalRunStatus: String, Codable, Hashable, CaseIterable, Identifiable {
+    case idle
+    case running
+    case succeeded
+    case failed
+    case cancelled
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .idle:
+            "Idle"
+        case .running:
+            "Running"
+        case .succeeded:
+            "Succeeded"
+        case .failed:
+            "Failed"
+        case .cancelled:
+            "Cancelled"
+        }
+    }
+}
+
+enum TerminalOutputStream: String, Codable, Hashable {
+    case stdout
+    case stderr
+    case system
+
+    var label: String {
+        switch self {
+        case .stdout:
+            "out"
+        case .stderr:
+            "err"
+        case .system:
+            "sys"
+        }
+    }
+}
+
+enum TerminalWorkingDirectoryMode: String, Codable, Hashable {
+    case sourceRoot
+    case workspaceRoot
+    case custom
+}
+
+struct TerminalPreset: Identifiable, Hashable {
+    var id: String
+    var label: String
+    var command: String
+    var workingDirectoryMode: TerminalWorkingDirectoryMode
+}
+
+struct TerminalOutputChunk: Identifiable, Hashable {
+    var id = UUID()
+    var timestamp: String = DateCoding.string()
+    var stream: TerminalOutputStream
+    var text: String
+}
+
+struct TerminalRunResult: Hashable {
+    var status: TerminalRunStatus
+    var exitCode: Int32?
+}
+
+enum ShellCommandEvent: Hashable {
+    case output(TerminalOutputStream, String)
+    case finished(TerminalRunResult)
+}
+
 struct DraftPayload: Hashable {
     var draftId: UUID?
     var versionNumber: Int

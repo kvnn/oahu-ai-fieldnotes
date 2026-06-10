@@ -27,23 +27,40 @@ final class AppModel: ObservableObject {
     @Published var newBookName = ""
     @Published var newChapterTitle = ""
     @Published var newChapterSubtitle = ""
+    @Published var isTerminalPresented = false
+    @Published var selectedTerminalPresetId = "pwd"
+    @Published var terminalCommand = "pwd"
+    @Published var terminalWorkingDirectory = ""
+    @Published var terminalStatus: TerminalRunStatus = .idle
+    @Published var terminalExitCode: Int32?
+    @Published var terminalOutput: [TerminalOutputChunk] = []
 
     private let configStore: ConfigStore
     private let credentials: CredentialStore
+    private let shellRunner: ShellCommandRunner
     private var database: (any BookDatabase)?
     private var repository: BookRepository?
     private var briefRepository: ChapterBriefChatRepository?
     private var autosaveTask: Task<Void, Never>?
+    private var terminalTask: Task<Void, Never>?
 
     init(
         configStore: ConfigStore = ConfigStore(),
-        credentials: CredentialStore = KeychainCredentialStore()
+        credentials: CredentialStore = KeychainCredentialStore(),
+        shellRunner: ShellCommandRunner = ShellCommandRunner()
     ) {
         self.configStore = configStore
         self.config = configStore.config
         self.credentials = credentials
+        self.shellRunner = shellRunner
         self.templates = (try? TemplateStore().loadTemplates()) ?? []
         self.newBookName = "Untitled Book"
+        let firstPreset = terminalPresets.first
+        self.selectedTerminalPresetId = firstPreset?.id ?? "pwd"
+        self.terminalCommand = firstPreset?.command ?? "pwd"
+        self.terminalWorkingDirectory = firstPreset.map {
+            BookMakerPathResolver.workingDirectory(for: $0.workingDirectoryMode, workspaceRoot: config.workspaceRoot)
+        } ?? BookMakerPathResolver.sourceRoot(workspaceRoot: config.workspaceRoot)
         refreshAPIKeySource()
         isConfigPresented = config.databaseURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || apiKeySource == .missing
     }
@@ -54,6 +71,40 @@ final class AppModel: ObservableObject {
 
     var canUseWorkspace: Bool {
         repository != nil && selectedProject != nil
+    }
+
+    var terminalPresets: [TerminalPreset] {
+        [
+            TerminalPreset(id: "pwd", label: "pwd", command: "pwd", workingDirectoryMode: .sourceRoot),
+            TerminalPreset(id: "git-status", label: "Git Status", command: "git status --short", workingDirectoryMode: .workspaceRoot),
+            TerminalPreset(
+                id: "bookmaker-test",
+                label: "BookMaker Tests",
+                command: "CLANG_MODULE_CACHE_PATH=/private/tmp/bookmaker-clang-cache swift test",
+                workingDirectoryMode: .sourceRoot
+            ),
+            TerminalPreset(
+                id: "bookmaker-build",
+                label: "BookMaker Build",
+                command: "CLANG_MODULE_CACHE_PATH=/private/tmp/bookmaker-clang-cache swift build",
+                workingDirectoryMode: .sourceRoot
+            ),
+            TerminalPreset(id: "render", label: "Render Book", command: config.renderCommand, workingDirectoryMode: .workspaceRoot)
+        ]
+    }
+
+    var canRunTerminalCommand: Bool {
+        terminalStatus != .running &&
+            terminalCommand.nilIfBlank != nil &&
+            terminalWorkingDirectory.nilIfBlank != nil
+    }
+
+    var terminalStatusSummary: String {
+        if let terminalExitCode {
+            "\(terminalStatus.label) (\(terminalExitCode))"
+        } else {
+            terminalStatus.label
+        }
     }
 
     func refreshAPIKeySource() {
@@ -73,6 +124,7 @@ final class AppModel: ObservableObject {
             if let apiKey {
                 try credentials.saveAPIKey(apiKey)
             }
+            refreshSelectedTerminalPreset()
             refreshAPIKeySource()
             isConfigPresented = false
             await connect()
@@ -365,6 +417,70 @@ final class AppModel: ObservableObject {
         briefComposerMediaRefs.removeAll { $0 == ref }
     }
 
+    func applyTerminalPreset(id: String) {
+        selectedTerminalPresetId = id
+        guard let preset = terminalPresets.first(where: { $0.id == id }) else { return }
+        terminalCommand = preset.command
+        terminalWorkingDirectory = BookMakerPathResolver.workingDirectory(
+            for: preset.workingDirectoryMode,
+            workspaceRoot: config.workspaceRoot,
+            custom: terminalWorkingDirectory
+        )
+    }
+
+    func runTerminalCommand() {
+        guard terminalStatus != .running else { return }
+        guard let command = terminalCommand.nilIfBlank else { return }
+        let workingDirectory = BookMakerPathResolver.workspaceRoot(terminalWorkingDirectory.nilIfBlank ?? config.workspaceRoot)
+        terminalCommand = command
+        terminalWorkingDirectory = workingDirectory
+        isTerminalPresented = true
+        terminalStatus = .running
+        terminalExitCode = nil
+        appendTerminalOutput(.system, "$ \(command)\n")
+        appendTerminalOutput(.system, "cd \(workingDirectory)\n")
+        statusMessage = "Terminal running"
+
+        terminalTask = Task { [weak self] in
+            guard let self else { return }
+            do {
+                for try await event in shellRunner.run(command: command, workingDirectory: workingDirectory) {
+                    handleTerminalEvent(event)
+                }
+            } catch {
+                terminalStatus = .failed
+                terminalExitCode = nil
+                terminalTask = nil
+                appendTerminalOutput(.stderr, "\(error.localizedDescription)\n")
+                statusMessage = "Terminal failed"
+            }
+        }
+    }
+
+    func cancelTerminalCommand() {
+        guard terminalStatus == .running else { return }
+        appendTerminalOutput(.system, "Stopping command...\n")
+        statusMessage = "Stopping terminal command"
+        shellRunner.cancel()
+    }
+
+    func clearTerminalOutput() {
+        terminalOutput = []
+        if terminalStatus != .running {
+            terminalExitCode = nil
+            terminalStatus = .idle
+        }
+    }
+
+    func openExternalTerminal() {
+        do {
+            try ShellCommandRunner.openExternalTerminal(at: terminalWorkingDirectory.nilIfBlank ?? config.workspaceRoot)
+            statusMessage = "Opened Terminal"
+        } catch {
+            report(error)
+        }
+    }
+
     func compileBook(includeDrafts: Bool = true) async {
         guard let repository, let selectedProject else { return }
         await runBusy("Compiling") {
@@ -423,6 +539,39 @@ final class AppModel: ObservableObject {
     private func report(_ error: Error) {
         errorMessage = error.localizedDescription
         statusMessage = "Error"
+    }
+
+    private func refreshSelectedTerminalPreset() {
+        if terminalPresets.contains(where: { $0.id == selectedTerminalPresetId }) {
+            applyTerminalPreset(id: selectedTerminalPresetId)
+        } else if let firstPreset = terminalPresets.first {
+            applyTerminalPreset(id: firstPreset.id)
+        }
+    }
+
+    private func handleTerminalEvent(_ event: ShellCommandEvent) {
+        switch event {
+        case .output(let stream, let text):
+            appendTerminalOutput(stream, text)
+        case .finished(let result):
+            terminalStatus = result.status
+            terminalExitCode = result.exitCode
+            terminalTask = nil
+            statusMessage = "Terminal \(result.status.label.lowercased())"
+            if let exitCode = result.exitCode {
+                appendTerminalOutput(.system, "Exit \(exitCode): \(result.status.label)\n")
+            } else {
+                appendTerminalOutput(.system, "\(result.status.label)\n")
+            }
+        }
+    }
+
+    private func appendTerminalOutput(_ stream: TerminalOutputStream, _ text: String) {
+        guard !text.isEmpty else { return }
+        terminalOutput.append(TerminalOutputChunk(stream: stream, text: text))
+        if terminalOutput.count > 800 {
+            terminalOutput.removeFirst(terminalOutput.count - 800)
+        }
     }
 
     private func reloadSelectedChapterRecord(chapterId: UUID) async throws {

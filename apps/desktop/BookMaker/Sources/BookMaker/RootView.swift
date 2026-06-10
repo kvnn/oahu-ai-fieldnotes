@@ -245,6 +245,10 @@ struct RootView: View {
                     model.scheduleAutosave()
                 }
 
+            if model.isTerminalPresented {
+                terminalDrawer
+            }
+
             HStack {
                 Text(model.statusMessage)
                     .font(BookMakerType.interface(12))
@@ -254,6 +258,12 @@ struct RootView: View {
                     ProgressView()
                         .controlSize(.small)
                 }
+                Button {
+                    model.isTerminalPresented.toggle()
+                } label: {
+                    Label("Terminal", systemImage: "terminal")
+                }
+                .buttonStyle(SecondaryLightButtonStyle())
                 Button {
                     Task { await model.compileBook(includeDrafts: true) }
                 } label: { Label("Compile", systemImage: "doc.text") }
@@ -266,6 +276,114 @@ struct RootView: View {
         }
         .padding(16)
         .background(BookMakerColor.paperWell)
+    }
+
+    private var terminalDrawer: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 10) {
+                Label("Terminal", systemImage: "terminal")
+                    .font(BookMakerType.interface(12, weight: .semibold))
+                    .foregroundStyle(BookMakerColor.paper)
+
+                Text(model.terminalStatusSummary)
+                    .font(BookMakerType.mono(10, weight: .semibold))
+                    .foregroundStyle(terminalStatusColor(model.terminalStatus))
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(BookMakerColor.card, in: Capsule())
+
+                Spacer()
+
+                Picker("Preset", selection: Binding(
+                    get: { model.selectedTerminalPresetId },
+                    set: { model.applyTerminalPreset(id: $0) }
+                )) {
+                    ForEach(model.terminalPresets) { preset in
+                        Text(preset.label).tag(preset.id)
+                    }
+                }
+                .frame(width: 190)
+            }
+
+            HStack(spacing: 8) {
+                Text("cd")
+                    .font(BookMakerType.mono(11, weight: .semibold))
+                    .foregroundStyle(BookMakerColor.muted)
+                TextField("Working directory", text: $model.terminalWorkingDirectory)
+                    .font(BookMakerType.mono(11))
+                    .textFieldStyle(.roundedBorder)
+            }
+
+            HStack(spacing: 8) {
+                TextField("Command", text: $model.terminalCommand)
+                    .font(BookMakerType.mono(12))
+                    .textFieldStyle(.roundedBorder)
+                    .onSubmit {
+                        model.runTerminalCommand()
+                    }
+
+                Button {
+                    model.runTerminalCommand()
+                } label: {
+                    Label("Run", systemImage: "play.fill")
+                }
+                .buttonStyle(PrimaryButtonStyle())
+                .disabled(!model.canRunTerminalCommand)
+
+                Button {
+                    model.cancelTerminalCommand()
+                } label: {
+                    Label("Stop", systemImage: "stop.fill")
+                }
+                .buttonStyle(SecondaryDarkButtonStyle())
+                .disabled(model.terminalStatus != .running)
+
+                Button {
+                    model.clearTerminalOutput()
+                } label: {
+                    Label("Clear", systemImage: "trash")
+                }
+                .buttonStyle(SecondaryDarkButtonStyle())
+
+                Button {
+                    model.openExternalTerminal()
+                } label: {
+                    Label("Open", systemImage: "arrow.up.forward.app")
+                }
+                .buttonStyle(SecondaryDarkButtonStyle())
+            }
+
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 3) {
+                        if model.terminalOutput.isEmpty {
+                            Text("No command output yet.")
+                                .font(BookMakerType.mono(11))
+                                .foregroundStyle(BookMakerColor.muted)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(8)
+                        } else {
+                            ForEach(model.terminalOutput) { chunk in
+                                terminalChunkRow(chunk)
+                                    .id(chunk.id)
+                            }
+                        }
+                    }
+                    .padding(8)
+                }
+                .frame(minHeight: 120, maxHeight: 210)
+                .background(BookMakerColor.room, in: RoundedRectangle(cornerRadius: 7))
+                .overlay(RoundedRectangle(cornerRadius: 7).stroke(BookMakerColor.cardSelected.opacity(0.6)))
+                .onChange(of: model.terminalOutput.last?.id) { _, id in
+                    if let id {
+                        proxy.scrollTo(id, anchor: .bottom)
+                    }
+                }
+            }
+        }
+        .padding(10)
+        .background(BookMakerColor.sidebar, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(RoundedRectangle(cornerRadius: 8).stroke(BookMakerColor.cardSelected.opacity(0.7)))
     }
 
     private var inspectorPane: some View {
@@ -608,6 +726,47 @@ struct RootView: View {
         return (ref as NSString).lastPathComponent.nilIfBlank ?? ref
     }
 
+    private func terminalChunkRow(_ chunk: TerminalOutputChunk) -> some View {
+        HStack(alignment: .top, spacing: 8) {
+            Text(chunk.stream.label)
+                .font(BookMakerType.mono(10, weight: .semibold))
+                .foregroundStyle(terminalStreamColor(chunk.stream))
+                .frame(width: 28, alignment: .leading)
+            Text(chunk.text)
+                .font(BookMakerType.mono(11))
+                .foregroundStyle(terminalStreamColor(chunk.stream))
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private func terminalStatusColor(_ status: TerminalRunStatus) -> Color {
+        switch status {
+        case .idle:
+            BookMakerColor.muted
+        case .running:
+            BookMakerColor.gold
+        case .succeeded:
+            BookMakerColor.olive
+        case .failed:
+            BookMakerColor.danger
+        case .cancelled:
+            BookMakerColor.muted
+        }
+    }
+
+    private func terminalStreamColor(_ stream: TerminalOutputStream) -> Color {
+        switch stream {
+        case .stdout:
+            BookMakerColor.paper
+        case .stderr:
+            BookMakerColor.danger
+        case .system:
+            BookMakerColor.gold
+        }
+    }
+
     private func statRow(_ label: String, _ value: Int) -> some View {
         HStack {
             Text(label)
@@ -718,6 +877,7 @@ enum BookMakerColor {
     static let muted = Color(red: 0.62, green: 0.58, blue: 0.50)
     static let gold = Color(red: 0.75, green: 0.57, blue: 0.22)
     static let olive = Color(red: 0.56, green: 0.65, blue: 0.40)
+    static let danger = Color(red: 0.86, green: 0.33, blue: 0.27)
 }
 
 enum BookMakerType {
@@ -773,6 +933,21 @@ struct SecondaryLightButtonStyle: ButtonStyle {
             .padding(.vertical, 6)
             .background(configuration.isPressed ? BookMakerColor.paperRule.opacity(0.55) : Color.clear, in: RoundedRectangle(cornerRadius: 7))
             .overlay(RoundedRectangle(cornerRadius: 7).stroke(BookMakerColor.paperRule))
+            .opacity(isEnabled ? 1 : 0.45)
+    }
+}
+
+struct SecondaryDarkButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .font(BookMakerType.interface(12, weight: .semibold))
+            .foregroundStyle(BookMakerColor.paper)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 6)
+            .background(configuration.isPressed ? BookMakerColor.cardSelected : BookMakerColor.card, in: RoundedRectangle(cornerRadius: 7))
+            .overlay(RoundedRectangle(cornerRadius: 7).stroke(BookMakerColor.cardSelected.opacity(0.7)))
             .opacity(isEnabled ? 1 : 0.45)
     }
 }
